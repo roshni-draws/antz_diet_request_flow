@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<!-- Screen 1 - Diet module entry (Modules home). Flow base screen. -->
+<!--
+  Antz tablet app, Diet flow, screen 1: the Modules home with the Diet and Kitchen tiles (Kitchen links to kitchen-home.html, not built yet).
+  Always bare: the screen fills the window and adapts by orientation.
+    portrait  (e.g. 810 x 1080): 2 columns
+    landscape (e.g. 1080 x 810): 3 columns
+  Self-contained: CSS, JS and the Diet icon are inline. Fonts load from Google Fonts (system font fallback offline).
+  ?view=list opens the list view.
+  Next screen in the flow: diet-home.html (linked from the Diet tile and row). diet-home.html now exists (screen 2).
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Diet Module</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    /* =========================================================
+       1. TOKENS
+       ========================================================= */
+    :root {
+      /* colour */
+      --sage: #DAE7DE;          /* page background */
+      --white: #FFFFFF;
+      --label: #425349;         /* body text, tile label */
+      --muted: #7A8684;         /* chevrons, secondary text */
+      --navy: #1F415B;          /* title, icons */
+      --green: #37BD69;         /* active view toggle */
+      --press: #F5FAF7;         /* pressed surface */
+      --ring: #1F515B;          /* focus ring */
+      /* elevation */
+      --shadow-rest: 0 1px 2px rgba(31,65,91,.04);
+      --shadow-hover: 0 2px 4px rgba(31,65,91,.06), 0 8px 18px rgba(31,65,91,.07);
+      /* motion */
+      --ease: cubic-bezier(.2,.7,.2,1);
+      /* layout */
+      --status-h: 24px;
+      --gut: 16px;
+      --radius: 12px;
+      /* module tile (portrait) */
+      --tile-h: 274px; --tile-icon: 75px; --tile-fs: 24px; --tile-gap: 17px;
+    }
+    @media (orientation: landscape) {
+      :root { --tile-h: 244px; --tile-icon: 67px; --tile-fs: 22px; --tile-gap: 15px; }
+    }
+
+    /* =========================================================
+       2. BASE
+       ========================================================= */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    html { -webkit-text-size-adjust: 100%; overflow-x: clip; }
+    body {
+      background: var(--sage); color: var(--label); overflow: hidden;
+      font-family: Inter, -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+    a { color: inherit; text-decoration: none; }
+    :focus { outline: none; }
+    :focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+    [hidden] { display: none !important; }
+    .icon-defs { position: absolute; width: 0; height: 0; overflow: hidden; }
+
+    /* =========================================================
+       3. SHELL  (status bar / header / scrolling main)
+       ========================================================= */
+    .app {
+      display: grid;
+      grid-template-rows: var(--status-h) auto 1fr;
+      height: 100dvh;
+    }
+    .main { overflow-y: auto; overflow-x: hidden; padding: 8px var(--gut) 32px; }
+
+    /* =========================================================
+       4. STATUS BAR
+       ========================================================= */
+    .status {
+      display: flex; align-items: center; justify-content: space-between; padding: 0 10px;
+      background: var(--white); color: #0E1512;
+      font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums;
+    }
+    .status__l { display: flex; gap: 10px; }
+    .status__l span + span { font-weight: 500; }
+    .status__r { display: flex; align-items: center; gap: 5px; }
+    .status svg { display: block; }
+
+    /* =========================================================
+       5. HEADER  (title + View toggle)
+       ========================================================= */
+    .head {
+      display: grid; grid-template-columns: 1fr auto; grid-template-areas: "title as" ". view";
+      align-items: center; row-gap: 4px; padding: 12px var(--gut) 8px;
+    }
+    .title { grid-area: title; font-size: 24px; line-height: 32px; font-weight: 500; color: var(--navy); letter-spacing: -.01em; }
+    .view { grid-area: view; display: flex; align-items: center; gap: 4px; }
+    /* Viewing as (same pill and sheet as diet-home / kitchen-home; role shared in localStorage 'antz.viewer') */
+    .asbtn { grid-area: as; display: inline-flex; align-items: center; gap: 8px; min-height: 44px; max-width: 60vw; padding: 0 12px; border-radius: 999px; border: 1px solid #C4CFC8; background: var(--white); color: var(--navy); font-size: 15px; font-weight: 500; }
+    .asbtn span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .asbtn small { color: var(--muted); font-weight: 400; font-size: 13px; }
+    .asbtn svg { flex: none; }
+    @media (hover: hover) { .asbtn:hover { background: var(--press); } }
+    .rscrim { position: fixed; inset: 0; z-index: 30; background: rgba(0,0,0,.4); display: flex; align-items: flex-end; justify-content: center; }
+    .rscrim[hidden] { display: none; }
+    .rsheet { width: min(640px, 100%); max-height: 86dvh; overflow-y: auto; background: var(--white); border-radius: 16px 16px 0 0; padding: 8px 24px 24px; display: grid; gap: 16px; }
+    .rsheet .grab { width: 40px; height: 4px; border-radius: 2px; background: #C4CFC8; justify-self: center; }
+    .rsheet__h { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+    .rsheet__h h2 { font-size: 22px; line-height: 28px; font-weight: 600; color: var(--navy); }
+    .rsheet__h p { font-size: 14px; color: var(--label); margin-top: 2px; }
+    .rclose { width: 44px; height: 44px; border-radius: 22px; display: grid; place-items: center; color: var(--navy); flex: none; }
+    .roles { display: grid; gap: 8px; }
+    .role { display: flex; align-items: center; gap: 12px; min-height: 64px; padding: 10px 14px; border-radius: 12px; border: 1px solid #DCE4DF; text-align: left; width: 100%; }
+    .role[aria-checked="true"] { border-color: var(--ring); background: #EEF6F2; }
+    .role .av { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; flex: none; background: #DCE8EA; color: var(--ring); font-weight: 600; }
+    .role .grow { flex: 1; min-width: 0; display: grid; gap: 2px; }
+    .role b { font-size: 16px; font-weight: 600; color: var(--navy); }
+    .role span.t, .role small { font-size: 14px; color: var(--label); }
+    .role small { color: var(--muted); }
+    .role .tick { color: var(--ring); flex: none; }
+    .view__label { font-size: 15px; margin-right: 8px; }
+    .toggle {
+      width: 44px; height: 44px; border-radius: 10px; display: grid; place-items: center; color: var(--navy);
+      transition: background-color 220ms var(--ease), transform 120ms var(--ease);
+    }
+    .toggle svg { width: 22px; height: 22px; }
+    .toggle[aria-pressed="true"] { color: var(--green); }
+    @media (hover: hover) { .toggle:hover { background: rgba(31,65,91,.06); } }
+    .toggle:active { transform: scale(.94); background: rgba(31,65,91,.10); }
+    @media (orientation: landscape) {
+      .head { grid-template-areas: "title view"; padding-top: 14px; padding-bottom: 14px; }
+    }
+
+    /* =========================================================
+       6. GRID  (module tiles)
+       ========================================================= */
+    .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--gut); }
+    .tile {
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--tile-gap);
+      height: var(--tile-h); background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow-rest);
+      -webkit-tap-highlight-color: transparent; touch-action: manipulation; user-select: none; -webkit-user-select: none;
+      transition: transform 160ms var(--ease), box-shadow 220ms var(--ease), background-color 220ms var(--ease);
+    }
+    .tile__icon { display: block; width: var(--tile-icon); height: calc(var(--tile-icon) * 73 / 62); }
+    .tile__label { font-size: var(--tile-fs); line-height: 1.2; font-weight: 600; letter-spacing: -.012em; }
+    @media (hover: hover) { .tile:hover { box-shadow: var(--shadow-hover); } }
+    .tile:active { transform: scale(.98); background: var(--press); box-shadow: var(--shadow-rest); }
+    .tile:focus-visible { outline-offset: 3px; }
+    @media (orientation: landscape) {
+      .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
+
+    /* =========================================================
+       7. LIST  (list view rows)
+       ========================================================= */
+    .list { display: grid; gap: 8px; }
+    .row {
+      display: flex; align-items: center; gap: 16px; min-height: 72px; padding: 12px 16px 12px 20px;
+      background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow-rest);
+      -webkit-tap-highlight-color: transparent;
+      transition: transform 160ms var(--ease), background-color 220ms var(--ease);
+    }
+    .row__icon { width: 38px; height: calc(38px * 73 / 62); flex: none; }
+    .row__label { flex: 1; font-size: 18px; font-weight: 600; }
+    .row__chev { width: 20px; height: 20px; flex: none; color: var(--muted); }
+    .row:active { transform: scale(.99); background: var(--press); }
+    @media (orientation: landscape) { .list { max-width: 720px; } }
+
+    /* =========================================================
+       8. REDUCED MOTION
+       ========================================================= */
+    @media (prefers-reduced-motion: reduce) {
+      .tile, .row, .toggle { transition: none; }
+      .tile:active, .row:active, .toggle:active { transform: none; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Diet icon (same shapes and gradients as diet-icon.svg), used via <use href="#diet-glyph"> -->
+  <svg class="icon-defs" aria-hidden="true" focusable="false">
+    <defs>
+      <linearGradient id="diet-g-board" x1="8" y1="12" x2="64" y2="50" gradientUnits="userSpaceOnUse">
+        <stop offset="0" stop-color="#1FDCD0"/>
+        <stop offset="1" stop-color="#4FCB90"/>
+      </linearGradient>
+      <linearGradient id="diet-g-apple" x1="38" y1="44" x2="68" y2="78" gradientUnits="userSpaceOnUse">
+        <stop offset="0" stop-color="#14D9C8"/>
+        <stop offset="1" stop-color="#4CC98A"/>
+      </linearGradient>
+      <mask id="diet-hole" maskUnits="userSpaceOnUse" x="0" y="0" width="76" height="88">
+        <rect width="76" height="88" fill="#fff"/>
+        <circle cx="35.8" cy="18.5" r="3.2" fill="#000"/>
+      </mask>
+      <symbol id="diet-glyph" overflow="visible">
+        <g fill="url(#diet-g-board)" mask="url(#diet-hole)">
+          <path d="M32.6 70.8H14a6 6 0 0 1-6-6V21.5a6 6 0 0 1 6-6h43.2a6 6 0 0 1 6 6V37.1h-6V21.6H14.2v43.2h18.4z"/>
+          <rect x="20.5" y="21" width="30.6" height="9.8"/>
+          <path d="M27 16a9.5 9.5 0 0 1 17.6 0v6H27z"/>
+        </g>
+        <g fill="url(#diet-g-apple)">
+          <path d="M41.8 40.4C47 39.8 52.3 41.6 54 46.4C55 44.6 56.2 43.4 57.4 42.5A2.4 2.4 0 0 1 60.6 46.1C59.3 47.3 58.3 48.6 57.6 50.9L57.8 53.2L46 53.6V51.7C43 50 41.6 46.5 41.8 40.4z"/>
+        </g>
+        <g fill="none" stroke="url(#diet-g-apple)">
+          <circle cx="52.7" cy="65.3" r="12.25" stroke-width="5.9"/>
+        </g>
+      </symbol>
+      <!-- Kitchen icon (same shapes and gradients as kitchen-icon.svg), used via <use href="#kitchen-glyph"> -->
+      <linearGradient id="kit-g-pot" x1="8" y1="34" x2="66" y2="78" gradientUnits="userSpaceOnUse">
+        <stop offset="0" stop-color="#1FDCD0"/>
+        <stop offset="1" stop-color="#4FCB90"/>
+      </linearGradient>
+      <linearGradient id="kit-g-steam" x1="20" y1="12" x2="56" y2="33" gradientUnits="userSpaceOnUse">
+        <stop offset="0" stop-color="#14D9C8"/>
+        <stop offset="1" stop-color="#4CC98A"/>
+      </linearGradient>
+      <symbol id="kitchen-glyph" overflow="visible">
+        <g fill="none" stroke="url(#kit-g-steam)" stroke-width="5.2" stroke-linecap="round">
+          <path d="M25 30.5c-3-2.8-3-5.4 0-8.2s3-5.4 0-8.2"/>
+          <path d="M38 30.5c-3-2.8-3-5.4 0-8.2s3-5.4 0-8.2"/>
+          <path d="M51 30.5c-3-2.8-3-5.4 0-8.2s3-5.4 0-8.2"/>
+        </g>
+        <g fill="url(#kit-g-pot)">
+          <path d="M33 38.5v-1.5a3 3 0 0 1 3-3h4a3 3 0 0 1 3 3v1.5z"/>
+          <rect x="9.5" y="38" width="57" height="6.6" rx="3.3"/>
+          <path d="M14 48h6v19.5a3.5 3.5 0 0 0 3.5 3.5h29a3.5 3.5 0 0 0 3.5-3.5V48h6v19.5a9.5 9.5 0 0 1-9.5 9.5h-29A9.5 9.5 0 0 1 14 67.5z"/>
+          <rect x="8" y="51" width="8" height="6" rx="3"/>
+          <rect x="60" y="51" width="8" height="6" rx="3"/>
+        </g>
+      </symbol>
+    </defs>
+  </svg>
+
+  <div class="app">
+    <!-- status bar -->
+    <div class="status" aria-hidden="true">
+      <div class="status__l"><span>3:42 PM</span><span>Wed 30 Sep</span></div>
+      <div class="status__r">
+        <svg width="17" height="12" viewBox="0 0 17 12"><path fill="currentColor" d="M8.5 2.2c2.4 0 4.6.9 6.3 2.5l1.2-1.2A10.6 10.6 0 0 0 8.5.5 10.6 10.6 0 0 0 1 3.5l1.2 1.2A9 9 0 0 1 8.5 2.2Zm0 3.4c1.5 0 2.9.6 3.9 1.5l1.2-1.2a7.3 7.3 0 0 0-10.2 0l1.2 1.2c1-.9 2.4-1.5 3.9-1.5Zm0 3.4c.6 0 1.2.2 1.6.6L8.5 11.2 6.9 9.6c.4-.4 1-.6 1.6-.6Z"/></svg>
+        <span>80%</span>
+        <svg width="27" height="13" viewBox="0 0 27 13"><rect x=".5" y=".5" width="23" height="12" rx="3.5" fill="none" stroke="currentColor" opacity=".4"/><rect x="2" y="2" width="16.4" height="9" rx="2" fill="currentColor"/><path d="M25 4.5v4a2 2 0 0 0 0-4Z" fill="currentColor" opacity=".4"/></svg>
+      </div>
+    </div>
+
+    <!-- header -->
+    <header class="head">
+      <h1 class="title">Modules</h1>
+      <div class="view" role="group" aria-label="View">
+        <span class="view__label">View</span>
+        <button class="toggle" type="button" data-view="grid" aria-pressed="true" aria-label="Grid view">
+          <svg viewBox="0 0 22 22" fill="currentColor" aria-hidden="true"><rect x="1" y="1" width="9" height="9"/><rect x="12" y="1" width="9" height="9"/><rect x="1" y="12" width="9" height="9"/><rect x="12" y="12" width="9" height="9"/></svg>
+        </button>
+        <button class="toggle" type="button" data-view="list" aria-pressed="false" aria-label="List view">
+          <svg viewBox="0 0 22 22" fill="currentColor" aria-hidden="true"><rect x="1" y="3.5" width="3" height="3" rx="1"/><rect x="7" y="4" width="14" height="2" rx="1"/><rect x="1" y="9.5" width="3" height="3" rx="1"/><rect x="7" y="10" width="14" height="2" rx="1"/><rect x="1" y="15.5" width="3" height="3" rx="1"/><rect x="7" y="16" width="14" height="2" rx="1"/></svg>
+        </button>
+      </div>
+      <button class="asbtn" id="asbtn" type="button" aria-haspopup="dialog" aria-label="Viewing as, switch role"></button>
+    </header>
+
+    <!-- content -->
+    <main class="main">
+      <!-- NOTE: diet-home.html is the next screen in the Diet flow and does not exist yet. -->
+      <div class="grid" id="grid">
+        <a class="tile" href="diet-home.html" aria-label="Diet module" data-mod="diet">
+          <svg class="tile__icon" viewBox="7 9 62 73" aria-hidden="true" focusable="false"><use href="#diet-glyph"/></svg>
+          <span class="tile__label">Diet</span>
+        </a>
+        <!-- NOTE: kitchen-home.html is the Kitchen module screen and does not exist yet. -->
+        <a class="tile" href="kitchen-home.html" aria-label="Kitchen module" data-mod="kitchen">
+          <svg class="tile__icon" viewBox="7 9 62 73" aria-hidden="true" focusable="false"><use href="#kitchen-glyph"/></svg>
+          <span class="tile__label">Kitchen</span>
+        </a>
+      </div>
+      <div class="list" id="list" hidden>
+        <a class="row" href="diet-home.html" aria-label="Diet module" data-mod="diet">
+          <svg class="row__icon" viewBox="7 9 62 73" aria-hidden="true" focusable="false"><use href="#diet-glyph"/></svg>
+          <span class="row__label">Diet</span>
+          <svg class="row__chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+        </a>
+        <!-- NOTE: kitchen-home.html does not exist yet. -->
+        <a class="row" href="kitchen-home.html" aria-label="Kitchen module" data-mod="kitchen">
+          <svg class="row__icon" viewBox="7 9 62 73" aria-hidden="true" focusable="false"><use href="#kitchen-glyph"/></svg>
+          <span class="row__label">Kitchen</span>
+          <svg class="row__chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+        </a>
+      </div>
+    </main>
+  </div>
+  <div class="rscrim" id="rqsheet" hidden><div class="rsheet" role="dialog" aria-modal="true" aria-labelledby="rsT"></div></div>
+
+  <script>
+  /* View toggle: grid / list (?view=list to open in list view) */
+  (function () {
+    'use strict';
+    var btns = document.querySelectorAll('.toggle'), grid = document.getElementById('grid'), list = document.getElementById('list');
+    function set(v) {
+      btns.forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.view === v)); });
+      grid.hidden = v !== 'grid'; list.hidden = v !== 'list';
+    }
+    btns.forEach(function (b) { b.addEventListener('click', function () { set(b.dataset.view); }); });
+    set(new URLSearchParams(location.search).get('view') === 'list' ? 'list' : 'grid');
+  })();
+  /* Viewing as: same 4 roles and sheet as diet-home and kitchen-home, shared through ?as= and localStorage 'antz.viewer'.
+     Tiles show by role: Diet for Dietician, Head Dietician, Kitchen Head; Kitchen for Kitchen Head and Kitchen Operator. */
+  (function () {
+    var USERS = [
+      { key: 'dietician', name: 'Hydar Ali', title: 'Dietician', what: 'Diet module. Raises requests and sees My requests.' },
+      { key: 'head-dietician', name: 'Dr. Meera Iyer', title: 'Head Dietician', what: 'Diet module. Reviews and configures requests, edits diets.' },
+      { key: 'kitchen-head', name: 'Suresh Gowda', title: 'Kitchen Head', what: 'Diet and Kitchen. Checks stock and sends requests to prep.' },
+      { key: 'kitchen-operator', name: 'Anil Kumar', title: 'Kitchen Operator', what: 'Kitchen only. Requests sent to prep and Meal Group Management.' } ];
+    var MODS = { diet: ['dietician', 'head-dietician', 'kitchen-head'], kitchen: ['kitchen-head', 'kitchen-operator'] };
+    var ok = function (k) { return USERS.some(function (u) { return u.key === k; }); };
+    var a = new URLSearchParams(location.search).get('as'), v = null;
+    try { v = JSON.parse(localStorage.getItem('antz.viewer') || 'null'); } catch (x) {}
+    var key = ok(a) ? a : ok(v) ? v : 'kitchen-head';
+    var DROP = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>';
+    var USER = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 20c1.5-3.5 4.4-5 8-5s6.5 1.5 8 5"/></svg>';
+    var TICK = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg>';
+    var CLOSE = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>';
+    var RS = document.getElementById('rqsheet'), btn = document.getElementById('asbtn');
+    function esc(t) { return String(t).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+    function initials(n) { return n.replace(/^Dr\.?\s+/i, '').split(/\s+/).slice(0, 2).map(function (w) { return w[0].toUpperCase(); }).join(''); }
+    function apply() {
+      var u = USERS.filter(function (x) { return x.key === key; })[0];
+      try { localStorage.setItem('antz.viewer', JSON.stringify(key)); } catch (x) {}
+      try { var q = new URLSearchParams(location.search); q.set('as', key); history.replaceState(null, '', location.pathname + '?' + q.toString() + location.hash); } catch (x) {}
+      btn.innerHTML = USER + '<span>Viewing as: ' + esc(u.name) + ' <small>· ' + esc(u.title) + '</small></span>' + DROP;
+      document.querySelectorAll('[data-mod]').forEach(function (l) { l.hidden = MODS[l.getAttribute('data-mod')].indexOf(key) === -1; var h = l.getAttribute('href'); l.setAttribute('href', h.split('?')[0] + '?as=' + encodeURIComponent(key)); });
+    }
+    function open() {
+      RS.firstChild.innerHTML = '<div class="grab"></div><div class="rsheet__h"><div><h2 id="rsT">Viewing as</h2><p>Demo only. Switch role to see what each one can do.</p></div><button type="button" class="rclose" data-rsclose aria-label="Close">' + CLOSE + '</button></div>' +
+        '<div class="roles" role="radiogroup" aria-label="Role">' + USERS.map(function (u) { return '<button type="button" class="role" role="radio" data-as="' + u.key + '" aria-checked="' + (u.key === key) + '"><span class="av">' + initials(u.name) + '</span><span class="grow"><b>' + esc(u.title) + '</b><span class="t">' + esc(u.name) + '</span><small>' + esc(u.what) + '</small></span>' + (u.key === key ? '<span class="tick">' + TICK + '</span>' : '') + '</button>'; }).join('') + '</div>';
+      RS.hidden = false;
+    }
+    btn.addEventListener('click', open);
+    RS.addEventListener('click', function (e) { var t; if (e.target === RS || e.target.closest('[data-rsclose]')) { RS.hidden = true; return; } if ((t = e.target.closest('[data-as]'))) { key = t.getAttribute('data-as'); RS.hidden = true; apply(); } });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') RS.hidden = true; });
+    apply();
+  })();
+  </script>
+</body>
+</html>

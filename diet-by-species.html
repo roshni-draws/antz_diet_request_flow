@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<!-- SUPERSEDED by the Diet by Species tab in diet-home.html (diet-home.html#species). Kept as the earlier standalone version. Screen 3b - Diet by Species. Back: diet-home.html. Based on the Antz diet tablet prototype Species Diet screen (#/diets). Tap a species to list its diets. ?open=LI,BT expands species. -->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Diet by Species</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* =========================================================
+       1. TOKENS
+       Flow tokens (diet-module-flow.html) + Antz app tokens taken from
+       the live prototype (app/tokens.css, MD3_Antz Figma styles).
+       ========================================================= */
+    :root {
+      /* flow */
+      --white: #FFFFFF;
+      --status-h: 24px;
+      --ring: #1F515B;
+      --ease: cubic-bezier(.2,.7,.2,1);
+      /* Antz app colour (MD3_Antz) */
+      --md3-primary: #37BD69;
+      --md3-on-surface: #006D35;
+      --md3-on-primary-container: #1F515B;
+      --md3-on-secondary-container: #1F415B;
+      --md3-secondary: #00D6C9;
+      --md3-secondary-dark: #00ABAB;
+      --md3-tertiary: #FA6140;
+      --md3-error: #E93353;
+      --md3-add-primary: #00AFD6;
+      --md3-moderate-secondary: #E4B819;
+      --md3-on-tertiary-container: #250E01;
+      --md3-on-surface-variant: #44544A;
+      --md3-neutral-secondary: #7A8684;
+      --md3-background: #EFF5F2;
+      --md3-on-background: #E1F9ED;
+      --md3-displaybg-primary: #E8F4F2;
+      --md3-surface-variant: #DAE7DF;
+      --md3-outline-variant: #C3CEC7;
+      /* app aliases (diet.css) */
+      --head: #000000;
+      --ink: var(--md3-on-surface-variant);
+      --line: rgba(0,0,0,.05);
+      --neutral05: rgba(0,0,0,.05);
+      --primary-a10: rgba(55,189,105,.10);
+      --tertiary-a10: rgba(250,97,64,.10);
+      --add-primary-a10: rgba(0,175,214,.10);
+      --moderate-a10: rgba(228,184,25,.10);
+      --error-a5: rgba(233,51,83,.05);
+      --card-shadow: 0 2px 8px rgba(0,0,0,.08);
+      --grad-greenturq: linear-gradient(116.5deg, var(--md3-secondary) 8.77%, var(--md3-primary) 101.99%);
+      /* spacing (app sp scale) */
+      --sp-4: 4px; --sp-8: 8px; --sp-12: 12px; --sp-16: 16px; --sp-20: 20px; --sp-24: 24px; --sp-32: 32px;
+      --radius: 8px;            /* app card radius */
+    }
+
+    /* =========================================================
+       2. BASE  (reset + Antz text styles)
+       ========================================================= */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    html { -webkit-text-size-adjust: 100%; overflow-x: clip; }
+    body {
+      background: var(--md3-background); color: var(--ink); overflow: hidden;
+      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 14px; -webkit-font-smoothing: antialiased;
+    }
+    button, input { font: inherit; color: inherit; background: none; border: 0; }
+    button { cursor: pointer; }
+    a { color: inherit; text-decoration: none; }
+    :focus { outline: none; }
+    :focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+    [hidden] { display: none !important; }
+    svg { display: block; flex: none; }
+    .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+    .icon-defs { position: absolute; width: 0; height: 0; overflow: hidden; }
+    .t-stat-title    { font-size: 28px; font-weight: 600; line-height: normal; }
+    .t-major-title   { font-size: 24px; font-weight: 600; line-height: normal; }
+    .t-medium-medium { font-size: 20px; font-weight: 500; line-height: normal; }
+    .t-minor-title   { font-size: 16px; font-weight: 600; line-height: normal; }
+    .t-minor-medium  { font-size: 16px; font-weight: 500; line-height: normal; }
+    .t-minor-italic  { font-size: 16px; font-weight: 400; line-height: normal; font-style: italic; }
+    .t-body-title    { font-size: 14px; font-weight: 600; line-height: normal; }
+    .t-body-medium   { font-size: 14px; font-weight: 500; line-height: normal; letter-spacing: .1px; }
+    .t-body-regular  { font-size: 14px; font-weight: 400; line-height: normal; }
+    .t-subtext-title { font-size: 12px; font-weight: 600; line-height: normal; }
+
+    /* =========================================================
+       3. SHELL  (status bar / app bar / scrolling main)
+       ========================================================= */
+    .app { display: grid; grid-template-rows: var(--status-h) auto 1fr; height: 100dvh; }
+    .main { overflow-y: auto; overflow-x: hidden; padding: 0 var(--sp-16) var(--sp-32); }
+
+    /* =========================================================
+       4. STATUS BAR  (same as diet-module-flow.html)
+       ========================================================= */
+    .status {
+      display: flex; align-items: center; justify-content: space-between; padding: 0 10px;
+      background: var(--white); color: #0E1512;
+      font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums;
+    }
+    .status__l { display: flex; gap: 10px; }
+    .status__l span + span { font-weight: 500; }
+    .status__r { display: flex; align-items: center; gap: 5px; }
+
+    /* =========================================================
+       5. APP BAR  (Antz #bar: back, title, site picker)
+       ========================================================= */
+    .bar {
+      display: flex; align-items: center; gap: var(--sp-8);
+      padding: var(--sp-16); background: var(--white); border-bottom: 1px solid var(--line);
+    }
+    .bar__hd { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+    .bar__hd h1 { color: var(--md3-on-primary-container); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .bar__hd p { color: var(--ink); }
+    .iconbtn {
+      width: 44px; height: 44px; border-radius: 22px; display: grid; place-items: center; flex: none;
+      color: var(--md3-on-primary-container); transition: background-color 200ms var(--ease), transform 120ms var(--ease);
+    }
+    @media (hover: hover) { .iconbtn:hover { background: var(--md3-displaybg-primary); } }
+    .iconbtn:active { transform: scale(.94); background: var(--md3-surface-variant); }
+    .sitebtn { display: flex; align-items: center; gap: var(--sp-8); height: 48px; padding: 0 var(--sp-8); color: var(--head); border-radius: 8px; }
+    @media (hover: hover) { .sitebtn:hover { background: var(--md3-displaybg-primary); } }
+    /* =========================================================
+       TABS  (Antz .sdtabs: full-width, green underline)
+       ========================================================= */
+    .sdtabs { display: flex; margin: 0 calc(-1 * var(--sp-16)); background: var(--white); }
+    .sdtabs button {
+      flex: 1; height: 56px; display: flex; align-items: center; justify-content: center; gap: 4px;
+      color: var(--md3-on-surface-variant); border-bottom: 3px solid transparent;
+      transition: color 200ms var(--ease), border-color 200ms var(--ease);
+    }
+    .sdtabs button[aria-selected="true"] { color: var(--md3-primary); border-bottom-color: var(--md3-primary); }
+
+    /* =========================================================
+       SEARCH BAND  (Antz .spband: search field + filter button)
+       ========================================================= */
+    .spband {
+      display: flex; align-items: center; gap: var(--sp-12); margin: 0 calc(-1 * var(--sp-16));
+      padding: var(--sp-16) var(--sp-20); background: rgba(255,255,255,.75);
+    }
+    .spsearch {
+      flex: 1; min-width: 0; height: 48px; display: flex; align-items: center; gap: var(--sp-8); padding: 12px;
+      border: 1px solid var(--neutral05); border-radius: 8px; background: var(--neutral05); color: var(--md3-neutral-secondary);
+    }
+    .spsearch:focus-within { border-color: var(--md3-on-primary-container); background: var(--white); }
+    .spsearch input { flex: 1; min-width: 0; height: 100%; color: var(--head); }
+    .spsearch input::placeholder { color: var(--md3-neutral-secondary); }
+    .spfilter {
+      min-width: 48px; height: 48px; flex: none; display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-4);
+      padding: 0 var(--sp-12); border: 1px solid var(--neutral05); border-radius: 8px; background: var(--neutral05); color: var(--head);
+      transition: background-color 200ms var(--ease), transform 120ms var(--ease);
+    }
+    .spfilter.on { background: var(--md3-on-primary-container); border-color: var(--md3-on-primary-container); color: var(--white); }
+    .spfilter[aria-pressed="true"]:not(.on) { border-color: var(--md3-on-primary-container); background: var(--white); }
+    .spfilter:active { transform: scale(.96); }
+
+    /* filter chips (Antz .spchip: grey, dark teal when on) */
+    .spchips { display: flex; flex-wrap: wrap; gap: var(--sp-12); padding: var(--sp-16) 0 0; }
+    .spchip {
+      height: 40px; padding: 0 var(--sp-16); border-radius: 6px; background: var(--neutral05); color: var(--md3-on-surface-variant);
+      display: inline-flex; align-items: center; gap: 6px; transition: background-color 200ms var(--ease), color 200ms var(--ease);
+    }
+    .spchip[aria-pressed="true"] { background: var(--md3-on-primary-container); color: var(--white); }
+
+    /* list bar (Antz .list-bar: count + sort chip) */
+    .list-bar { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-12); margin: var(--sp-16) 0 var(--sp-8); }
+    .list-bar h2 { color: var(--md3-on-surface-variant); }
+    .chip {
+      height: 40px; padding: 0 var(--sp-16); border-radius: 999px; border: 1px solid var(--md3-outline-variant);
+      background: var(--white); color: var(--ink); display: inline-flex; align-items: center; gap: var(--sp-8); white-space: nowrap;
+      transition: transform 120ms var(--ease);
+    }
+    .chip:active { transform: scale(.97); }
+
+    /* type tags (Antz .ttag) */
+    .ttag { display: inline-flex; align-items: center; gap: 4px; padding: 4px 6px; border-radius: 4px; white-space: nowrap; }
+    .ttag.yearround { color: var(--md3-on-surface); background: var(--md3-on-background); }
+    .ttag.seasonal { color: var(--md3-tertiary); background: var(--tertiary-a10); }
+    .ttag.timebound { color: var(--md3-add-primary); background: var(--add-primary-a10); }
+    .ttag.none { color: var(--md3-neutral-secondary); background: var(--neutral05); }
+
+    /* status pill (Antz "Active" pill on the diet pane) */
+    .pill { display: inline-flex; align-items: center; height: 24px; padding: 0 10px; border-radius: 999px; white-space: nowrap; }
+    .pill.active { color: var(--md3-on-surface); background: var(--md3-on-background); }
+    .pill.inactive { color: var(--md3-neutral-secondary); background: var(--neutral05); }
+    .pill.unassigned { color: var(--md3-neutral-secondary); background: transparent; border: 1px dashed var(--md3-outline-variant); }
+
+    /* empty state (Antz .empty) */
+    .empty { padding: var(--sp-32) var(--sp-24); text-align: center; display: flex; flex-direction: column; align-items: center; gap: var(--sp-8); background: var(--white); border-radius: var(--radius); }
+    .empty .ei { width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center; background: var(--md3-background); color: var(--md3-outline-variant); margin-bottom: var(--sp-4); }
+    .empty b { color: var(--head); }
+    /* =========================================================
+       6. SPECIES CARDS  (Antz .spcard) + expandable diet list
+       portrait: 1 column, landscape: 2 columns
+       ========================================================= */
+    .spcards { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sp-12); align-items: start; }
+    .spwrap { background: var(--white); border-radius: var(--radius); overflow: hidden; }
+    .spcard {
+      width: 100%; display: flex; align-items: center; gap: var(--sp-16); padding: var(--sp-16) var(--sp-20); min-height: 96px; text-align: left;
+      -webkit-tap-highlight-color: transparent; transition: background-color 200ms var(--ease);
+    }
+    @media (hover: hover) { .spcard:hover { background: #FAFCFB; } }
+    .spcard:active { background: var(--md3-background); }
+    .spav { width: 60px; height: 60px; flex: none; border-radius: 50%; display: grid; place-items: center; background: var(--md3-surface-variant); color: var(--ink); }
+    .spcard .grow { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+    .spcard .n { color: var(--head); }
+    .spcard .m { color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .spcard .c { color: var(--md3-neutral-secondary); }
+    .spn { display: flex; flex-direction: column; align-items: flex-end; flex: none; }
+    .spn .v { color: var(--head); font-variant-numeric: tabular-nums; }
+    .spn .l { color: var(--ink); }
+    .spn .gap { color: var(--md3-tertiary); }
+    .spcard .chev { color: var(--md3-on-primary-container); transition: transform 200ms var(--ease); }
+    .spcard[aria-expanded="true"] .chev { transform: rotate(180deg); }
+    .spdiets { border-top: 1px solid var(--line); padding: var(--sp-8) var(--sp-20) var(--sp-16); display: grid; gap: 0; }
+    .sprow { display: grid; grid-template-columns: 124px 1fr auto; align-items: center; gap: var(--sp-12); padding: var(--sp-12) 0; border-bottom: 1px solid var(--line); }
+    .sprow:last-of-type { border-bottom: 0; }
+    .sprow .ttag { justify-self: start; }
+    .sprow .t { min-width: 0; display: grid; gap: 2px; }
+    .sprow .t b { color: var(--head); }
+    .sprow .t span { color: var(--ink); }
+    .spmore { display: inline-flex; align-items: center; gap: 6px; justify-self: start; min-height: 44px; margin-top: var(--sp-4); color: var(--md3-on-surface); }
+    .spmore svg { transform: rotate(-90deg); }
+    .spnone { padding: var(--sp-12) 0 var(--sp-4); color: var(--ink); }
+    @media (orientation: landscape) { .spcards { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    /* =========================================================
+       REDUCED MOTION
+       ========================================================= */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { transition: none !important; }
+      .iconbtn:active, .chip:active, .spfilter:active, .card-press:active { transform: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="status" aria-hidden="true">
+      <div class="status__l"><span>3:42 PM</span><span>Wed 30 Sep</span></div>
+      <div class="status__r">
+        <svg width="17" height="12" viewBox="0 0 17 12"><path fill="currentColor" d="M8.5 2.2c2.4 0 4.6.9 6.3 2.5l1.2-1.2A10.6 10.6 0 0 0 8.5.5 10.6 10.6 0 0 0 1 3.5l1.2 1.2A9 9 0 0 1 8.5 2.2Zm0 3.4c1.5 0 2.9.6 3.9 1.5l1.2-1.2a7.3 7.3 0 0 0-10.2 0l1.2 1.2c1-.9 2.4-1.5 3.9-1.5Zm0 3.4c.6 0 1.2.2 1.6.6L8.5 11.2 6.9 9.6c.4-.4 1-.6 1.6-.6Z"/></svg>
+        <span>80%</span>
+        <svg width="27" height="13" viewBox="0 0 27 13"><rect x=".5" y=".5" width="23" height="12" rx="3.5" fill="none" stroke="currentColor" opacity=".4"/><rect x="2" y="2" width="16.4" height="9" rx="2" fill="currentColor"/><path d="M25 4.5v4a2 2 0 0 0 0-4Z" fill="currentColor" opacity=".4"/></svg>
+      </div>
+    </div>
+    <header class="bar">
+      <a class="iconbtn" href="diet-home.html" aria-label="Back to Diet"><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M10.3257 18.7717L4.21608 12.5309C4.1366 12.4497 4.08071 12.366 4.04844 12.2797C4.01615 12.1935 4 12.0996 4 11.9981C4 11.8966 4.01615 11.8028 4.04844 11.7165C4.08071 11.6303 4.1366 11.5466 4.21608 11.4654L10.3406 5.20936C10.4747 5.07237 10.6424 5.0026 10.8435 5.00006C11.0447 4.99752 11.2198 5.07236 11.3688 5.22457C11.5178 5.37172 11.5936 5.54803 11.5961 5.75352C11.5985 5.95901 11.5253 6.13787 11.3763 6.29008L6.53326 11.2371H17.2549C17.4685 11.2371 17.6461 11.3094 17.7877 11.454C17.9292 11.5986 18 11.78 18 11.9981C18 12.2163 17.9292 12.3977 17.7877 12.5423C17.6461 12.6869 17.4685 12.7592 17.2549 12.7592H6.53326L11.3912 17.7214C11.5253 17.8584 11.5936 18.0309 11.5961 18.2389C11.5985 18.447 11.5253 18.6245 11.3763 18.7717C11.2322 18.9239 11.0584 19 10.8547 19C10.6511 19 10.4747 18.9239 10.3257 18.7717Z" fill="currentColor"/></svg></a>
+      <div class="bar__hd"><h1 class="t-medium-medium">Diet by Species</h1></div>
+      <button class="sitebtn" type="button" aria-label="Site: All Sites"><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 11.9297C13.5702 11.9297 14.8477 10.6523 14.8477 9.08203C14.8477 7.51181 13.5702 6.23438 12 6.23438C10.4298 6.23438 9.15234 7.51181 9.15234 9.08203C9.15234 10.6523 10.4298 11.9297 12 11.9297ZM12 7.64062C12.7947 7.64062 13.4414 8.28731 13.4414 9.08203C13.4414 9.87675 12.7947 10.5234 12 10.5234C11.2053 10.5234 10.5586 9.87675 10.5586 9.08203C10.5586 8.28731 11.2053 7.64062 12 7.64062ZM11.5562 18.0054L12 18.3667L12.4438 18.0054C12.5007 17.9591 13.8517 16.8539 15.2209 15.2737C17.1194 13.0823 18.082 11.1134 18.082 9.42165V9.08244C18.082 5.72859 15.3537 3 12 3C8.64629 3 5.91797 5.72859 5.91797 9.08244V9.42165C5.91797 11.1134 6.88065 13.0823 8.77908 15.2737C10.1481 16.8539 11.4993 17.9591 11.5562 18.0054ZM7.32422 9.08244C7.32422 6.50395 9.42178 4.40625 12 4.40625C14.5782 4.40625 16.6758 6.50395 16.6758 9.08244V9.42165C16.6758 10.7426 15.8098 12.4423 14.1716 14.3372C13.3385 15.3007 12.4958 16.0906 11.9999 16.532C11.5075 16.0941 10.6727 15.3118 9.84201 14.3529C8.19489 12.4517 7.32422 10.7465 7.32422 9.42165V9.08244ZM21 18.4336C21 18.9656 20.655 19.4187 19.9746 19.7798C19.5013 20.0311 18.8441 20.2522 18.0209 20.4371C16.4047 20.8 14.2665 21 12 21C9.73352 21 7.59531 20.8 5.97908 20.4372C5.15593 20.2524 4.49867 20.0311 4.02544 19.78C3.34497 19.4187 3 18.9656 3 18.4336C3 17.9016 3.34497 17.4485 4.02544 17.0874C4.49867 16.836 5.15593 16.6149 5.97908 16.4301C6.49255 16.3147 7.05917 16.2161 7.66534 16.135C7.68251 16.1549 7.69899 16.1747 7.71629 16.1946C8.10287 16.6408 8.48918 17.0519 8.84885 17.416C8.07005 17.4896 7.34276 17.5904 6.69704 17.7163C5.39337 17.9705 4.75919 18.2617 4.50732 18.4336C4.75919 18.6055 5.39323 18.8967 6.69704 19.1509C8.16151 19.4365 10.0448 19.5938 12 19.5938C13.9552 19.5938 15.8385 19.4365 17.303 19.1509C18.6066 18.8967 19.2408 18.6055 19.4927 18.4336C19.2408 18.2617 18.6068 17.9705 17.303 17.7163C16.6572 17.5904 15.9301 17.4895 15.1513 17.416C15.5108 17.0519 15.8971 16.6408 16.2837 16.1946C16.301 16.1747 16.3176 16.1548 16.3347 16.1348C16.9408 16.2161 17.5074 16.3147 18.0209 16.43C18.8441 16.6148 19.5013 16.836 19.9746 17.0872C20.655 17.4485 21 17.9016 21 18.4336Z" fill="currentColor"/></svg><span class="t-minor-medium">All Sites</span><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 15.9999L4.99995 9.51341L6.63329 7.9999L12 12.9729L17.3666 7.9999L19 9.51341L12 15.9999Z" fill="currentColor"/></svg></button>
+    </header>
+    <main class="main">
+      <div class="sdtabs" role="tablist" aria-label="Species" id="tabs"></div>
+      <div class="spband">
+        <label class="spsearch"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20.7263 19.3951L16.289 14.9395C17.4299 13.6301 18.055 11.9826 18.055 10.2675C18.055 6.26026 14.6781 3 10.5275 3C6.37691 3 3 6.26026 3 10.2675C3 14.2747 6.37691 17.535 10.5275 17.535C12.0857 17.535 13.5706 17.0812 14.8401 16.2199L19.3111 20.7093C19.498 20.8967 19.7494 21 20.0187 21C20.2737 21 20.5156 20.9062 20.6992 20.7355C21.0893 20.3731 21.1017 19.7721 20.7263 19.3951ZM10.5275 4.89587C13.5955 4.89587 16.0913 7.30552 16.0913 10.2675C16.0913 13.2295 13.5955 15.6391 10.5275 15.6391C7.45956 15.6391 4.9637 13.2295 4.9637 10.2675C4.9637 7.30552 7.45956 4.89587 10.5275 4.89587Z" fill="currentColor"/></svg><span class="sr-only">Search species</span><input id="q" class="t-body-regular" type="search" placeholder="Search" autocomplete="off"></label>
+        <button class="spfilter" id="fbtn" type="button" aria-pressed="false" aria-controls="chips" aria-label="Filter by class"><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20.7969 11.7344H11.7079C11.3949 10.5227 10.2924 9.625 8.98438 9.625C7.67632 9.625 6.57384 10.5227 6.26086 11.7344H4.20312C3.81476 11.7344 3.5 12.0491 3.5 12.4375C3.5 12.8259 3.81476 13.1406 4.20312 13.1406H6.26086C6.57384 14.3523 7.67632 15.25 8.98438 15.25C10.2924 15.25 11.3949 14.3523 11.7079 13.1406H20.7969C21.1852 13.1406 21.5 12.8259 21.5 12.4375C21.5 12.0491 21.1852 11.7344 20.7969 11.7344ZM8.98438 13.8438C8.20901 13.8438 7.57812 13.2129 7.57812 12.4375C7.57812 11.6621 8.20901 11.0312 8.98438 11.0312C9.75974 11.0312 10.3906 11.6621 10.3906 12.4375C10.3906 13.2129 9.75974 13.8438 8.98438 13.8438ZM4.20312 7.51562H13.2921C13.6051 8.72728 14.7076 9.625 16.0156 9.625C17.3237 9.625 18.4262 8.72728 18.7391 7.51562H20.7969C21.1852 7.51562 21.5 7.20087 21.5 6.8125C21.5 6.42413 21.1852 6.10938 20.7969 6.10938H18.7391C18.4262 4.89772 17.3238 4 16.0156 4C14.7074 4 13.6051 4.89772 13.2921 6.10938H4.20312C3.81476 6.10938 3.5 6.42413 3.5 6.8125C3.5 7.20087 3.81476 7.51562 4.20312 7.51562ZM16.0156 5.40625C16.791 5.40625 17.4219 6.03714 17.4219 6.8125C17.4219 7.58786 16.791 8.21875 16.0156 8.21875C15.2403 8.21875 14.6094 7.58786 14.6094 6.8125C14.6094 6.03714 15.2403 5.40625 16.0156 5.40625ZM20.7969 17.3594H18.7391C18.4262 16.1477 17.3238 15.25 16.0156 15.25C14.7074 15.25 13.6051 16.1477 13.2921 17.3594H4.20312C3.81476 17.3594 3.5 17.6741 3.5 18.0625C3.5 18.4509 3.81476 18.7656 4.20312 18.7656H13.2921C13.6051 19.9773 14.7076 20.875 16.0156 20.875C17.3237 20.875 18.4262 19.9773 18.7391 18.7656H20.7969C21.1852 18.7656 21.5 18.4509 21.5 18.0625C21.5 17.6741 21.1852 17.3594 20.7969 17.3594ZM16.0156 19.4688C15.2403 19.4688 14.6094 18.8379 14.6094 18.0625C14.6094 17.2871 15.2403 16.6562 16.0156 16.6562C16.791 16.6562 17.4219 17.2871 17.4219 18.0625C17.4219 18.8379 16.791 19.4688 16.0156 19.4688Z" fill="currentColor"/></svg><span class="t-minor-medium" id="fn" hidden></span></button>
+      </div>
+      <div class="spchips" id="chips" hidden role="group" aria-label="Class"></div>
+      <div class="list-bar"><h2 class="t-minor-medium" id="count" aria-live="polite"></h2><button class="chip t-body-medium" id="sort" type="button"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M16 17.01V10h-2v7.01h-3L15 21l4-3.99h-3zM9 3 5 6.99h3V14h2V6.99h3L9 3z" fill="currentColor"/></svg><span id="sortl">Most diets</span></button></div>
+      <div class="spcards" id="list"></div>
+    </main>
+  </div>
+  <script>
+  (function () {
+  'use strict';
+/* Antz app icons (from the live prototype's icon library), inline */
+  const IC = {"time": "<path d=\"M12 3C16.9624 3.00005 21 7.03756 21 12C20.9999 16.9626 16.9623 21 12 21C7.03753 21 3.00014 16.9627 3 12C3 7.03753 7.03744 3 12 3ZM12 4.29004C7.74882 4.29004 4.29004 7.74891 4.29004 12C4.29018 16.2512 7.74891 19.71 12 19.71C16.251 19.7099 19.7098 16.2512 19.71 12C19.71 7.74894 16.2511 4.29009 12 4.29004ZM11.7549 6.57812C12.111 6.57836 12.3994 6.86753 12.3994 7.22363V11.8467H16.6289C16.9851 11.8467 17.2743 12.1351 17.2744 12.4912C17.2744 12.8475 16.9852 13.1367 16.6289 13.1367H11.7549C11.3986 13.1367 11.1094 12.8475 11.1094 12.4912V7.22363C11.1094 6.86738 11.3986 6.57812 11.7549 6.57812Z\" fill=\"currentColor\"/>", "star": "<path d=\"m22 9.24-7.19-.62L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21 12 17.27 18.18 21l-1.63-7.03L22 9.24zM12 15.4l-3.76 2.27 1-4.28-3.32-2.88 4.38-.38L12 6.1l1.71 4.04 4.38.38-3.32 2.88 1 4.28L12 15.4z\" fill=\"currentColor\"/>", "calendar": "<path d=\"M18.8906 4.40625H18.0469V3H16.6406V4.40625H7.35938V3H5.95312V4.40625H5.10938C3.94627 4.40625 3 5.35252 3 6.51562V18.8906C3 20.0537 3.94627 21 5.10938 21H15.1115L21 14.8851V6.51562C21 5.35252 20.0537 4.40625 18.8906 4.40625ZM15.5156 18.553V16.0078C15.5156 15.6201 15.831 15.3047 16.2188 15.3047H18.6437L15.5156 18.553ZM19.5938 13.8984H16.2188C15.0556 13.8984 14.1094 14.8447 14.1094 16.0078V19.5938H5.10938C4.72167 19.5938 4.40625 19.2783 4.40625 18.8906V9.60938H19.5938V13.8984ZM19.5938 8.20312H4.40625V6.51562C4.40625 6.12792 4.72167 5.8125 5.10938 5.8125H5.95312V7.21875H7.35938V5.8125H16.6406V7.21875H18.0469V5.8125H18.8906C19.2783 5.8125 19.5938 6.12792 19.5938 6.51562V8.20312Z\" fill=\"currentColor\"/>", "search": "<path d=\"M20.7263 19.3951L16.289 14.9395C17.4299 13.6301 18.055 11.9826 18.055 10.2675C18.055 6.26026 14.6781 3 10.5275 3C6.37691 3 3 6.26026 3 10.2675C3 14.2747 6.37691 17.535 10.5275 17.535C12.0857 17.535 13.5706 17.0812 14.8401 16.2199L19.3111 20.7093C19.498 20.8967 19.7494 21 20.0187 21C20.2737 21 20.5156 20.9062 20.6992 20.7355C21.0893 20.3731 21.1017 19.7721 20.7263 19.3951ZM10.5275 4.89587C13.5955 4.89587 16.0913 7.30552 16.0913 10.2675C16.0913 13.2295 13.5955 15.6391 10.5275 15.6391C7.45956 15.6391 4.9637 13.2295 4.9637 10.2675C4.9637 7.30552 7.45956 4.89587 10.5275 4.89587Z\" fill=\"currentColor\"/>", "dropdown": "<path d=\"M12 15.9999L4.99995 9.51341L6.63329 7.9999L12 12.9729L17.3666 7.9999L19 9.51341L12 15.9999Z\" fill=\"currentColor\"/>", "paw": "<path d=\"M17.9998 13.6132C16.3851 11.6636 14.344 10.5898 12.2526 10.5898C10.1611 10.5898 8.12003 11.6636 6.50538 13.6132C5.05394 15.3656 4.1875 17.5742 4.1875 19.5211C4.1875 20.4668 4.47663 21.1872 5.04681 21.6623C5.60959 22.1312 6.35261 22.2898 7.18155 22.2898C8.06359 22.2898 9.043 22.1102 10.0053 21.9336C10.8462 21.7794 11.6404 21.6337 12.2526 21.6337C12.781 21.6337 13.526 21.772 14.3146 21.9184C16.1575 22.2605 18.2465 22.6483 19.4532 21.645C20.0268 21.168 20.3177 20.4534 20.3177 19.5211C20.3177 17.5742 19.4513 15.3656 17.9998 13.6132ZM18.5541 20.5637C17.8546 21.1453 16.034 20.8073 14.5712 20.5358C13.717 20.3772 12.9103 20.2274 12.2525 20.2274C11.5124 20.2274 10.6571 20.3844 9.75147 20.5505C8.34845 20.8078 6.60236 21.1282 5.94686 20.582C5.85948 20.5092 5.59361 20.2876 5.59361 19.521C5.59361 17.9158 6.35795 15.9957 7.58828 14.5101C8.93102 12.8889 10.5875 11.996 12.2525 11.996C13.9175 11.996 15.574 12.8889 16.9167 14.5101C18.1471 15.9957 18.9114 17.9158 18.9114 19.521C18.9115 20.2666 18.6425 20.4902 18.5541 20.5637Z\" fill=\"currentColor\" stroke=\"currentColor\" stroke-width=\"0.5\"/> <path d=\"M18.1635 3.02683C17.5727 2.15575 16.7267 1.65625 15.8424 1.65625C14.9581 1.65625 14.1121 2.15584 13.5213 3.02683C12.9786 3.82703 12.6797 4.87787 12.6797 5.98581C12.6797 7.09375 12.9786 8.14459 13.5213 8.9448C14.1121 9.81583 14.9581 10.3154 15.8424 10.3154C16.7268 10.3154 17.5727 9.81583 18.1635 8.9448C18.7063 8.14459 19.0052 7.09375 19.0052 5.98581C19.0052 4.87787 18.7063 3.82698 18.1635 3.02683ZM16.9998 8.15547C16.8089 8.43695 16.4046 8.90922 15.8424 8.90922C15.2803 8.90922 14.8761 8.437 14.6851 8.15547C14.3043 7.594 14.0859 6.80317 14.0859 5.98581C14.0859 5.16841 14.3043 4.37762 14.6851 3.81616C14.876 3.53467 15.2803 3.06241 15.8424 3.06241C16.4046 3.06241 16.8089 3.53462 16.9998 3.81616C17.3806 4.37762 17.599 5.16845 17.599 5.98581C17.5989 6.80317 17.3806 7.594 16.9998 8.15547Z\" fill=\"currentColor\" stroke=\"currentColor\" stroke-width=\"0.5\"/> <path d=\"M10.976 3.02492C10.3852 2.15384 9.53928 1.6543 8.65494 1.6543C7.77059 1.6543 6.92459 2.15389 6.33383 3.02492C5.79111 3.82512 5.49219 4.87597 5.49219 5.98391C5.49219 7.09184 5.79106 8.14269 6.33383 8.94289C6.92464 9.81397 7.77059 10.3136 8.65494 10.3136C9.53928 10.3136 10.3852 9.81397 10.976 8.94289C11.5188 8.14269 11.8177 7.09189 11.8177 5.98391C11.8176 4.87597 11.5188 3.82508 10.976 3.02492ZM9.81219 8.15361C9.62127 8.43509 9.21702 8.90736 8.65489 8.90736C8.09272 8.90736 7.68847 8.43509 7.49755 8.15361C7.11673 7.59214 6.89834 6.80131 6.89834 5.98395C6.89834 5.16655 7.11678 4.37577 7.49755 3.8143C7.68847 3.53281 8.09272 3.06055 8.65489 3.06055C9.21706 3.06055 9.62127 3.53277 9.81219 3.8143C10.193 4.37577 10.4114 5.16659 10.4114 5.98395C10.4114 6.80131 10.193 7.59214 9.81219 8.15361Z\" fill=\"currentColor\" stroke=\"currentColor\" stroke-width=\"0.5\"/> <path d=\"M24.1095 9.82285C23.8713 9.01266 23.3608 8.42396 22.6721 8.16525C22.1178 7.95708 21.4922 7.99238 20.9104 8.26468C20.1086 8.63986 19.4532 9.41461 19.1124 10.3902C18.834 11.1875 18.7992 12.0301 19.0147 12.7631C19.2529 13.5733 19.7634 14.162 20.4522 14.4207C20.6905 14.5103 20.942 14.5547 21.1976 14.5547C21.5363 14.5547 21.8823 14.4765 22.2139 14.3213C23.0157 13.9461 23.6711 13.1714 24.0119 12.1958C24.2903 11.3986 24.325 10.5558 24.1095 9.82285ZM22.6843 11.732C22.4707 12.3433 22.072 12.8351 21.6179 13.0477C21.4508 13.1258 21.1989 13.199 20.9466 13.1043C20.3378 12.8756 20.101 11.824 20.4399 10.854C20.6535 10.2427 21.0521 9.75085 21.5063 9.53827C21.6171 9.48647 21.7651 9.43683 21.9258 9.43683C22.0075 9.43683 22.0926 9.44968 22.1775 9.4816C22.7864 9.71035 23.0232 10.7619 22.6843 11.732Z\" fill=\"currentColor\" stroke=\"currentColor\" stroke-width=\"0.5\"/> <path d=\"M5.38686 10.3902C5.04603 9.41455 4.39067 8.63984 3.58892 8.26466C3.00706 7.99236 2.38137 7.95711 1.82717 8.16523C1.13839 8.42398 0.627871 9.01269 0.3897 9.82283C0.174215 10.5558 0.20895 11.3985 0.487434 12.1957C0.828309 13.1714 1.48362 13.9461 2.28537 14.3213C2.61706 14.4765 2.96295 14.5547 3.30172 14.5547C3.55728 14.5547 3.80881 14.5102 4.04712 14.4207C4.736 14.162 5.24647 13.5732 5.48464 12.7631C5.70003 12.0302 5.66529 11.1875 5.38686 10.3902ZM3.55259 13.1043C3.30036 13.199 3.04836 13.1258 2.88139 13.0477C2.42722 12.8352 2.0285 12.3433 1.81498 11.732C1.47612 10.762 1.71289 9.71047 2.3217 9.48172C2.57389 9.38698 2.82593 9.46025 2.99295 9.53834C3.44717 9.75092 3.84584 10.2427 4.05936 10.854C4.39822 11.8241 4.1614 12.8756 3.55259 13.1043Z\" fill=\"currentColor\" stroke=\"currentColor\" stroke-width=\"0.5\"/>"};
+  function ic(n, s) { s = s || 24; return '<svg width="' + s + '" height="' + s + '" viewBox="0 0 24 24" aria-hidden="true" focusable="false">' + IC[n] + '</svg>'; }
+  var TYPE = { yearround: ['Year-round', 'time'], seasonal: ['Seasonal', 'star'], timebound: ['Time-Bound', 'calendar'], none: ['Not scheduled', 'time'] };
+  var STATUS = { active: 'Active', inactive: 'Inactive', unassigned: 'Not assigned' };
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function ttag(t) { return '<span class="ttag ' + t + ' t-body-medium">' + ic(TYPE[t][1], 16) + TYPE[t][0] + '</span>'; }
+  function pill(s) { return '<span class="pill ' + s + ' t-body-medium">' + STATUS[s] + '</span>'; }
+  var SPECIES = [{"id": "CH", "name": "African Cuckoo-Hawk", "sci": "Aviceda cuculoides", "cls": "Birds", "animals": 6, "active": 4, "none": false, "diets": [{"code": "1103", "name": "Standard Carnivore Diet", "type": "yearround", "when": "", "status": "active"}, {"code": "1146", "name": "High Protein Diet", "type": "yearround", "when": "", "status": "active"}, {"code": "1188", "name": "Recovery Diet", "type": "timebound", "when": "10 Jun 2026 → 25 Jun 2026", "status": "active"}, {"code": "1210", "name": "Summer Diet", "type": "seasonal", "when": "1 Jun → 31 Aug", "status": "active"}, {"code": "1234", "name": "Moult Support Diet", "type": "timebound", "when": "15 Oct 2026 → 30 Nov 2026", "status": "inactive"}, {"code": "1287", "name": "High Protein Diet · rev 2", "type": "none", "when": "", "status": "unassigned"}]}, {"id": "LI", "name": "Asiatic Lion", "sci": "Panthera leo persica", "cls": "Mammals", "animals": 4, "active": 9, "none": false, "diets": [{"code": "1251", "name": "Lion Standard Diet", "type": "yearround", "when": "", "status": "active"}, {"code": "1252", "name": "Lion Soft Diet", "type": "timebound", "when": "5 Jun 2026 → 25 Jun 2026", "status": "active"}, {"code": "1253", "name": "Lion Summer Light", "type": "seasonal", "when": "1 Apr → 30 Jun", "status": "active"}, {"code": "1257", "name": "Lion Breeding Support", "type": "seasonal", "when": "1 May → 31 Jul", "status": "active"}, {"code": "1259", "name": "Lion Cub Starter", "type": "timebound", "when": "10 Jun 2026 → 10 Jul 2026", "status": "active"}, {"code": "1261", "name": "Senior Soft Meat Diet", "type": "timebound", "when": "1 Jun 2026 → 30 Sep 2026", "status": "active"}, {"code": "1263", "name": "Lion Fast-Day Substitute", "type": "timebound", "when": "1 Jun 2026 → 30 Jun 2026", "status": "active"}, {"code": "1707", "name": "Big Cat Meat Diet", "type": "seasonal", "when": "1 Jul → 30 Sep", "status": "active"}, {"code": "1255", "name": "Lion Winter Gain", "type": "seasonal", "when": "1 Nov → 31 Jan", "status": "inactive"}, {"code": "1250", "name": "Lion Standard Diet 2025", "type": "yearround", "when": "", "status": "unassigned"}]}, {"id": "SB", "name": "Sloth Bear", "sci": "Melursus ursinus", "cls": "Mammals", "animals": 4, "active": 2, "none": false, "diets": [{"code": "1301", "name": "Sloth Bear Daily Diet", "type": "yearround", "when": "", "status": "active"}, {"code": "1305", "name": "Summer Cooling Diet", "type": "seasonal", "when": "1 Jun → 31 Aug", "status": "active"}, {"code": "1309", "name": "Monsoon Diet", "type": "none", "when": "", "status": "unassigned"}]}, {"id": "GH", "name": "Great Hornbill", "sci": "Buceros bicornis", "cls": "Birds", "animals": 2, "active": 2, "none": false, "diets": [{"code": "1402", "name": "Hornbill Fruit Mix", "type": "yearround", "when": "", "status": "active"}, {"code": "1406", "name": "Hornbill Breeding Mix", "type": "seasonal", "when": "1 Feb → 30 Apr", "status": "active"}]}, {"id": "ST", "name": "Indian Star Tortoise", "sci": "Geochelone elegans", "cls": "Reptiles", "animals": 3, "active": 1, "none": false, "diets": [{"code": "1501", "name": "Tortoise Greens", "type": "yearround", "when": "", "status": "active"}, {"code": "1503", "name": "Monsoon Greens", "type": "seasonal", "when": "1 Jul → 30 Sep", "status": "inactive"}]}, {"id": "SD", "name": "Spotted Deer", "sci": "Axis axis", "cls": "Mammals", "animals": 5, "active": 2, "none": false, "diets": [{"code": "1601", "name": "Deer Browse Diet", "type": "yearround", "when": "", "status": "active"}, {"code": "1605", "name": "Rescue Deer Diet", "type": "timebound", "when": "1 Jun 2026 → 15 Jul 2026", "status": "active"}, {"code": "1603", "name": "Deer Winter Supplement", "type": "seasonal", "when": "15 Nov → 31 Jan", "status": "inactive"}, {"code": "1688", "name": "Rescue Deer Diet · napier", "type": "none", "when": "", "status": "unassigned"}]}, {"id": "PG", "name": "Indian Pangolin", "sci": "Manis crassicaudata", "cls": "Mammals", "animals": 1, "active": 0, "none": true, "diets": []}, {"id": "BT", "name": "Bengal Tiger", "sci": "Panthera tigris tigris", "cls": "Mammals", "animals": 0, "active": 6, "none": false, "diets": [{"code": "1701", "name": "Tiger Standard Diet", "type": "yearround", "when": "", "status": "active"}, {"code": "1703", "name": "Tiger Summer Light", "type": "seasonal", "when": "15 Apr → 30 Jun", "status": "active"}, {"code": "1705", "name": "Tiger Recovery Diet", "type": "timebound", "when": "1 Feb 2026 → 15 Mar 2026", "status": "inactive"}]}, {"id": "GS", "name": "Malabar Giant Squirrel", "sci": "Ratufa indica", "cls": "Mammals", "animals": 0, "active": 1, "none": false, "diets": [{"code": "2301", "name": "Squirrel Fruit & Nut Mix", "type": "yearround", "when": "", "status": "active"}]}, {"id": "FL", "name": "Greater Flamingo", "sci": "Phoenicopterus roseus", "cls": "Birds", "animals": 0, "active": 2, "none": false, "diets": [{"code": "1801", "name": "Flamingo Pellet Mix", "type": "yearround", "when": "", "status": "active"}, {"code": "1803", "name": "Flamingo Breeding Boost", "type": "seasonal", "when": "1 May → 31 Jul", "status": "active"}]}, {"id": "KC", "name": "King Cobra", "sci": "Ophiophagus hannah", "cls": "Reptiles", "animals": 0, "active": 3, "none": false, "diets": [{"code": "1901", "name": "Cobra Feed Cycle", "type": "yearround", "when": "", "status": "active"}, {"code": "1903", "name": "Cobra Winter Support", "type": "timebound", "when": "1 Nov 2026 → 15 Dec 2026", "status": "inactive"}]}, {"id": "MU", "name": "Mugger Crocodile", "sci": "Crocodylus palustris", "cls": "Reptiles", "animals": 0, "active": 7, "none": false, "diets": [{"code": "2001", "name": "Crocodile Standard Diet", "type": "yearround", "when": "", "status": "active"}, {"code": "2003", "name": "Crocodile Winter Diet", "type": "seasonal", "when": "1 Dec → 28 Feb", "status": "inactive"}]}, {"id": "BR", "name": "Indian Bullfrog", "sci": "Hoplobatrachus tigerinus", "cls": "Amphibians", "animals": 0, "active": 1, "none": false, "diets": [{"code": "2101", "name": "Bullfrog Insect Mix", "type": "yearround", "when": "", "status": "active"}, {"code": "2103", "name": "Bullfrog Treatment Diet", "type": "timebound", "when": "1 Mar 2026 → 15 Apr 2026", "status": "inactive"}]}, {"id": "MH", "name": "Golden Mahseer", "sci": "Tor putitora", "cls": "Fish", "animals": 0, "active": 1, "none": false, "diets": [{"code": "2201", "name": "Mahseer Pellet Diet", "type": "yearround", "when": "", "status": "active"}]}, {"id": "RP", "name": "Red Panda", "sci": "Ailurus fulgens", "cls": "Mammals", "animals": 0, "active": 0, "none": true, "diets": []}, {"id": "KF", "name": "White-throated Kingfisher", "sci": "Halcyon smyrnensis", "cls": "Birds", "animals": 0, "active": 0, "none": true, "diets": []}, {"id": "JB", "name": "Jewel Beetle", "sci": "Sternocera aequisignata", "cls": "Invertebrates", "animals": 0, "active": 0, "none": true, "diets": []}];
+  var CLASSES = ["Birds", "Mammals", "Reptiles", "Amphibians", "Fish", "Invertebrates"];
+  var st = { tab: 'with', q: '', cls: [], sort: 'count', open: {} };
+  var params = new URLSearchParams(location.search);
+  if (params.get('open')) params.get('open').split(',').forEach(function (k) { st.open[k] = true; });
+  var TABS = [['with', 'Species with diet'], ['without', 'Species without diet'], ['all', 'All species']];
+  var $ = function (id) { return document.getElementById(id); };
+  function initials(n) { return n.split(/[\s-]+/).filter(Boolean).slice(0, 2).map(function (w) { return w[0]; }).join('').toUpperCase(); }
+  function match(s) {
+    var q = st.q.trim().toLowerCase();
+    return (!q || (s.name + ' ' + s.sci).toLowerCase().indexOf(q) !== -1) && (!st.cls.length || st.cls.indexOf(s.cls) !== -1);
+  }
+  function inTab(s, t) { return t === 'all' || (t === 'with' ? !s.none : s.none); }
+  function row(d) {
+    return '<div class="sprow">' + ttag(d.type) + '<span class="t"><b class="t-body-title">Diet ' + d.code + '</b><span class="t-body-regular">' + esc(d.name) + (d.when ? ' • ' + esc(d.when) : '') + '</span></span>' + pill(d.status) + '</div>';
+  }
+  function card(s) {
+    var open = !!st.open[s.id];
+    var right = s.none ? '<span class="spn"><span class="gap t-body-medium">No diet yet</span></span>'
+      : '<span class="spn"><span class="v t-stat-title">' + s.active + '</span><span class="l t-body-regular">' + (s.active === 1 ? 'Active diet' : 'Active diets') + '</span></span>';
+    var panel = '';
+    if (open) {
+      panel = '<div class="spdiets" id="p-' + s.id + '">' + (s.diets.length ? s.diets.map(row).join('') +
+        '<a class="spmore t-body-medium" href="diet-directory.html?tab=all&q=' + encodeURIComponent(s.name) + '">Open in Diet Directory' + ic('dropdown', 20) + '</a>'
+        : '<p class="spnone t-body-regular">No diet is set for this species yet. Raise a diet request to add one.</p><a class="spmore t-body-medium" href="diet-request.html">Go to Diet Request' + ic('dropdown', 20) + '</a>') + '</div>';
+    }
+    return '<div class="spwrap"><button class="spcard" type="button" data-sp="' + s.id + '" aria-expanded="' + open + '" aria-controls="p-' + s.id + '">' +
+      '<span class="spav t-minor-title" aria-hidden="true">' + initials(s.name) + '</span>' +
+      '<span class="grow"><span class="n t-minor-title">' + esc(s.name) + '</span><span class="m t-minor-italic">' + esc(s.sci) + '</span>' +
+      '<span class="c t-body-regular">' + esc(s.cls) + (s.animals ? ' • ' + s.animals + (s.animals === 1 ? ' animal' : ' animals') : '') + '</span></span>' +
+      right + '<span class="chev">' + ic('dropdown', 24) + '</span></button>' + panel + '</div>';
+  }
+  function draw() {
+    var base = SPECIES.filter(match);
+    $('tabs').innerHTML = TABS.map(function (t) {
+      var n = base.filter(function (s) { return inTab(s, t[0]); }).length;
+      return '<button type="button" role="tab" class="t-minor-medium" data-tab="' + t[0] + '" aria-selected="' + (st.tab === t[0]) + '">' + t[1] + ' - ' + n + '</button>';
+    }).join('');
+    var list = base.filter(function (s) { return inTab(s, st.tab); });
+    list.sort(function (a, b) { return st.sort === 'name' ? a.name.localeCompare(b.name) : (b.active - a.active) || a.name.localeCompare(b.name); });
+    $('count').textContent = 'Species (' + list.length + ')';
+    $('list').innerHTML = list.length ? list.map(card).join('') :
+      '<div class="empty" style="grid-column:1/-1"><span class="ei">' + ic('search', 24) + '</span><b class="t-minor-title">No species match</b><span class="t-body-regular">Try a common or scientific name, or clear the filters.</span></div>';
+    $('fn').hidden = !st.cls.length; $('fn').textContent = st.cls.length;
+    $('fbtn').classList.toggle('on', st.cls.length > 0);
+    $('chips').innerHTML = CLASSES.map(function (c) { return '<button type="button" class="spchip t-body-medium" data-cls="' + c + '" aria-pressed="' + (st.cls.indexOf(c) !== -1) + '">' + c + '</button>'; }).join('');
+    $('sortl').textContent = st.sort === 'name' ? 'Name A-Z' : 'Most diets';
+  }
+  $('tabs').addEventListener('click', function (e) { var b = e.target.closest('[data-tab]'); if (b) { st.tab = b.dataset.tab; draw(); } });
+  $('q').addEventListener('input', function () { st.q = this.value; draw(); });
+  $('fbtn').addEventListener('click', function () { var open = $('chips').hidden; $('chips').hidden = !open; this.setAttribute('aria-pressed', String(open)); });
+  $('chips').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-cls]'); if (!b) return;
+    var i = st.cls.indexOf(b.dataset.cls); if (i === -1) st.cls.push(b.dataset.cls); else st.cls.splice(i, 1); draw();
+  });
+  $('sort').addEventListener('click', function () { st.sort = st.sort === 'count' ? 'name' : 'count'; draw(); });
+  $('list').addEventListener('click', function (e) { var b = e.target.closest('[data-sp]'); if (b) { st.open[b.dataset.sp] = !st.open[b.dataset.sp]; draw(); } });
+  draw();
+  })();
+  </script>
+</body>
+</html>

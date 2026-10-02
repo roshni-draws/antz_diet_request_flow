@@ -1,0 +1,598 @@
+# sp3.py: exec'd inside home2.py. Diet by Species tab v3: species records + detail from the
+# Dev system local screens diet/by-species (by-species.data.js resolved through diet-model.js).
+_bs = open(os.path.join(HERE, 'bsdata.json')).read().replace(' – ', ' to ').replace('–', '-').replace('—', '-')
+BS = json.loads(_bs)
+for _k, _p in BS['plans'].items():
+    _p['sharers'] = [[x['tsn'], x['plan']] for x in _p.get('sharers', [])]
+exec(open(os.path.join(HERE, 'sample.py')).read())
+_spl = []
+for _s in BS['species']:
+    _spl.append({k: _s[k] for k in ('tsn', 'name', 'sci', 'cls', 'animals', 'diet', 'verified', 'enclosures', 'animalList', 'plans', 'photos')})
+BS_EMBED = json.dumps({'species': _spl, 'plans': BS['plans']}, ensure_ascii=False, separators=(',', ':')).replace('</', '<\\/')
+N_SP = len(_spl)
+
+SP3_CSS = '''    /* =========================================================
+       12. SPECIES DETAIL  (Dev system by-species detail in Antz app style)
+       landscape: list 40% + detail 60%; portrait: detail opens as a panel
+       ========================================================= */
+    .sp-split { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sp-16); align-items: start; }
+    .sp-detail { display: none; }
+    .spcard[aria-current="true"] { box-shadow: inset 0 0 0 2px var(--md3-primary); border-radius: var(--radius); }
+    .spcard .go { color: var(--md3-on-primary-container); transform: rotate(-90deg); }
+    .spcard .tagc { margin-top: 4px; }
+    /* species header card: name + primary action / stats + secondary actions (container-query layout) */
+    .sreqs__h { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .sreqs__h h3 { color: var(--md3-neutral-secondary); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+    .sreqs__need { display: flex; align-items: center; gap: 8px; color: #8A5A00; background: var(--moderate-a10); padding: 8px 12px; border-radius: 8px; }
+    .sreqs__sub { color: var(--md3-neutral-secondary); }
+    .sreq { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 64px; padding: 10px 12px 10px 0; text-align: left; border-radius: 8px; background: var(--md3-background); overflow: hidden; }
+    .sreq .ribbon { margin: 0; min-width: 48px; height: 36px; font-size: 16px; padding: 0 8px 0 16px; }
+    .sreq .grow { flex: 1; min-width: 0; display: grid; gap: 2px; }
+    .sreq .grow b { color: var(--head); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .sreq .grow span, .sreq .grow small { color: var(--ink); }
+    .sreq .grow small { color: var(--md3-neutral-secondary); }
+    .sreq .grow small.nx { color: var(--md3-on-primary-container); }
+    .sreq .grow small.dx { display: inline-flex; align-items: center; gap: 4px; color: var(--head); }
+    .hbtn .hcount { min-width: 22px; height: 22px; padding: 0 7px; border-radius: 11px; display: inline-grid; place-items: center; font-size: 12px; font-weight: 700; background: var(--md3-displaybg-primary); color: var(--md3-on-primary-container); }
+    .hero__sec .hbtn.due { border-color: #E2B33C; background: #FFF6DB; color: #6B4E00; }
+    .hero__sec .hbtn.due svg { color: #8A5A00; }
+    .hbtn.due .hcount { background: #8A5A00; color: var(--white); }
+    .hseg { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .hseg .n { margin-left: 4px; opacity: .75; font-variant-numeric: tabular-nums; }
+    .hseg .hdot { margin-left: 8px; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 10px; display: inline-grid; place-items: center; font-size: 12px; font-weight: 700; background: #8A5A00; color: var(--white); }
+    .hreqs { display: grid; gap: 8px; }
+    .hreqs__tab { justify-self: start; min-height: 44px; display: inline-flex; align-items: center; padding: 0 4px; margin-top: 4px; }
+    .hfrom { white-space: nowrap; display: inline-flex; align-items: center; gap: 4px; min-height: 44px; margin-top: 4px; padding: 0 8px; border-radius: 6px; background: var(--moderate-a10); color: #6B4E00; font-size: 13px; }
+    @media (hover: hover) { .sreq:hover { background: var(--md3-displaybg-primary); } }
+    .hero { background: var(--white); border-radius: var(--radius); padding: var(--sp-20) var(--sp-24); container-type: inline-size; container-name: hero; }
+    .hero__in { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "top cta" "row row"; column-gap: var(--sp-16); row-gap: var(--sp-16); align-items: center; }
+    .hero__top { grid-area: top; display: flex; gap: var(--sp-16); align-items: center; min-width: 0; }
+    .hero__av { width: 64px; height: 64px; border-radius: 50%; flex: none; display: grid; place-items: center; background: var(--md3-surface-variant); color: var(--ink); }
+    .hero__nm { flex: 1; min-width: 0; display: grid; gap: 2px; }
+    .hero__nm b { color: var(--md3-on-primary-container); line-height: 1.2; overflow-wrap: anywhere; }
+    .hero__nm i { color: var(--ink); }
+    .hero__nm small { color: var(--md3-neutral-secondary); display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 2px; }
+    .hero__cta { grid-area: cta; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+    .hero__req { flex: none; min-height: 48px; padding: 0 var(--sp-20); border-radius: 8px; background: var(--md3-on-primary-container); color: var(--white); display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-size: 15px; font-weight: 600; white-space: nowrap; transition: background-color 200ms var(--ease), transform 120ms var(--ease); }
+    @media (hover: hover) { .hero__req:hover { background: #183F47; } }
+    .hero__req:active { transform: scale(.98); }
+    .hero__row { grid-area: row; display: flex; align-items: center; justify-content: space-between; gap: var(--sp-16); padding-top: var(--sp-16); border-top: 1px solid var(--line); }
+    .hero__stats { display: flex; align-items: stretch; }
+    .hero__stats .stx { display: grid; gap: 2px; align-content: center; min-width: 88px; padding: 0 var(--sp-20); border-left: 1px solid var(--line); }
+    .hero__stats .stx:first-child { padding-left: 0; border-left: 0; }
+    .hero__stats .stx .v { color: var(--md3-on-secondary-container); line-height: 1.1; }
+    .hero__stats .stx.ok .v { color: var(--md3-on-surface); }
+    .hero__stats .stx .l { color: var(--ink); white-space: nowrap; }
+    .hero__sec { display: flex; gap: var(--sp-8); flex: none; }
+    .hero__sec .chip { min-height: 44px; border-radius: 8px; }
+    @container hero (max-width: 640px) {
+      .hero__row { flex-direction: column; align-items: stretch; gap: var(--sp-16); }
+      .hero__stats .stx { flex: 1; min-width: 0; }
+      .hero__sec .chip { flex: 1; justify-content: center; }
+    }
+    @container hero (max-width: 520px) {
+      .hero__in { grid-template-columns: minmax(0, 1fr); grid-template-areas: "top" "row" "cta"; }
+      .hero__cta { align-items: stretch; flex-direction: column-reverse; }
+      .hero__req { width: 100%; }
+      .hero__cta .rqb { align-self: center; }
+    }
+    .card2 { background: var(--white); border-radius: var(--radius); padding: var(--sp-16) var(--sp-20); display: grid; gap: var(--sp-12); margin-top: var(--sp-16); }
+    .card2 > h3, .cap3 { color: var(--md3-neutral-secondary); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+    .scopes { display: flex; flex-wrap: wrap; gap: var(--sp-8); }
+    .scopes .spchip { flex-direction: column; align-items: flex-start; justify-content: center; height: auto; min-height: 52px; padding: 6px 14px; gap: 0; }
+    .scopes .spchip small { font-size: 12px; font-weight: 400; opacity: .85; }
+    .targets { display: grid; gap: 6px; align-content: start; }
+    .ttools { display: grid; gap: var(--sp-8); }
+    .ttools .spsearch { height: 48px; }
+    .ttools .spsearch input:focus-visible { outline: none; }
+    .tchips { padding: 0; align-items: center; }
+    .tdiv { width: 1px; height: 24px; background: var(--md3-outline-variant); flex: none; margin: 0 4px; }
+    .tcount { color: var(--md3-neutral-secondary); }
+    .tbox { position: relative; border-radius: 8px; }
+    .tbox::before, .tbox::after { content: ""; position: absolute; left: 0; right: 0; height: 20px; pointer-events: none; z-index: 2; opacity: 0; transition: opacity 160ms var(--ease); }
+    .tbox::before { top: 24px; background: linear-gradient(rgba(31,65,91,.12), rgba(31,65,91,0)); border-radius: 8px 8px 0 0; }
+    .tbox::after { bottom: 0; background: linear-gradient(rgba(31,65,91,0), rgba(31,65,91,.12)); border-radius: 0 0 8px 8px; }
+    .tbox.ft::before, .tbox.fb::after { opacity: 1; }
+    .tscroll { max-height: 360px; overflow-y: auto; overscroll-behavior: contain; padding: 0 4px 4px 0; scrollbar-width: thin; }
+    .tscroll .tgh { position: sticky; top: 0; z-index: 1; background: var(--white); padding: 6px 0 4px; margin: 0; }
+    .tgt .tid { color: var(--md3-neutral-secondary); font-weight: 400; }
+    .tgt mark, .tgh mark { background: rgba(55,189,105,.22); color: inherit; border-radius: 2px; }
+    .tmore { justify-self: center; margin: 6px 0; }
+    .tempty { display: grid; justify-items: center; gap: 6px; padding: var(--sp-24) var(--sp-12); text-align: center; color: var(--ink); }
+    .tempty b { color: var(--head); }
+    .tgh { color: var(--md3-neutral-secondary); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; margin-top: 4px; }
+    .tgt { display: flex; align-items: center; gap: var(--sp-12); min-height: 52px; padding: 8px 12px; border-radius: 8px; background: var(--md3-background); text-align: left; width: 100%; }
+    .tgt[aria-pressed="true"] { box-shadow: inset 0 0 0 2px var(--md3-primary); background: var(--white); }
+    .tgt .grow { flex: 1; min-width: 0; display: grid; gap: 2px; }
+    .tgt .grow b { color: var(--head); }
+    .tgt .grow span { color: var(--md3-neutral-secondary); }
+    .tgt .d { color: var(--md3-on-surface); white-space: nowrap; }
+    .tgt .d.none { color: var(--md3-neutral-secondary); }
+    .pchips { display: flex; flex-wrap: wrap; gap: var(--sp-8); align-items: center; }
+    .pchip { display: grid; gap: 2px; padding: 8px 12px; min-height: 48px; border-radius: 8px; border: 1px solid var(--md3-outline-variant); background: var(--white); text-align: left; }
+    .pchip[aria-pressed="true"] { border-color: var(--md3-primary); box-shadow: 0 0 0 1px var(--md3-primary); background: rgba(55,189,105,.05); }
+    .pchip.off { opacity: .6; }
+    .pchip .l1 { display: flex; align-items: center; gap: 8px; color: var(--head); font-weight: 600; }
+    .pchip .l2 { color: var(--md3-neutral-secondary); font-size: 12px; }
+    .addchip { width: 48px; height: 48px; border-radius: 8px; border: 1px dashed var(--md3-outline-variant); display: grid; place-items: center; color: var(--md3-on-primary-container); }
+    .switch { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; color: var(--ink); }
+    .switch .trk { width: 36px; height: 20px; border-radius: 10px; background: var(--md3-outline-variant); position: relative; transition: background-color 200ms var(--ease); }
+    .switch .trk::after { content: ""; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: var(--white); transition: transform 200ms var(--ease); }
+    .switch[aria-pressed="true"] .trk { background: var(--md3-primary); }
+    .switch[aria-pressed="true"] .trk::after { transform: translateX(16px); }
+    .callout { background: var(--white); border-radius: var(--radius); padding: var(--sp-32) var(--sp-24); margin-top: var(--sp-16); display: grid; justify-items: center; gap: var(--sp-8); text-align: center; }
+    .callout .ei { width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center; background: var(--md3-background); color: var(--md3-on-primary-container); margin-bottom: 4px; }
+    .callout b { color: var(--head); }
+    .callout p { color: var(--ink); max-width: 56ch; }
+    .callout .btn { flex: none; padding: 0 var(--sp-20); margin-top: var(--sp-8); text-decoration: none; }
+    .menu { position: fixed; z-index: 35; min-width: 220px; background: var(--white); border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,.16); padding: 6px; display: grid; }
+    .menu[hidden] { display: none; }
+    .menu button { display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 0 12px; border-radius: 6px; text-align: left; color: var(--head); }
+    .menu button:hover { background: var(--md3-background); }
+    .menu button.danger { color: var(--md3-error); }
+    .htab { width: 100%; border-collapse: collapse; }
+    .htab th { text-align: left; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--ink); background: var(--md3-surface-variant); padding: 8px 10px; }
+    .htab td { padding: 10px; border-top: 1px solid var(--md3-surface-variant); vertical-align: top; color: var(--head); }
+    .htab td small { display: block; color: var(--md3-neutral-secondary); }
+    .shgrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-12); }
+    .shcard .link { color: var(--md3-on-surface); text-align: left; }
+    @media (orientation: landscape) {
+      .tscroll { max-height: 296px; }
+      .sp-split { grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); }
+      .sp-split .spcards { grid-template-columns: minmax(0, 1fr); }
+      .sp-detail { display: block; position: sticky; top: var(--sp-16); max-height: calc(100dvh - var(--status-h) - 138px - 32px); overflow-y: auto; border-radius: var(--radius); }
+      .sp-detail .card2:first-child, .sp-detail .hero + .card2 { margin-top: var(--sp-16); }
+      .shgrid { grid-template-columns: minmax(0, 1fr); }
+    }
+'''
+
+exec(open(os.path.join(HERE, 'wiz.py')).read())
+
+SP_JS = '''  /* ---------------- Diet by Species (Dev system diet/by-species: data, scopes, plans, detail) ---------------- */
+  var BSD = ''' + BS_EMBED + ''';
+  function SpModule(root) {
+    var SPECIES = BSD.species, PLANS = BSD.plans, BY = {};
+    SPECIES.forEach(function (s) { BY[s.tsn] = s; });
+    RQ.restorePlans(PLANS, BY);
+    HOOKS.planOf = function (id) { return id ? PLANS[id] || null : null; };
+    HOOKS.currentOf = function (r) { var s = BY[r.tsn]; if (!s) return null; if (r.planId && PLANS[r.planId]) return PLANS[r.planId]; return scopePlansFor(s, r.scope, r.scope === 'species' ? null : r.scopeRef).filter(isDefault)[0] || basePlan(s); };
+    var CLS = [['mammalia', 'Mammalia'], ['aves', 'Aves'], ['reptilia', 'Reptilia'], ['other', 'Other']];
+    var SCOPES = [['species', 'Species-wide'], ['site', 'Site-wide'], ['section', 'Section-wide'], ['enclosure', 'Enclosure-wide'], ['animal', 'Animal-wide']];
+    var KIND = { base: ['yearround', 'Year-round'], seasonal: ['seasonal', 'Seasonal'], 'time-bound': ['timebound', 'Time-Bound'], 'sex-based': ['yearround', 'Sex-Based'], combined: ['seasonal', 'Combined'] };
+    var KICON = { yearround: 'time', seasonal: 'star', timebound: 'calendar' };
+    var MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    var NUT = [['Macros', [['energy', 'Energy', 'kcal'], ['protein', 'Protein', 'g'], ['fat', 'Fat', 'g'], ['carbohydrate', 'Carbohydrate', 'g'], ['fiber', 'Fiber', 'g'], ['moisture', 'Moisture', '%']]],
+      ['Minerals', [['calcium', 'Calcium', 'mg'], ['phosphorus', 'Phosphorus', 'mg']]],
+      ['Vitamins', [['vitaminA', 'Vitamin A', 'IU'], ['vitaminD', 'Vitamin D', 'IU'], ['vitaminE', 'Vitamin E', 'mg'], ['vitaminC', 'Vitamin C', 'mg']]]];
+    var SEGS = [['all', 'All'], ['with', 'Species with diet'], ['without', 'Species without diet']];
+    var st = { seg: 'all', q: '', cls: [], ver: '', sort: 'count', tsn: null, plan: null, scope: 'species', ref: null, tab: 'items', view: 'cards', showInactive: false, picked: {}, hist: { scope: 'all', kind: 'all', seg: 'diets' } };
+
+    function plansOf(s) { return (s.plans || []).map(function (id) { return PLANS[id]; }).filter(Boolean); }
+    function activeN(s) { return plansOf(s).filter(function (p) { return p.active; }).length; }
+    function hasDiet(s) { return !!s.diet; }
+    function clsOf(s) { var c = (s.cls || '').toLowerCase(); return ['mammalia', 'aves', 'reptilia'].indexOf(c) !== -1 ? c : 'other'; }
+    function clsName(s) { var c = clsOf(s); for (var i = 0; i < CLS.length; i++) if (CLS[i][0] === c) return CLS[i][1]; return 'Other'; }
+    function shownId(p) { return 'D-' + (p.sharedFrom || p.id); }
+    function ddmmyy(iso) { return iso ? iso.slice(8, 10) + '-' + iso.slice(5, 7) + '-' + iso.slice(2, 4) : '-'; }
+    function ddmm(iso) { return iso ? iso.slice(8, 10) + '-' + iso.slice(5, 7) : '-'; }
+    function compact(iso) { return iso ? Number(iso.slice(8, 10)) + ' ' + MON[Number(iso.slice(5, 7)) - 1] : ''; }
+    function initials(n) { return n.split(/[\\s-]+/).filter(Boolean).slice(0, 2).map(function (w) { return w[0]; }).join('').toUpperCase(); }
+    function uniq(a, k) { var s = {}; return a.filter(function (x) { var v = k(x); if (s[v]) return false; s[v] = 1; return true; }); }
+    function locOf(s) {
+      var e = s.enclosures || [];
+      return { sites: uniq(e, function (x) { return x.siteId; }).map(function (x) { return { id: x.siteId, name: x.site }; }),
+        sections: uniq(e, function (x) { return x.sectionId; }).map(function (x) { return { id: x.sectionId, name: x.section, site: x.site }; }), enclosures: e };
+    }
+    function isBase(p) { return p.active && p.scope === 'species' && p.kind === 'base'; }
+    function kindTag(p) { var k = KIND[p.kind] || KIND.base; return '<span class="ttag ' + k[0] + ' t-body-medium">' + ic(KICON[k[0]], 16) + k[1] + '</span>'; }
+    function windowText(p) {
+      if (p.proposed) return ['off', 'Proposed · not active'];
+      if (!p.active) return ['inactive', 'Inactive'];
+      var f = p.recurring ? ddmm : ddmmyy;
+      if (p.from || p.to) return ['current', (p.from ? f(p.from) : '...') + ' → ' + (p.to ? f(p.to) : 'open') + (p.recurring ? ' · yearly' : '')];
+      return ['current', 'all year · Since ' + ddmmyy(p.created)];
+    }
+    function animalLabel(a) { return a.label || ((a.group ? 'Group of ' + a.group : 'Animal') + ' #' + a.id); }
+    function encById(s, id) { return (s.enclosures || []).filter(function (e) { return e.id === id; })[0]; }
+    function match(s) {
+      var q = st.q.trim().toLowerCase();
+      return (!q || (s.name + ' ' + s.sci + ' ' + s.tsn).toLowerCase().indexOf(q) !== -1) && (!st.cls.length || st.cls.indexOf(clsOf(s)) !== -1) &&
+        (!st.ver || (st.ver === 'certified' ? s.verified : !s.verified));
+    }
+    function inSeg(s, t) { return t === 'all' || (t === 'with' ? hasDiet(s) : !hasDiet(s)); }
+
+    root.innerHTML =
+      '<div class="segwrap"><div class="seg3" role="tablist" aria-label="Diet coverage" data-seg></div></div>' +
+      '<div class="spband"><label class="spsearch">' + ic('search', 20) + '<span class="sr-only">Search species</span><input class="t-body-regular" type="search" data-q placeholder="Search species or taxonomy ID" autocomplete="off"></label>' +
+      '<button class="spfilter" type="button" data-fbtn aria-pressed="false" aria-label="Filters">' + ic('filter-2', 24) + '<span class="t-minor-medium" data-fn hidden></span></button></div>' +
+      '<div data-chips hidden><div class="segrow" role="group" aria-label="Class" data-clsrow></div><div class="segrow" role="group" aria-label="Certification" data-verrow></div></div>' +
+      '<div class="list-bar"><h2 class="t-minor-medium" data-count aria-live="polite"></h2><button class="chip t-body-medium" type="button" data-sort>' + ic('sort', 18) + '<span data-sortl></span></button></div>' +
+      '<div class="sp-split"><div data-list></div><div class="sp-detail" data-detail></div></div>';
+    var $ = function (s) { return root.querySelector(s); };
+
+    /* ---------- list ---------- */
+    function card(s) {
+      var n = activeN(s), on = LAND.matches && s.tsn === st.tsn;
+      var right = hasDiet(s) ? '<span class="spn"><span class="v t-stat-title">' + n + '</span><span class="l t-body-regular">' + (n === 1 ? 'Active diet' : 'Active diets') + '</span></span>' : '<span class="spn"><span class="gap t-body-medium">No diet yet</span></span>';
+      return '<div class="spwrap"><button class="spcard" type="button" data-tsn="' + s.tsn + '"' + (on ? ' aria-current="true"' : '') + ' aria-label="Open ' + esc(s.name) + '"><span class="spav t-minor-title" aria-hidden="true">' + initials(s.name) + '</span>' +
+        '<span class="grow"><span class="n t-minor-title">' + esc(s.name) + '</span><span class="m t-minor-italic">' + esc(s.sci) + '</span><span class="c t-body-regular">' + clsName(s) + ' • ' + plural(s.animals || 0, 'animal') + (s.verified ? ' • Certified' : '') + '</span></span>' +
+        right + '<span class="go">' + ic('dropdown', 24) + '</span></button></div>';
+    }
+    function sortL(list) { list.sort(function (a, b) { return st.sort === 'name' ? a.name.localeCompare(b.name) : (activeN(b) - activeN(a)) || a.name.localeCompare(b.name); }); return list; }
+    function visibleList() { return sortL(SPECIES.filter(match).filter(function (s) { return inSeg(s, st.seg); })); }
+    function drawList() {
+      var base = SPECIES.filter(match);
+      $('[data-seg]').innerHTML = SEGS.map(function (t) { return '<button type="button" role="tab" class="t-body-medium" data-s="' + t[0] + '" aria-selected="' + (st.seg === t[0]) + '">' + t[1] + ' - ' + base.filter(function (s) { return inSeg(s, t[0]); }).length + '</button>'; }).join('');
+      var list = visibleList(), L = $('[data-list]');
+      $('[data-count]').textContent = 'Species (' + list.length + ')';
+      if (LAND.matches && list.length && !list.some(function (s) { return s.tsn === st.tsn; })) { st.tsn = list[0].tsn; st.plan = null; resetScope(); }
+      var empty = '<div class="empty"><span class="ei">' + ic('search', 24) + '</span><b class="t-minor-title">No species match</b><span class="t-body-regular">Try a common or scientific name, a taxonomy ID, or clear the filters.</span></div>';
+      if (st.seg === 'all') {
+        var w = list.filter(hasDiet), wo = list.filter(function (s) { return !hasDiet(s); });
+        L.className = 'spgroups';
+        L.innerHTML = !list.length ? empty : [['Species with diet', w], ['Species without diet', wo]].map(function (g) {
+          return '<section class="spgroup" aria-label="' + g[0] + '"><h3 class="spgroup__h t-minor-title">' + g[0] + ' (' + g[1].length + ')</h3>' +
+            (g[1].length ? '<div class="spcards">' + g[1].map(card).join('') + '</div>' : '<p class="spgroup__none t-body-regular">None match the search or filter.</p>') + '</section>';
+        }).join('');
+      } else { L.className = 'spcards'; L.innerHTML = list.length ? list.map(card).join('') : empty; }
+      var nf = st.cls.length + (st.ver ? 1 : 0);
+      $('[data-fn]').hidden = !nf; $('[data-fn]').textContent = nf; $('[data-fbtn]').classList.toggle('on', nf > 0);
+      $('[data-clsrow]').innerHTML = '<span class="rowlabel t-body-medium">Class</span>' + CLS.map(function (c) { return '<button type="button" class="spchip t-body-medium" data-cl="' + c[0] + '" aria-pressed="' + (st.cls.indexOf(c[0]) !== -1) + '">' + c[1] + '</button>'; }).join('');
+      $('[data-verrow]').innerHTML = '<span class="rowlabel t-body-medium">Certification</span>' + [['', 'All'], ['certified', 'Certified'], ['uncertified', 'Uncertified']].map(function (v) { return '<button type="button" class="spchip t-body-medium" data-vr="' + v[0] + '" aria-pressed="' + (st.ver === v[0]) + '">' + v[1] + '</button>'; }).join('');
+      $('[data-sortl]').textContent = st.sort === 'name' ? 'Name A-Z' : 'Most diets';
+    }
+
+    /* ---------- detail ---------- */
+    function resetScope() { st.scope = 'species'; st.ref = null; st.tab = 'items'; st.showInactive = false; st.tq = ''; st.tf = ''; st.tsx = ''; st.tlimit = 40; }
+    function applyPlan(s) {
+      var p = st.plan != null ? PLANS[st.plan] : null;
+      if (p && p.species === s.tsn) { st.scope = p.scope; st.ref = p.scope === 'species' ? null : p.ref; if (!p.active) st.showInactive = true; }
+      else st.plan = null;
+    }
+    function plansHere(s) { return plansOf(s).filter(function (p) { return p.scope === st.scope && (st.scope === 'species' || p.ref === st.ref); }); }
+    function activeAt(s, scope, ref) { return plansOf(s).filter(function (p) { return p.active && p.scope === scope && (ref == null || p.ref === ref); }).length; }
+    /* requests for this species: rows shared by the Diet history "Requests" segment */
+    var REQ_TL = { temporary: 'Temporary', base: 'Base diet change', site: 'Site / Section', animal: 'Animal' };
+    var REQ_SUBTAG = { review: 'orange', configuring: 'teal', sentback: 'red', kitchen: 'orange', delayed: 'orange', done: 'green' };
+    function spReqs(s) { return RQ.visible().filter(function (r) { return r.tsn === s.tsn; }); }
+    function reqRow(r) {
+      RQ.decorate(r);
+      var hd = RQ.can('configure'), sb = RQ.hdSub(r), nx = hd ? RQ.hdNext(r) : null, pt = RQ.propText(r);
+      var tag = hd && RQ.isOpen(r) ? '<span class="tag ' + (REQ_SUBTAG[sb] || 'grey') + '">' + esc(sb === 'delayed' ? RQ.downLabel(r) : RQ.SUBL[sb] || r.label) + '</span>' : '<span class="tag ' + (r.tone === 'ok' ? 'green' : r.tone === 'bad' ? 'red' : 'orange') + '">' + esc(r.label) + '</span>';
+      return '<button type="button" class="sreq" data-rqopen="' + r.id + '"><span class="ribbon ' + r.prio + '" aria-label="' + RQ.PRI[r.prio][1] + ' priority">' + RQ.PRI[r.prio][0] + '</span><span class="grow"><b class="t-body-title">' + esc(r.id + ' · ' + r.title) + '</b>' +
+        '<span class="t-body-regular">' + esc((REQ_TL[r.type] || r.type) + ' · ' + (r.scopeText || 'Whole species') + (r.season ? ' · every year ' + r.season.from.split('-').reverse().join('-') + ' to ' + r.season.to.split('-').reverse().join('-') : r.start ? ' · ' + RQ.fmt(r.start) + (r.end ? ' to ' + RQ.fmt(r.end) : ' onwards') : '')) + '</span><small class="t-body-regular">' + esc(r.by.name + ', ' + r.by.role) + '</small>' +
+        (nx ? '<small class="t-body-medium nx">' + esc(nx[1]) + '</small>' : '') + (pt ? '<small class="t-body-medium dx">' + ic('book', 14) + esc(pt) + (r.proposedId ? ' (Proposed)' : '') + '</small>' : '') + '</span>' + tag + '</button>';
+    }
+    function reqGroups(s) {
+      var list = spReqs(s), open = list.filter(RQ.isOpen), closed = list.filter(function (r) { return !RQ.isOpen(r); }), g = [];
+      var byPri = function (a, b) { return ({ high: 0, medium: 1, low: 2 }[a.prio] - { high: 0, medium: 1, low: 2 }[b.prio]) || a.iso.localeCompare(b.iso); };
+      if (RQ.can('configure')) {
+        var todo = open.filter(function (r) { return RQ.hdBucket(r) === 'todo'; }), mine = open.filter(function (r) { return RQ.hdBucket(r) === 'mine'; }), other = open.filter(function (r) { return todo.indexOf(r) === -1 && mine.indexOf(r) === -1; });
+        if (todo.length) g.push(['To configure', todo.sort(byPri), true]); if (mine.length) g.push(['Configured by me', mine.sort(byPri)]); if (other.length) g.push(['Other', other.sort(byPri)]);
+      } else if (open.length) g.push(['Open', open.sort(byPri)]);
+      if (closed.length) g.push(['Closed', closed.sort(function (a, b) { return b.iso.localeCompare(a.iso); })]);
+      return { n: list.length, open: open.length, todo: RQ.can('configure') ? open.filter(function (r) { return RQ.hdBucket(r) === 'todo'; }).length : 0, groups: g };
+    }
+    function hero(s) {
+      var L = locOf(s), n = activeN(s);
+      return '<section class="hero" aria-label="' + esc(s.name) + '"><div class="hero__in">' +
+        '<div class="hero__top"><span class="hero__av">' + ic('paw', 30) + '</span><span class="hero__nm"><b class="t-major-title">' + esc(s.name) + '</b><i class="t-minor-italic">' + esc(s.sci) + '</i>' +
+        '<small class="t-body-regular">Taxonomy ID: ' + s.tsn + ' <span class="tag teal">' + clsName(s) + '</span>' + (s.verified ? '<span class="tag green">Certified</span>' : '') + '</small></span></div>' +
+        '<div class="hero__cta"><button type="button" class="hero__req" data-rqnew="species">' + ic('reason-or-list', 20) + 'Request diet change</button>' + reqBadge(openReqs(s)).replace(/data-rqopen="[^"]*"/, 'data-histreq') + '</div>' +
+        '<div class="hero__row"><div class="hero__stats" role="group" aria-label="Summary">' +
+        '<span class="stx"><span class="v t-stat-title">' + (s.animals || 0) + '</span><span class="l t-body-regular">Animals held</span></span>' +
+        '<span class="stx"><span class="v t-stat-title">' + L.sites.length + '</span><span class="l t-body-regular">' + (L.sites.length === 1 ? 'Site' : 'Sites') + '</span></span>' +
+        '<span class="stx ok"><span class="v t-stat-title">' + n + '</span><span class="l t-body-regular">' + (n === 1 ? 'Diet' : 'Diets') + '</span></span></div>' +
+        '<div class="hero__sec"><button type="button" class="chip t-body-medium" data-photos>' + ic('image', 18) + 'Photos</button>' + (function () { var rg = reqGroups(s); return '<button type="button" class="chip t-body-medium hbtn' + (rg.todo ? ' due' : '') + '" data-history aria-label="Diet history' + (rg.open ? ', ' + plural(rg.open, 'open request') + (rg.todo ? ', ' + rg.todo + ' to configure' : '') : '') + '">' + ic('history', 18) + 'Diet history' + (rg.open ? '<span class="hcount">' + rg.open + '</span>' : '') + '</button>'; })() + '</div></div>' +
+        '</div></section>';
+    }
+    /* ---------- scope target list: search, quick filters, scroll area, capped rendering ---------- */
+    var NOUN = { site: ['site', 'sites'], section: ['section', 'sections'], enclosure: ['enclosure', 'enclosures'], animal: ['animal', 'animals'] };
+    var PH = { site: 'Search sites', section: 'Search sections', enclosure: 'Search enclosures', animal: 'Search by animal ID, name, sex or enclosure' };
+    function hlq(t, q) { t = String(t); if (!q) return esc(t); var i = t.toLowerCase().indexOf(q); return i < 0 ? esc(t) : esc(t.slice(0, i)) + '<mark>' + esc(t.slice(i, i + q.length)) + '</mark>' + esc(t.slice(i + q.length)); }
+    function targetRows(s) {
+      var L = locOf(s), out = [];
+      if (st.scope === 'site') L.sites.forEach(function (x) { var n = activeAt(s, 'site', x.id); out.push({ g: '', ref: x.id, name: x.name, where: '', n: n, has: n > 0, find: x.name }); });
+      if (st.scope === 'section') L.sections.slice().sort(function (a, b) { return L.sites.map(function (z) { return z.name; }).indexOf(a.site) - L.sites.map(function (z) { return z.name; }).indexOf(b.site); }).forEach(function (x) { var n = activeAt(s, 'section', x.id); out.push({ g: x.site, ref: x.id, name: x.name, where: plural(L.enclosures.filter(function (e) { return e.sectionId === x.id; }).length, 'enclosure'), n: n, has: n > 0, find: x.name + ' ' + x.site }); });
+      if (st.scope === 'enclosure') L.sections.forEach(function (sec) { L.enclosures.filter(function (e) { return e.sectionId === sec.id; }).forEach(function (e) { var n = activeAt(s, 'enclosure', e.id); out.push({ g: sec.site + ' › ' + sec.name, ref: e.id, name: e.name, where: plural(e.animals || 0, 'animal'), n: n, has: n > 0, find: e.name + ' ' + sec.name + ' ' + sec.site }); }); });
+      if (st.scope === 'animal') {
+        var custom = plansOf(s).filter(function (p) { return p.active && p.scope === 'animal'; }).map(function (p) { return p.ref; });
+        (s.animalList || []).forEach(function (a) { var e = encById(s, a.enclosure), sx = a.sex === 'm' ? 'Male' : a.sex === 'f' ? 'Female' : 'Undetermined', c = custom.indexOf(a.id) !== -1;
+          out.push({ o: e ? (s.enclosures || []).indexOf(e) : 999, so: e ? L.sections.map(function (x) { return x.id; }).indexOf(e.sectionId) : 999, g: e ? e.site + ' › ' + e.section : '', ref: a.id, name: animalLabel(a), sub: a.label ? '#' + a.id : '', where: sx + (e ? ' · ' + e.name : ''), sex: a.sex, custom: c, extra: c ? 'Custom diet' : 'Species diet', has: c,
+            find: [a.id, '#' + a.id, a.label || '', sx, e ? e.name : '', e ? e.section : ''].join(' ') }); });
+        out.sort(function (a, b) { return (a.so - b.so) || (b.custom - a.custom) || (a.o - b.o) || String(a.name).localeCompare(String(b.name)); });
+      }
+      return out;
+    }
+    function filteredTargets(s) {
+      var all = targetRows(s), q = (st.tq || '').trim().toLowerCase();
+      var rows = all.filter(function (r) {
+        if (q && r.find.toLowerCase().indexOf(q) === -1) return false;
+        if (st.tf === 'has' && !r.has) return false; if (st.tf === 'none' && r.has) return false;
+        if (st.tf === 'custom' && !r.custom) return false; if (st.tf === 'species' && r.custom) return false;
+        if (st.tsx && r.sex !== st.tsx) return false;
+        return true;
+      });
+      return { all: all, rows: rows, q: q };
+    }
+    function targetsShell() {
+      var chips = '';
+      if (st.scope === 'enclosure') chips = [['', 'All'], ['has', 'Has diet'], ['none', 'No diet']].map(function (c) { return '<button type="button" class="spchip t-body-medium" data-tf="' + c[0] + '" aria-pressed="' + ((st.tf || '') === c[0]) + '">' + c[1] + '</button>'; }).join('');
+      if (st.scope === 'animal') chips = [['', 'All'], ['custom', 'Custom diet'], ['species', 'Species diet']].map(function (c) { return '<button type="button" class="spchip t-body-medium" data-tf="' + c[0] + '" aria-pressed="' + ((st.tf || '') === c[0]) + '">' + c[1] + '</button>'; }).join('') +
+        '<span class="tdiv" aria-hidden="true"></span>' + [['m', 'Male'], ['f', 'Female']].map(function (c) { return '<button type="button" class="spchip t-body-medium" data-tsx="' + c[0] + '" aria-pressed="' + (st.tsx === c[0]) + '">' + c[1] + '</button>'; }).join('');
+      return '<div class="ttools"><label class="spsearch">' + ic('search', 20) + '<span class="sr-only">' + PH[st.scope] + '</span><input class="t-body-regular" type="search" data-tq placeholder="' + PH[st.scope] + '" value="' + esc(st.tq || '') + '" autocomplete="off"></label>' +
+        (chips ? '<div class="segrow tchips" role="group" aria-label="Quick filters">' + chips + '</div>' : '') + '<p class="tcount t-body-regular" data-tcount aria-live="polite"></p></div>' +
+        '<div class="tbox" data-tbox><div class="tscroll targets" data-tscroll></div></div>';
+    }
+    function drawTargets() {
+      var box = host() && host().querySelector('[data-tscroll]'); if (!box) return;
+      var s = BY[st.tsn], f = filteredTargets(s), N = NOUN[st.scope], lim = st.tlimit || 40, rows = f.rows.slice(0, lim), html = '', lastG = null;
+      host().querySelector('[data-tcount]').textContent = f.rows.length === f.all.length ? plural(f.all.length, N[0], N[1]) : 'Showing ' + f.rows.length + ' of ' + f.all.length + ' ' + N[1];
+      rows.forEach(function (r) {
+        if (r.g && r.g !== lastG) { html += '<p class="tgh">' + esc(r.g) + '</p>'; lastG = r.g; }
+        html += '<button type="button" class="tgt" data-ref="' + r.ref + '" aria-pressed="' + (st.ref === r.ref) + '"><span class="grow"><b class="t-body-title">' + hlq(r.name, f.q) + (r.sub ? ' <span class="tid">' + hlq(r.sub, f.q) + '</span>' : '') + '</b>' + (r.where ? '<span class="t-body-regular">' + hlq(r.where, f.q) + '</span>' : '') + '</span>' +
+          (openReqs(s, st.scope, r.ref).length ? '<span class="rqb">' + ic('time', 14) + plural(openReqs(s, st.scope, r.ref).length, 'open request') + '</span>' : '') +
+          '<span class="d t-body-medium' + (r.has ? '' : ' none') + '">' + (r.extra || (r.n ? plural(r.n, 'diet') : 'No diet')) + '</span></button>';
+      });
+      if (f.rows.length > lim) html += '<button type="button" class="chip t-body-medium tmore" data-tmore>Show ' + Math.min(40, f.rows.length - lim) + ' more (' + (f.rows.length - lim) + ' left)</button>';
+      if (!f.rows.length) html = '<div class="tempty"><b class="t-body-title">No ' + N[1] + ' match' + (f.q ? ' "' + esc(st.tq.trim()) + '"' : ' these filters') + '</b><span class="t-body-regular">Try another ' + (st.scope === 'animal' ? 'ID, name, sex or enclosure' : 'name') + ', or clear the filters.</span><button type="button" class="chip t-body-medium" data-tclear>Clear search and filters</button></div>';
+      box.innerHTML = html; fades();
+    }
+    function fades() { var h = host(), b = h && h.querySelector('[data-tscroll]'); if (!b) return; var p = b.parentNode; p.classList.toggle('ft', b.scrollTop > 2); p.classList.toggle('fb', b.scrollTop + b.clientHeight < b.scrollHeight - 2); }
+    function resetTargets() { st.tq = ''; st.tf = ''; st.tsx = ''; st.tlimit = 40; }
+    function scopeCard(s) {
+      var L = locOf(s), all = plansOf(s), cnt = function (sc) { return all.filter(function (p) { return p.active && p.scope === sc; }).length; };
+      var custom = uniq(all.filter(function (p) { return p.active && p.scope === 'animal'; }), function (p) { return p.ref; }).length;
+      var siteHidden = L.sites.length <= 1 && cnt('site') === 0;
+      var sub = { species: plural(cnt('species'), 'diet'), site: plural(cnt('site'), 'diet') + ' · ' + plural(L.sites.length, 'site'), section: plural(cnt('section'), 'diet') + ' · ' + plural(L.sections.length, 'section'),
+        enclosure: plural(cnt('enclosure'), 'diet') + ' · ' + plural(L.enclosures.length, 'enclosure'), animal: custom ? custom + ' customised' : 'None customised' };
+      var h = '<section class="card2"><h3>Scope</h3><div class="scopes" role="group" aria-label="Scope">' + SCOPES.filter(function (x) { return !(x[0] === 'site' && siteHidden); }).map(function (x) {
+        return '<button type="button" class="spchip t-body-medium" data-scope="' + x[0] + '" aria-pressed="' + (st.scope === x[0]) + '">' + x[1] + '<small>' + sub[x[0]] + '</small></button>';
+      }).join('') + '</div>';
+      if (st.scope !== 'species') h += targetsShell();
+      return h + '</section>';
+    }
+    function planChips(s, here) {
+      var inactive = here.filter(function (p) { return !p.active && !p.proposed; }), list = here.filter(function (p) { return p.active || p.proposed || st.showInactive; });
+      return '<section class="card2"><div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap"><h3>Plans</h3>' +
+        (inactive.length ? '<button type="button" class="switch t-body-medium" data-showinactive aria-pressed="' + st.showInactive + '"><span class="trk"></span>Show inactive (' + inactive.length + ')</button>' : '') + '</div>' +
+        '<div class="pchips" role="group" aria-label="Diet plans">' + list.map(function (p) {
+          var parts = [];
+          if (p.from || p.to) parts.push((p.from ? compact(p.from) : '...') + ' to ' + (p.to ? compact(p.to) : 'open'));
+          if (p.sex) parts.push(p.sex === 'male' ? 'Male' : p.sex === 'female' ? 'Female' : 'Undetermined');
+          if (p.proposed) parts.unshift((p.editOf ? 'Change to ' + p.editOfLabel : 'Proposed') + ' · ' + p.fromReq);
+          return '<button type="button" class="pchip' + (p.active || p.proposed ? '' : ' off') + '" data-plan="' + p.id + '" aria-pressed="' + (p.id === st.plan) + '"><span class="l1">' + shownId(p) + kindTag(p) + '</span>' + (parts.length ? '<span class="l2">' + esc(parts.join(' · ')) + '</span>' : '') + '</button>';
+        }).join('') + '<button type="button" class="addchip" data-newplan aria-label="New plan">' + ic('add', 24) + '</button></div></section>';
+    }
+    function fmt(v) { v = Number(v) || 0; return v.toLocaleString('en-IN', { maximumFractionDigits: 2 }); }
+    function itemCell(it) {
+      var m = it.mix, h = '<div class="it-n">' + esc(it.name) + (m ? '<span class="it-k">' + esc(m.label || 'MIX') + '</span>' : '') + '</div>';
+      if (it.prep) h += '<div class="it-p t-body-regular">(' + esc(it.prep) + ')</div>';
+      if (m && m.meta) h += '<div class="it-ex t-body-regular">' + esc(m.meta) + '</div>';
+      if (m && m.parts && m.parts.length) h += '<div class="it-parts t-body-regular">' + m.parts.map(function (q) { q = typeof q === 'string' ? { name: q } : q; return '<span>' + esc(q.name) + (q.note ? ' <em>' + esc(q.note) + '</em>' : '') + '</span>'; }).join('') + '</div>';
+      if (it.cut) h += '<div class="it-ex t-body-regular">' + esc(it.cut) + '</div>';
+      (it.alts || []).forEach(function (a) { a = typeof a === 'string' ? { name: a } : a; var q = a.amount || a.ratio; h += '<div class="it-alt t-body-regular">or <b>' + esc(a.name) + '</b>' + (a.prep ? ' (' + esc(a.prep) + ')' : '') + (q ? ' · ' + esc(q) : '') + '</div>'; });
+      if (it.notes) h += '<div class="it-ex t-body-regular">' + esc(it.notes) + '</div>';
+      return h;
+    }
+    function table(p) {
+      var sch = p.schedule || [], cols = p.columns || [];
+      if (!sch.length) return '<div class="empty"><b class="t-minor-title">No items in this plan yet</b></div>';
+      var rows = '';
+      sch.forEach(function (b) {
+        var n = 0; (b.days || []).forEach(function (g) { n += Math.max(1, (g.items || []).length); }); var first = true;
+        (b.days || []).forEach(function (g) {
+          var its = g.items && g.items.length ? g.items : [null];
+          its.forEach(function (it, i) {
+            rows += '<tr>' + (first ? '<td class="time" rowspan="' + n + '">' + esc(b.time) + '</td>' : '') + (i === 0 ? '<td class="day t-body-regular" rowspan="' + its.length + '">' + esc(g.day) + '</td>' : '') +
+              (it ? '<td>' + itemCell(it) + '</td><td class="amt">' + esc(it.amount || '-') + '</td>' + cols.map(function (c, k) { return '<td class="amt">' + esc((it.extra || [])[k] || '-') + '</td>'; }).join('') : '<td colspan="' + (2 + cols.length) + '">No items</td>') + '</tr>';
+            first = false;
+          });
+        });
+      });
+      return '<div class="dtab-wrap"><table class="dtab t-body-regular"><thead><tr><th>Time</th><th>Day</th><th>Item</th><th class="amt">Daily amt</th>' + cols.map(function (c) { return '<th class="amt">' + esc(c) + '</th>'; }).join('') + '</tr></thead><tbody>' + rows + '</tbody></table></div>';
+    }
+    function nutrition(p) {
+      var nv = p.nutrition || {};
+      return '<div class="nut"><p class="nut__help t-body-regular">' + ic('info', 20) + 'Per animal, per day. Totals across every item in this plan.</p>' + NUT.map(function (s) {
+        return '<div class="nut__sec"><h4>' + s[0] + '</h4>' + s[1].map(function (r) { var v = Number(nv[r[0]]) || 0; return '<div class="nut__row t-body-regular"><span>' + r[1] + '</span><b class="' + (v === 0 ? 'zero' : '') + '">' + fmt(v) + ' <small>' + r[2] + '</small></b></div>'; }).join('') + '</div>';
+      }).join('') + '</div>';
+    }
+    function planCard(p) {
+      var w = windowText(p), QM = { sex: 'By sex', weight: 'By weight', age: 'By age' };
+      var chips = (p.active || p.proposed ? '' : '<span class="tag grey">Inactive</span>') + (p.name ? '<span class="tag teal">' + esc(p.name) + '</span>' : '') + (QM[p.quantityMode] ? '<span class="tag teal">' + QM[p.quantityMode] + '</span>' : '') +
+        (p.scope !== 'species' && p.scopeName ? '<span class="tag teal">' + esc(({ site: 'Site', section: 'Section', enclosure: 'Enclosure', animal: 'Animal' })[p.scope] + ' · ' + p.scopeName) + '</span>' : '');
+      var cert = p.dietitian ? '<div class="cert"><span class="cert__ic">' + ic('approved', 24) + '</span><span class="cert__t"><b class="t-body-title">' + esc(p.dietitian) + '</b><span class="t-body-regular">Certified dietitian</span></span><button type="button" class="iconbtn" data-cert aria-label="Change the certifying dietitian">' + ic('pencil', 22) + '</button></div>'
+        : '<div class="cert none"><span class="cert__ic">' + ic('alert', 24) + '</span><span class="cert__t"><b class="t-body-title">Uncertified</b><span class="t-body-regular">No dietitian behind this diet yet</span></span><button type="button" class="chip t-body-medium" data-cert>' + ic('approved', 18) + 'Certify</button></div>';
+      var n = p.notes || {}, kv = '';
+      if (st.tab === 'items' && n.kitchen) kv += '<dt>Kitchen</dt><dd>' + esc(n.kitchen) + '</dd>';
+      if (st.tab === 'items' && n.site) kv += '<dt>Site</dt><dd>' + esc(n.site) + '</dd>';
+      return '<section class="dpane" style="margin-top:16px"><div class="dp-head"><div class="grow"><div class="dp-id"><b class="t-medium-medium">' + shownId(p) + '</b>' + kindTag(p) +
+        '<span class="tag ' + (p.verified ? 'green' : 'grey') + '">' + (p.verified ? 'Verified' : 'Unverified') + '</span>' + (p.update === 'pending' ? '<span class="tag orange">Update pending</span>' : '') + '</div>' +
+        '<span class="t-body-regular" style="color:var(--md3-neutral-secondary)">Created ' + ddmmyy(p.created) + (p.by ? ' by ' + esc(p.by) : '') + '</span></div>' +
+        '<div class="dp-acts"><button type="button" class="iconbtn" data-act="edit" aria-label="Edit diet"' + (p.active ? '' : ' disabled') + '>' + ic('pencil', 22) + '</button><button type="button" class="iconbtn" data-act="pdf" aria-label="Download PDF">' + ic('download', 22) + '</button><button type="button" class="iconbtn" data-menu aria-label="Plan actions">' + ic('menu-vertical', 22) + '</button></div></div>' +
+        '<div class="tags"><span class="win ' + w[0] + '">' + ic(w[0] === 'inactive' ? 'close' : 'calendar', 18) + esc(w[1]) + '</span>' + chips + '</div>' +
+        (p.fromReq ? '<div class="rqline"><button type="button" class="rqb" data-rqopen="' + p.fromReq + '">' + ic('reason-or-list', 16) + (p.editOf ? 'Proposed change to ' + p.editOfLabel + ' · ' : '') + 'From request ' + p.fromReq + '</button><span class="t-body-regular" style="color:var(--md3-neutral-secondary)">' + (p.editOf ? p.editOfLabel + ' stays active until the change is applied.' : 'Proposed for this request. The active diet does not change.') + '</span></div>' : '') +
+        '<div class="rqline">' + reqBadge(RQ.visible().filter(function (r) { return RQ.isOpen(r) && r.tsn === p.species && (r.planId === p.id || (r.scope === p.scope && (p.scope === 'species' || r.scopeRef === p.ref))); })) + '<button type="button" class="linkbtn t-body-medium" data-rqnew="plan">' + ic('reason-or-list', 18) + 'Request change</button></div>' + cert +
+        '<div class="dseg" role="group" aria-label="Diet view"><button type="button" data-dtab="items" aria-pressed="' + (st.tab === 'items') + '" class="t-body-medium">Items</button><button type="button" data-dtab="nutrition" aria-pressed="' + (st.tab === 'nutrition') + '" class="t-body-medium">Nutrition</button></div>' +
+        (st.tab === 'nutrition' ? nutrition(p) : table(p)) +
+        (kv ? '<div class="sub"><h3 class="t-minor-title">Notes</h3><dl class="kv t-body-regular">' + kv + '</dl></div>' : '') +
+        (p.remark ? '<div class="remark t-body-regular">' + ic('info', 20) + '<div><b class="t-body-title">Remark</b><br>' + esc(p.remark) + '</div></div>' : '') +
+        (p.reason ? '<p class="reason t-body-regular">' + ic('history', 20) + 'Change reason <span class="tag orange">' + esc(p.reason) + '</span>' + (p.reasonDetail ? '<span>' + esc(p.reasonDetail) + '</span>' : '') + '</p>' : '') + '</section>';
+    }
+    function shared(s, p) {
+      var others = uniq((p.sharers || []).filter(function (x) { return x[0] !== s.tsn; }), function (x) { return x[0]; });
+      var picked = st.picked[p.id] || {}, any = Object.keys(picked).some(function (k) { return picked[k]; });
+      var h = '<section class="dpane"><div class="fed-h"><h3 class="t-minor-title">' + (others.length ? 'Shared with ' + plural(others.length, 'species', 'species') : 'Not shared yet') + '</h3>' +
+        (others.length ? '<div class="dseg" role="group" aria-label="Species view"><button type="button" data-view="cards" aria-pressed="' + (st.view === 'cards') + '" class="t-body-medium">' + ic('grid', 18) + 'Cards</button><button type="button" data-view="list" aria-pressed="' + (st.view === 'list') + '" class="t-body-medium">' + ic('list', 18) + 'List</button></div>' : '') + '</div>' +
+        '<div class="fed-tools"><span class="hint t-body-regular">' + (others.length ? 'Select species to move to another diet.' : 'Add species to share this diet.') + '</span>' +
+        '<button type="button" class="linkbtn t-body-medium" data-move' + (any ? '' : ' aria-disabled="true"') + '>' + ic('transfer', 20) + 'Move to another diet</button><button type="button" class="linkbtn t-body-medium" data-addsp>' + ic('add', 20) + 'Add species</button></div>';
+      if (!others.length) return h + '</section>';
+      var key = p.sharedFrom || p.id;
+      var list = others.map(function (x) { return { s: BY[x[0]] || { tsn: x[0], name: 'TSN ' + x[0] }, plan: x[1] }; }).sort(function (a, b) { return ((a.plan === key) ? 0 : 1) - ((b.plan === key) ? 0 : 1) || String(a.s.name).localeCompare(String(b.s.name)); });
+      h += '<div class="' + (st.view === 'cards' ? 'shgrid' : 'slist') + '">' + list.map(function (o) {
+        var on = !!picked[o.s.tsn];
+        return '<div class="scard shcard' + (on ? ' sel' : '') + '"><button type="button" class="ck" data-pick="' + o.s.tsn + '" aria-pressed="' + on + '" aria-label="Select ' + esc(o.s.name) + '">' + ic(on ? 'checkbox-checked' : 'checkbox-unchecked', 24) + '</button>' +
+          (st.view === 'cards' ? '<span class="scard__ic">' + ic('paw', 22) + '</span>' : '') +
+          '<span class="scard__t"><button type="button" class="link t-body-title" data-goto="' + o.s.tsn + '" data-goplan="' + o.plan + '">' + esc(o.s.name) + '</button>' + (o.s.sci ? '<i class="t-body-regular">' + esc(o.s.sci) + '</i>' : '') +
+          '<span class="scard__m t-body-regular">' + (o.s.animals != null ? plural(o.s.animals, 'animal') + ' held' : '') + '</span></span></div>';
+      }).join('') + '</div></section>';
+      return h;
+    }
+    function callout(icon, title, text, btn) {
+      return '<section class="callout"><span class="ei">' + ic(icon, 28) + '</span><b class="t-minor-title">' + esc(title) + '</b><p class="t-body-regular">' + esc(text) + '</p>' + (btn || '') + '</section>';
+    }
+    function detailHtml(s) {
+      if (!s) return '<section class="callout"><span class="ei">' + ic('paw', 28) + '</span><b class="t-minor-title">Pick a species to view its diet</b><p class="t-body-regular">Choose a species from the list to see its plans.</p></section>';
+      var h = hero(s), all = plansOf(s);
+      if (!all.filter(function (p) { return p.active; }).length) {
+        return h + callout('reason-or-list', s.name + ' has no base diet yet', 'Create the base diet first. It is the always-on default for everyday feeding. Seasonal, sex-based, site, section, enclosure and animal plans all build on it, so they cannot be added until the base diet exists.',
+          '<button type="button" class="btn pri" data-createbase>' + ic('add', 20) + 'Create base diet</button><p class="ro-note t-body-regular">Only the Head Dietician can create diets.</p><button type="button" class="linkbtn alt-link t-body-medium" data-rqnew="base">Request a diet instead</button>' + reqBadge(openReqs(s)) + '');
+      }
+      h += scopeCard(s);
+      if (st.scope !== 'species' && st.ref == null) {
+        var what = { site: 'a site', section: 'a section', enclosure: 'an enclosure', animal: 'an animal' }[st.scope];
+        return h + callout(st.scope === 'animal' ? 'paw' : 'location-icon', 'Pick ' + what + ' to see its diets', 'Choose ' + what + ' in the Scope card. Until then the species-wide diet applies.', '');
+      }
+      var here = plansHere(s), vis = here.filter(function (p) { return p.active || p.proposed || st.showInactive; });
+      if (!here.length) return h + callout('reason-or-list', 'No ' + SCOPES.filter(function (x) { return x[0] === st.scope; })[0][1].toLowerCase() + ' diet here yet', 'The species-wide diet applies here. Add a plan to override it.', '<div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center"><button type="button" class="btn sec" data-newplan="yr">' + ic('add', 20) + 'New plan</button><button type="button" class="btn sec" data-rqnew="scope">' + ic('reason-or-list', 20) + 'Request a diet</button></div>' + reqBadge(openReqs(s, st.scope, st.ref)));
+      if (st.plan == null || !vis.some(function (p) { return p.id === st.plan; })) { var d = vis.filter(function (p) { return p.active; })[0] || vis[0]; st.plan = d ? d.id : null; }
+      h += planChips(s, here);
+      var sel = PLANS[st.plan];
+      if (sel) h += planCard(sel) + shared(s, sel);
+      return h;
+    }
+    function host() { return LAND.matches ? $('[data-detail]') : (st.panel ? document.querySelector('#spanel .dpanel__body') : null); }
+    function drawDetail() { var h = host(); if (h) { var top = h.scrollTop, ts = h.querySelector('[data-tscroll]'), tt = ts ? ts.scrollTop : 0; h.innerHTML = detailHtml(BY[st.tsn]); drawTargets(); var ns = h.querySelector('[data-tscroll]'); if (ns) { ns.scrollTop = tt; fades(); } h.scrollTop = top; } }
+    function openPanel() {
+      var s = BY[st.tsn], p = document.getElementById('spanel'); if (!s) return;
+      st.panel = true; p.querySelector('[data-ptitle]').textContent = s.name; p.querySelector('[data-psub]').textContent = s.sci; p.hidden = false; drawDetail(); p.querySelector('.dpanel__body').scrollTop = 0;
+    }
+    function closePanel() { st.panel = false; document.getElementById('spanel').hidden = true; }
+    function hashFor() { return '#species/' + st.seg + (st.tsn ? '/' + st.tsn + (st.plan ? '/' + st.plan : '') : ''); }
+    function setHash(push) { var h = hashFor(); if (location.hash === h) return; if (push) location.hash = h; else { try { history.replaceState(null, '', h); } catch (x) {} } }
+
+    /* ---------- history sheet (Diet history drawer) ---------- */
+    function historyHtml() {
+      var s = BY[st.tsn], all = plansOf(s), H = st.hist;
+      var scopeOf = function (p) { return p.scope === 'species' ? 'species' : p.scope === 'animal' ? 'animal' : 'site'; };
+      var rows = all.filter(function (p) {
+        if (H.scope !== 'all' && scopeOf(p) !== H.scope) return false;
+        var k = p.kind; if (H.kind === 'year-round' && !(k === 'base' || k === 'sex-based')) return false;
+        if (H.kind === 'seasonal' && !(k === 'seasonal' || k === 'combined')) return false; if (H.kind === 'time-bound' && k !== 'time-bound') return false; return true;
+      }).sort(function (a, b) { return b.id - a.id; });
+      var SL = { site: 'Site-wide', section: 'Section-wide', enclosure: 'Enclosure-wide', animal: 'Animal-wide' };
+      var rg = reqGroups(s), seg = H.seg === 'requests' ? 'requests' : 'diets';
+      var head = '<div class="grab"></div><div class="sheet__h" data-histsheet><div><h2 class="t-major-title" id="sheetT">Diet history</h2><p class="t-body-regular" style="color:var(--ink)">' + esc(s.name) + '. ' + (seg === 'diets' ? 'All diets across species, site and animal scopes.' : 'Diet change requests for this species.') + '</p></div><button type="button" class="iconbtn" data-sclose aria-label="Close">' + ic('close', 24) + '</button></div>' +
+        '<div class="seg3 hseg" role="tablist" aria-label="Diet history view"><button type="button" role="tab" class="t-body-medium" data-hseg="diets" aria-selected="' + (seg === 'diets') + '">Diets <span class="n">' + all.length + '</span></button><button type="button" role="tab" class="t-body-medium" data-hseg="requests" aria-selected="' + (seg === 'requests') + '">Requests <span class="n">' + rg.n + '</span>' + (rg.todo ? '<span class="hdot" aria-label="' + rg.todo + ' to configure">' + rg.todo + '</span>' : '') + '</button></div>';
+      if (seg === 'requests') {
+        return head + '<div class="hreqs">' + (rg.groups.length ? rg.groups.map(function (g) { return '<p class="' + (g[2] ? 'sreqs__need' : 'sreqs__sub') + ' t-body-medium">' + (g[2] ? ic('alert', 18) : '') + esc(g[0]) + ' (' + g[1].length + ')</p>' + g[1].map(reqRow).join(''); }).join('') :
+          '<p class="t-body-regular" style="color:var(--md3-neutral-secondary)">' + esc(RQ.can('seeAll') ? 'No diet change requests for this species yet.' : 'You have not raised any requests for this species.') + '</p>') +
+          '<a class="linkbtn t-body-medium hreqs__tab" href="#request" data-tabgo>Open Diet Request tab</a></div>';
+      }
+      return head +
+        '<div class="segrow" style="padding:0">' + [['all', 'All'], ['species', 'Species'], ['site', 'Site'], ['animal', 'Animal']].map(function (t) { var n = t[0] === 'all' ? all.length : all.filter(function (p) { return scopeOf(p) === t[0]; }).length; return '<button type="button" class="spchip t-body-medium" data-hs="' + t[0] + '" aria-pressed="' + (H.scope === t[0]) + '">' + t[1] + ' <span class="n">' + n + '</span></button>'; }).join('') + '</div>' +
+        '<div class="segrow" style="padding:0">' + [['all', 'All kinds'], ['year-round', 'Year-round'], ['seasonal', 'Seasonal'], ['time-bound', 'Time-bound']].map(function (t) { return '<button type="button" class="spchip t-body-medium" data-hk="' + t[0] + '" aria-pressed="' + (H.kind === t[0]) + '">' + t[1] + '</button>'; }).join('') + '</div>' +
+        (rows.length ? '<div class="dtab-wrap"><table class="htab t-body-regular"><thead><tr><th>Diet</th><th>Scope</th><th>Reason</th><th>Validity</th><th>Status</th></tr></thead><tbody>' + rows.map(function (p) {
+          var valid = (p.from || p.to) ? (p.from ? ddmmyy(p.from) : '...') + ' → ' + (p.to ? ddmmyy(p.to) : 'open') + (p.recurring ? ' · yearly' : '') : 'Year-round';
+          return '<tr><td><b>' + shownId(p) + '</b><br>' + kindTag(p) + (p.fromReq ? '<button type="button" class="hfrom t-body-medium" data-rqopen="' + p.fromReq + '">' + ic('reason-or-list', 14) + 'From ' + p.fromReq + '</button>' : '') + '</td><td>' + esc(p.scope === 'species' ? 'Species-wide' : SL[p.scope] + (p.scopeName ? ' · ' + p.scopeName : '')) + '</td><td>' + (p.reason ? '<span class="tag orange">' + esc(p.reason) + '</span>' : '-') + '</td>' +
+            '<td>' + esc(valid) + '<small>Created ' + ddmmyy(p.created) + (p.by ? ' by ' + esc(p.by) : '') + '</small></td><td>' + (p.proposed ? '<span class="pill inactive t-body-medium">Proposed</span>' : p.active ? '<span class="pill active t-body-medium">Active</span>' : '<span class="pill inactive t-body-medium">Inactive</span>') + '</td></tr>';
+        }).join('') + '</tbody></table></div>' : '<p class="t-body-regular" style="color:var(--md3-neutral-secondary)">' + (all.length ? 'No diets match the current filters.' : 'No diets have been created for this species yet.') + '</p>');
+    }
+    var sheetMode = null;
+    function openHistory(seg) { sheetMode = 'hist'; st.hist.seg = seg || 'diets'; document.getElementById('sheet').innerHTML = historyHtml(); document.getElementById('scrim').hidden = false; }
+    document.getElementById('scrim').addEventListener('click', function (e) {
+      if (!document.querySelector('#sheet [data-histsheet]')) return; var t;
+      if (e.target === this || e.target.closest('[data-sclose]')) { this.hidden = true; sheetMode = null; return; }
+      if ((t = e.target.closest('[data-hseg]'))) { st.hist.seg = t.getAttribute('data-hseg'); document.getElementById('sheet').innerHTML = historyHtml(); return; }
+      if ((t = e.target.closest('[data-rqopen]'))) { this.hidden = true; sheetMode = null; location.hash = '#request/' + t.getAttribute('data-rqopen'); return; }
+      if (e.target.closest('[data-tabgo]')) { this.hidden = true; sheetMode = null; return; }
+      if ((t = e.target.closest('[data-hs]'))) { st.hist.scope = t.getAttribute('data-hs'); document.getElementById('sheet').innerHTML = historyHtml(); return; }
+      if ((t = e.target.closest('[data-hk]'))) { st.hist.kind = t.getAttribute('data-hk'); document.getElementById('sheet').innerHTML = historyHtml(); }
+    }, true);
+
+    /* plan actions menu (Edit, Replace Diet, History, Download PDF, Deactivate / Reactivate) */
+    var menu = document.getElementById('pmenu');
+    function openMenu(btn) {
+      var p = PLANS[st.plan]; if (!p) return;
+      menu.innerHTML = [['edit', 'pencil', 'Edit'], ['replace', 'transfer', 'Replace Diet'], ['history', 'history', 'History'], ['pdf', 'download', 'Download PDF'], p.active ? ['deactivate', 'close', 'Deactivate'] : ['reactivate', 'just-tick-mark', 'Reactivate']].filter(function (m) { return RQ.can('write') || m[0] === 'history' || m[0] === 'pdf'; }).map(function (m) {
+        return '<button type="button" class="t-body-medium' + (m[0] === 'deactivate' ? ' danger' : '') + '" data-ma="' + m[0] + '">' + ic(m[1], 20) + m[2] + '</button>'; }).join('');
+      var r = btn.getBoundingClientRect(); menu.hidden = false; menu.style.top = (r.bottom + 4) + 'px'; menu.style.left = Math.max(8, r.right - 220) + 'px';
+    }
+    document.addEventListener('click', function (e) { if (!menu.hidden && !e.target.closest('#pmenu') && !e.target.closest('[data-menu]')) menu.hidden = true; });
+    menu.addEventListener('click', function (e) {
+      var t = e.target.closest('[data-ma]'); if (!t) return; menu.hidden = true; var a = t.getAttribute('data-ma');
+      if (a === 'history') { openHistory(); return; }
+      toast({ edit: 'Editing a diet', replace: 'Replacing a diet', pdf: 'Download PDF', deactivate: 'Deactivating a diet', reactivate: 'Reactivating a diet' }[a] + ' is not part of this prototype.');
+    });
+
+''' + WIZ_JS + REQ_FORM_JS + '''
+    /* ---------- events ---------- */
+    function onDetail(e) {
+      var t, s = BY[st.tsn]; if (!s) return;
+      if ((t = e.target.closest('[data-tf]'))) { st.tf = t.getAttribute('data-tf'); st.tlimit = 40; drawDetail(); return; }
+      if ((t = e.target.closest('[data-tsx]'))) { var sx = t.getAttribute('data-tsx'); st.tsx = st.tsx === sx ? '' : sx; st.tlimit = 40; drawDetail(); return; }
+      if (e.target.closest('[data-tmore]')) { var sc = host().querySelector('[data-tscroll]'), keep = sc.scrollTop; st.tlimit = (st.tlimit || 40) + 40; drawTargets(); sc.scrollTop = keep; return; }
+      if (e.target.closest('[data-tclear]')) { resetTargets(); drawDetail(); return; }
+      if ((t = e.target.closest('[data-scope]'))) { resetTargets(); st.scope = t.getAttribute('data-scope'); st.ref = null; st.plan = null; st.showInactive = false; if (st.scope !== 'species') { var L = locOf(s); var first = st.scope === 'site' ? L.sites[0] : st.scope === 'section' ? L.sections[0] : null; if (first && L[st.scope === 'site' ? 'sites' : 'sections'].length === 1) st.ref = first.id; } drawDetail(); setHash(false); return; }
+      if ((t = e.target.closest('[data-ref]'))) { st.ref = Number(t.getAttribute('data-ref')); st.plan = null; st.showInactive = false; drawDetail(); setHash(false); return; }
+      if ((t = e.target.closest('[data-plan]'))) { st.plan = Number(t.getAttribute('data-plan')); st.tab = 'items'; drawDetail(); setHash(false); return; }
+      if (e.target.closest('[data-showinactive]')) { st.showInactive = !st.showInactive; drawDetail(); return; }
+      if ((t = e.target.closest('[data-dtab]'))) { st.tab = t.getAttribute('data-dtab'); drawDetail(); return; }
+      if ((t = e.target.closest('[data-view]'))) { st.view = t.getAttribute('data-view'); drawDetail(); return; }
+      if ((t = e.target.closest('[data-pick]'))) { var m = st.picked[st.plan] = st.picked[st.plan] || {}, k = t.getAttribute('data-pick'); m[k] = !m[k]; drawDetail(); return; }
+      if ((t = e.target.closest('[data-goto]'))) { st.tsn = Number(t.getAttribute('data-goto')); st.plan = Number(t.getAttribute('data-goplan')) || null; resetScope(); applyPlan(BY[st.tsn]); if (!inSeg(BY[st.tsn], st.seg)) st.seg = 'all'; setHash(true); return; }
+      if (e.target.closest('[data-history]')) { openHistory('diets'); return; }
+      if (e.target.closest('[data-histreq]')) { openHistory('requests'); return; }
+      if (e.target.closest('[data-photos]')) { toast(s.photos ? s.name + ': ' + plural(s.photos, 'photo') + '. The photo viewer is not part of this prototype.' : 'No photos for ' + s.name + ' yet.'); return; }
+      if (e.target.closest('[data-menu]')) { openMenu(e.target.closest('[data-menu]')); return; }
+      if (e.target.closest('[data-createbase]')) { openWizard('year-round', true); return; }
+      if ((t = e.target.closest('[data-rqopen]'))) { location.hash = '#request/' + t.getAttribute('data-rqopen'); return; }
+      if ((t = e.target.closest('[data-rqnew]'))) { var kind = t.getAttribute('data-rqnew');
+        if (kind === 'plan') openRequest({ scope: st.scope, ref: st.ref, plan: st.plan, from: 'plan' }); else if (kind === 'scope') openRequest({ scope: st.scope, ref: st.ref, from: 'scope' }); else openRequest({ scope: 'species', from: kind }); return; }
+      if ((t = e.target.closest('[data-newplan]'))) { if (t.getAttribute('data-newplan') === 'yr') openWizard('year-round', false); else openKindMenu(t); return; }
+      if (e.target.closest('[data-move]')) { var any = Object.keys(st.picked[st.plan] || {}).some(function (k) { return st.picked[st.plan][k]; }); toast(any ? 'Moving species to another diet is not part of this prototype.' : 'Select species to move first.'); return; }
+      if (e.target.closest('[data-addsp]')) { toast('Adding species is not part of this prototype.'); return; }
+      if (e.target.closest('[data-cert]')) { toast('Certifying a diet is not part of this prototype.'); return; }
+      if ((t = e.target.closest('[data-act]'))) { toast(t.getAttribute('data-act') === 'edit' ? 'Editing a diet is not part of this prototype.' : 'Download PDF is not part of this prototype.'); }
+    }
+    $('[data-detail]').addEventListener('click', onDetail);
+    document.querySelector('#spanel .dpanel__body').addEventListener('click', onDetail);
+    [$('[data-detail]'), document.querySelector('#spanel .dpanel__body')].forEach(function (el) {
+      el.addEventListener('input', function (e) { if (e.target.matches('[data-tq]')) { st.tq = e.target.value; st.tlimit = 40; var b = el.querySelector('[data-tscroll]'); drawTargets(); if (b) b.scrollTop = 0; fades(); } });
+      el.addEventListener('scroll', function (e) { if (e.target.matches && e.target.matches('[data-tscroll]')) fades(); }, true);
+    });
+    root.addEventListener('input', function (e) { if (e.target.matches('[data-q]')) { st.q = e.target.value; drawList(); if (LAND.matches) drawDetail(); } });
+    root.addEventListener('click', function (e) {
+      var t;
+      if (e.target.closest('[data-detail]')) return;
+      if ((t = e.target.closest('[data-s]'))) { var k = t.getAttribute('data-s'); if (k !== st.seg) { st.seg = k; if (!LAND.matches) st.tsn = null; setHash(true); } return; }
+      if ((t = e.target.closest('[data-fbtn]'))) { var c = $('[data-chips]'); c.hidden = !c.hidden; t.setAttribute('aria-pressed', String(!c.hidden)); return; }
+      if ((t = e.target.closest('[data-cl]'))) { var i = st.cls.indexOf(t.getAttribute('data-cl')); if (i === -1) st.cls.push(t.getAttribute('data-cl')); else st.cls.splice(i, 1); drawList(); drawDetail(); return; }
+      if ((t = e.target.closest('[data-vr]'))) { st.ver = t.getAttribute('data-vr'); drawList(); drawDetail(); return; }
+      if (e.target.closest('[data-sort]')) { st.sort = st.sort === 'count' ? 'name' : 'count'; drawList(); return; }
+      if ((t = e.target.closest('[data-tsn]'))) { var ts = Number(t.getAttribute('data-tsn')); if (ts !== st.tsn) { st.tsn = ts; st.plan = null; resetScope(); } if (LAND.matches) { drawList(); drawDetail(); setHash(false); } else setHash(true); }
+    });
+    LAND.addEventListener('change', function () { if (LAND.matches) closePanel(); else if (st.tsn && /#species\\/[a-z]+\\/\\d+/.test(location.hash)) openPanel(); drawList(); drawDetail(); });
+    drawList();
+    RQ.listeners.push(function () { drawList(); drawDetail(); });
+    return {
+      count: SPECIES.length,
+      show: function (seg, tsn, plan, nk, nstep, rq) {
+        st.seg = SEGS.some(function (x) { return x[0] === seg; }) ? seg : 'all';
+        if (rq && tsn && BY[tsn]) { if (tsn !== st.tsn) { st.tsn = tsn; resetScope(); } drawList(); if (LAND.matches) drawDetail(); else if (!st.panel) openPanel(); rfRoute(tsn, rq); return; }
+        if (RF) closeRF();
+        if (nk && tsn && BY[tsn]) { if (tsn !== st.tsn) { st.tsn = tsn; resetScope(); } drawList(); if (LAND.matches) drawDetail(); else if (!st.panel) openPanel(); wizRoute(st.seg, tsn, nk, nstep); return; }
+        if (W) closeWizard();
+        if (tsn && BY[tsn]) {
+          if (tsn !== st.tsn) { st.tsn = tsn; resetScope(); }
+          st.plan = plan || null; applyPlan(BY[tsn]);
+          drawList(); if (LAND.matches) { closePanel(); drawDetail(); } else openPanel();
+        } else { if (!LAND.matches) { st.tsn = null; } closePanel(); drawList(); drawDetail(); }
+      },
+      hasPanel: function () { return !!st.panel; },
+      hasWizard: function () { return !!W; },
+      escape: function () { if (RF) { document.querySelector('#rqf [data-rfclose]').click(); return true; } if (!document.getElementById('wsheet').hidden) { var c = document.querySelector('#wsheet [data-isclose]'); if (c) c.click(); return true; } if (W) { document.querySelector('#wiz [data-wcancel]').click(); return true; } return false; },
+    };
+  }
+'''

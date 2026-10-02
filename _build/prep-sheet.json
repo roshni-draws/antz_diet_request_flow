@@ -1,0 +1,173 @@
+{
+ "_source": "Dev system_local screens kitchen/prep-sheet.data.js and piece-weights.data.js, copied unchanged on 2026-10-02 (freshness set to computed, not running).",
+ "header": {
+  "title": "Prep Sheet",
+  "subtitle": "Pieces and weight to prepare, by cut size and preparation"
+ },
+ "sites": [
+  "Abcds",
+  "Antz site",
+  "Cow Land ",
+  "Lcc1",
+  "LSET",
+  "LSET FARM",
+  "New ssiteee",
+  "Nidhin Site 2",
+  "RnR site",
+  "Test churchill ",
+  "Test Site LSET",
+  "Test site....new"
+ ],
+ "species": [
+  "Asian elephant",
+  "Bengal tiger",
+  "Indian peafowl",
+  "Spotted deer",
+  "Sloth bear"
+ ],
+ "rows": [
+  {
+   "name": "Apple",
+   "code": "GEN-F-0001",
+   "cutSize": null,
+   "prep": "Whole",
+   "pieces": null,
+   "amount": 685,
+   "unit": "kg"
+  },
+  {
+   "name": "Bannana",
+   "code": "GEN-F-0002",
+   "cutSize": null,
+   "prep": "Chopped",
+   "pieces": null,
+   "amount": 837,
+   "unit": "kg"
+  },
+  {
+   "name": "Beans",
+   "code": "GEN-V-0002",
+   "cutSize": null,
+   "prep": "Fresh",
+   "pieces": null,
+   "amount": 4420,
+   "unit": "kg"
+  },
+  {
+   "name": "Carrot",
+   "code": "GEN-V-0001",
+   "cutSize": null,
+   "prep": "Chopped",
+   "pieces": null,
+   "amount": 3.45,
+   "unit": "kg"
+  },
+  {
+   "name": "Fish",
+   "code": "GEN-M-0002",
+   "cutSize": null,
+   "prep": "Raw",
+   "pieces": null,
+   "amount": 3419,
+   "unit": "kg"
+  }
+ ],
+ "pieceWeights": [
+  {
+   "name": "Apple",
+   "code": "GEN-F-0001",
+   "cutSize": "Whole",
+   "weight": 180,
+   "status": "set",
+   "uom": "kg"
+  },
+  {
+   "name": "Bannana",
+   "code": "GEN-F-0002",
+   "cutSize": "Whole",
+   "weight": 120,
+   "status": "set",
+   "uom": "kg"
+  },
+  {
+   "name": "Bannana",
+   "code": "GEN-F-0002",
+   "cutSize": "1/2",
+   "weight": 60,
+   "status": "set",
+   "uom": "kg"
+  },
+  {
+   "name": "Carrot",
+   "code": "GEN-V-0001",
+   "cutSize": "Cut into 2 pieces",
+   "weight": 35,
+   "status": "set",
+   "uom": "kg"
+  },
+  {
+   "name": "Beans",
+   "code": "GEN-V-0002",
+   "cutSize": "Thick slices",
+   "weight": null,
+   "status": "missing",
+   "uom": "kg"
+  },
+  {
+   "name": "Pipeapple",
+   "code": "GEN-F-0003",
+   "cutSize": "1 cm",
+   "weight": null,
+   "status": "missing",
+   "uom": "kg"
+  },
+  {
+   "name": "Papaya",
+   "code": "GEN-F-0004",
+   "cutSize": "Whole",
+   "weight": 900,
+   "status": "set",
+   "uom": "kg"
+  },
+  {
+   "name": "Guava",
+   "code": "GEN-F-0005",
+   "cutSize": "Whole",
+   "weight": 150,
+   "status": "set",
+   "uom": "kg"
+  },
+  {
+   "name": "Egg",
+   "code": "GEN-E-0001",
+   "cutSize": null,
+   "weight": null,
+   "status": "counted",
+   "uom": "pcs"
+  },
+  {
+   "name": "Maize",
+   "code": "GEN-G-0002",
+   "cutSize": "Whole",
+   "weight": 250,
+   "status": "set",
+   "uom": "kg"
+  },
+  {
+   "name": "Fish",
+   "code": "GEN-M-0002",
+   "cutSize": "Whole",
+   "weight": null,
+   "status": "missing",
+   "uom": "kg"
+  },
+  {
+   "name": "Mealworm",
+   "code": "GEN-M-0004",
+   "cutSize": null,
+   "weight": null,
+   "status": "counted",
+   "uom": "g"
+  }
+ ]
+}

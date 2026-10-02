@@ -1,0 +1,1147 @@
+{
+ "sp": [
+  {
+   "id": "CH",
+   "name": "African Cuckoo-Hawk",
+   "sci": "Aviceda cuculoides",
+   "cls": "Birds",
+   "animals": 6,
+   "sites": 2,
+   "plans": 5,
+   "active": 4,
+   "none": false
+  },
+  {
+   "id": "LI",
+   "name": "Asiatic Lion",
+   "sci": "Panthera leo persica",
+   "cls": "Mammals",
+   "animals": 4,
+   "sites": 1,
+   "plans": 10,
+   "active": 9,
+   "none": false
+  },
+  {
+   "id": "SB",
+   "name": "Sloth Bear",
+   "sci": "Melursus ursinus",
+   "cls": "Mammals",
+   "animals": 4,
+   "sites": 2,
+   "plans": 2,
+   "active": 2,
+   "none": false
+  },
+  {
+   "id": "GH",
+   "name": "Great Hornbill",
+   "sci": "Buceros bicornis",
+   "cls": "Birds",
+   "animals": 2,
+   "sites": 1,
+   "plans": 3,
+   "active": 2,
+   "none": false
+  },
+  {
+   "id": "ST",
+   "name": "Indian Star Tortoise",
+   "sci": "Geochelone elegans",
+   "cls": "Reptiles",
+   "animals": 3,
+   "sites": 1,
+   "plans": 2,
+   "active": 1,
+   "none": false
+  },
+  {
+   "id": "SD",
+   "name": "Spotted Deer",
+   "sci": "Axis axis",
+   "cls": "Mammals",
+   "animals": 5,
+   "sites": 2,
+   "plans": 4,
+   "active": 2,
+   "none": false
+  },
+  {
+   "id": "PG",
+   "name": "Indian Pangolin",
+   "sci": "Manis crassicaudata",
+   "cls": "Mammals",
+   "animals": 1,
+   "sites": 1,
+   "plans": 0,
+   "active": 0,
+   "none": true
+  },
+  {
+   "id": "BT",
+   "name": "Bengal Tiger",
+   "sci": "Panthera tigris tigris",
+   "cls": "Mammals",
+   "animals": 0,
+   "sites": 0,
+   "plans": 8,
+   "active": 6,
+   "none": false
+  },
+  {
+   "id": "GS",
+   "name": "Malabar Giant Squirrel",
+   "sci": "Ratufa indica",
+   "cls": "Mammals",
+   "animals": 0,
+   "sites": 0,
+   "plans": 1,
+   "active": 1,
+   "none": false
+  },
+  {
+   "id": "FL",
+   "name": "Greater Flamingo",
+   "sci": "Phoenicopterus roseus",
+   "cls": "Birds",
+   "animals": 0,
+   "sites": 0,
+   "plans": 2,
+   "active": 2,
+   "none": false
+  },
+  {
+   "id": "KC",
+   "name": "King Cobra",
+   "sci": "Ophiophagus hannah",
+   "cls": "Reptiles",
+   "animals": 0,
+   "sites": 0,
+   "plans": 4,
+   "active": 3,
+   "none": false
+  },
+  {
+   "id": "MU",
+   "name": "Mugger Crocodile",
+   "sci": "Crocodylus palustris",
+   "cls": "Reptiles",
+   "animals": 0,
+   "sites": 0,
+   "plans": 8,
+   "active": 7,
+   "none": false
+  },
+  {
+   "id": "BR",
+   "name": "Indian Bullfrog",
+   "sci": "Hoplobatrachus tigerinus",
+   "cls": "Amphibians",
+   "animals": 0,
+   "sites": 0,
+   "plans": 2,
+   "active": 1,
+   "none": false
+  },
+  {
+   "id": "MH",
+   "name": "Golden Mahseer",
+   "sci": "Tor putitora",
+   "cls": "Fish",
+   "animals": 0,
+   "sites": 0,
+   "plans": 1,
+   "active": 1,
+   "none": false
+  },
+  {
+   "id": "RP",
+   "name": "Red Panda",
+   "sci": "Ailurus fulgens",
+   "cls": "Mammals",
+   "animals": 0,
+   "sites": 0,
+   "plans": 0,
+   "active": 0,
+   "none": true
+  },
+  {
+   "id": "KF",
+   "name": "White-throated Kingfisher",
+   "sci": "Halcyon smyrnensis",
+   "cls": "Birds",
+   "animals": 0,
+   "sites": 0,
+   "plans": 0,
+   "active": 0,
+   "none": true
+  },
+  {
+   "id": "JB",
+   "name": "Jewel Beetle",
+   "sci": "Sternocera aequisignata",
+   "cls": "Invertebrates",
+   "animals": 0,
+   "sites": 0,
+   "plans": 0,
+   "active": 0,
+   "none": true
+  }
+ ],
+ "plans": [
+  {
+   "id": "PL-SCD",
+   "code": "Diet 1103",
+   "name": "Standard Carnivore Diet",
+   "sp": "CH",
+   "times": [
+    "07:00",
+    "16:00"
+   ],
+   "meals": 2,
+   "items": 4,
+   "type": "yearround",
+   "since": "2025-01-10T09:00",
+   "status": "active",
+   "levels": {
+    "species": 1
+   },
+   "energy": 757
+  },
+  {
+   "id": "PL-HPD",
+   "code": "Diet 1146",
+   "name": "High Protein Diet",
+   "sp": "CH",
+   "times": [
+    "07:00",
+    "16:00"
+   ],
+   "meals": 2,
+   "items": 4,
+   "type": "yearround",
+   "since": "2026-03-14T11:05",
+   "status": "active",
+   "levels": {
+    "enclosure": 1
+   }
+  },
+  {
+   "id": "PL-REC",
+   "code": "Diet 1188",
+   "name": "Recovery Diet",
+   "sp": "CH",
+   "times": [
+    "07:00",
+    "12:00",
+    "16:00"
+   ],
+   "meals": 3,
+   "items": 4,
+   "type": "timebound",
+   "start": "2026-06-10",
+   "end": "2026-06-25",
+   "since": "2026-06-09T12:40",
+   "status": "active",
+   "levels": {
+    "animal": 1
+   }
+  },
+  {
+   "id": "PL-SUM",
+   "code": "Diet 1210",
+   "name": "Summer Diet",
+   "sp": "CH",
+   "times": [
+    "06:30",
+    "17:00"
+   ],
+   "meals": 2,
+   "items": 4,
+   "type": "seasonal",
+   "from": "06-01",
+   "to": "08-31",
+   "since": "2025-05-20T10:00",
+   "status": "active",
+   "levels": {
+    "species": 1
+   },
+   "energy": 512
+  },
+  {
+   "id": "PL-HPD2",
+   "code": "Diet 1287",
+   "name": "High Protein Diet · rev 2",
+   "sp": "CH",
+   "times": [
+    "07:00",
+    "16:00"
+   ],
+   "meals": 2,
+   "items": 5,
+   "status": "unassigned",
+   "levels": {}
+  },
+  {
+   "id": "PL-CHM",
+   "code": "Diet 1234",
+   "name": "Moult Support Diet",
+   "sp": "CH",
+   "times": [
+    "07:00",
+    "16:00"
+   ],
+   "meals": 2,
+   "items": 4,
+   "type": "timebound",
+   "start": "2026-10-15",
+   "end": "2026-11-30",
+   "since": "2026-06-01T09:00",
+   "status": "inactive",
+   "levels": {
+    "species": 1
+   },
+   "energy": 828
+  },
+  {
+   "id": "PL-LST0",
+   "code": "Diet 1250",
+   "name": "Lion Standard Diet 2025",
+   "sp": "LI",
+   "times": [
+    "17:00"
+   ],
+   "meals": 1,
+   "items": 1,
+   "type": "yearround",
+   "since": "2025-01-10T09:00",
+   "status": "unassigned",
+   "levels": {}
+  },
+  {
+   "id": "PL-LST",
+   "code": "Diet 1251",
+   "name": "Lion Standard Diet",
+   "sp": "LI",
+   "times": [
+    "17:00"
+   ],
+   "meals": 3,
+   "items": 4,
+   "type": "yearround",
+   "since": "2026-02-03T10:15",
+   "status": "active",
+   "levels": {
+    "species": 3,
+    "section": 4,
+    "site": 3,
+    "enclosure": 1,
+    "animal": 4
+   },
+   "energy": 2540
+  },
+  {
+   "id": "PL-LSM",
+   "code": "Diet 1253",
+   "name": "Lion Summer Light",
+   "sp": "LI",
+   "times": [
+    "07:00"
+   ],
+   "meals": 3,
+   "items": 3,
+   "type": "seasonal",
+   "from": "04-01",
+   "to": "06-30",
+   "since": "2026-03-28T09:00",
+   "status": "active",
+   "levels": {
+    "species": 3,
+    "site": 3,
+    "section": 4,
+    "enclosure": 1,
+    "animal": 4
+   },
+   "energy": 1210,
+   "reason": "Chronic Illness"
+  },
+  {
+   "id": "PL-LSO",
+   "code": "Diet 1252",
+   "name": "Lion Soft Diet",
+   "sp": "LI",
+   "times": [
+    "17:00"
+   ],
+   "meals": 1,
+   "items": 2,
+   "type": "timebound",
+   "start": "2026-06-05",
+   "end": "2026-06-25",
+   "since": "2026-06-04T09:00",
+   "status": "active",
+   "levels": {
+    "species": 3,
+    "animal": 4,
+    "enclosure": 1,
+    "site": 3,
+    "section": 4
+   },
+   "energy": 1980
+  },
+  {
+   "id": "PL-SBD",
+   "code": "Diet 1301",
+   "name": "Sloth Bear Daily Diet",
+   "sp": "SB",
+   "times": [
+    "08:00",
+    "15:00"
+   ],
+   "meals": 2,
+   "items": 6,
+   "type": "yearround",
+   "since": "2025-01-10T09:00",
+   "status": "active",
+   "levels": {
+    "species": 1
+   }
+  },
+  {
+   "id": "PL-SBC",
+   "code": "Diet 1305",
+   "name": "Summer Cooling Diet",
+   "sp": "SB",
+   "times": [
+    "08:00",
+    "15:00"
+   ],
+   "meals": 2,
+   "items": 4,
+   "type": "seasonal",
+   "from": "06-01",
+   "to": "08-31",
+   "since": "2025-05-02T09:30",
+   "status": "active",
+   "levels": {
+    "section": 1,
+    "site": 1
+   }
+  },
+  {
+   "id": "PL-SBM",
+   "code": "Diet 1309",
+   "name": "Monsoon Diet",
+   "sp": "SB",
+   "times": [
+    "08:00",
+    "15:00"
+   ],
+   "meals": 2,
+   "items": 4,
+   "status": "unassigned",
+   "levels": {}
+  },
+  {
+   "id": "PL-HBF",
+   "code": "Diet 1402",
+   "name": "Hornbill Fruit Mix",
+   "sp": "GH",
+   "times": [
+    "07:30",
+    "14:00"
+   ],
+   "meals": 2,
+   "items": 4,
+   "type": "yearround",
+   "since": "2025-01-10T09:00",
+   "status": "active",
+   "levels": {
+    "species": 1
+   },
+   "energy": 640
+  },
+  {
+   "id": "PL-HBF2",
+   "code": "Diet 1406",
+   "name": "Hornbill Breeding Mix",
+   "sp": "GH",
+   "times": [
+    "07:30",
+    "14:00"
+   ],
+   "meals": 2,
+   "items": 5,
+   "type": "seasonal",
+   "from": "02-01",
+   "to": "04-30",
+   "since": "2026-01-20T09:00",
+   "status": "active",
+   "levels": {
+    "species": 1,
+    "enclosure": 1
+   },
+   "energy": 812
+  },
+  {
+   "id": "PL-TGR",
+   "code": "Diet 1501",
+   "name": "Tortoise Greens",
+   "sp": "ST",
+   "times": [
+    "09:00"
+   ],
+   "meals": 1,
+   "items": 3,
+   "type": "yearround",
+   "since": "2025-01-10T09:00",
+   "status": "active",
+   "levels": {
+    "species": 1
+   }
+  },
+  {
+   "id": "PL-DBR",
+   "code": "Diet 1601",
+   "name": "Deer Browse Diet",
+   "sp": "SD",
+   "times": [
+    "07:00",
+    "16:00"
+   ],
+   "meals": 2,
+   "items": 3,
+   "type": "yearround",
+   "since": "2025-01-10T09:00",
+   "status": "active",
+   "levels": {
+    "species": 1
+   }
+  },
+  {
+   "id": "PL-DRC",
+   "code": "Diet 1605",
+   "name": "Rescue Deer Diet",
+   "sp": "SD",
+   "times": [
+    "07:00",
+    "16:00"
+   ],
+   "meals": 2,
+   "items": 4,
+   "type": "timebound",
+   "start": "2026-06-01",
+   "end": "2026-07-15",
+   "since": "2026-05-30T09:00",
+   "status": "active",
+   "levels": {
+    "animal": 1
+   }
+  },
+  {
+   "id": "PL-DRC2",
+   "code": "Diet 1688",
+   "name": "Rescue Deer Diet · napier",
+   "sp": "SD",
+   "times": [
+    "07:00",
+    "16:00"
+   ],
+   "meals": 2,
+   "items": 4,
+   "status": "unassigned",
+   "levels": {}
+  },
+  {
+   "id": "PL-BCM",
+   "code": "Diet 1707",
+   "name": "Big Cat Meat Diet",
+   "sp": "LI",
+   "times": [
+    "17:00"
+   ],
+   "meals": 1,
+   "items": 2,
+   "type": "seasonal",
+   "from": "07-01",
+   "to": "09-30",
+   "since": "2026-05-02T09:00",
+   "status": "active",
+   "levels": {
+    "site": 1,
+    "species": 2
+   },
+   "energy": 7400
+  },
+  {
+   "id": "PL-LWG",
+   "code": "Diet 1255",
+   "name": "Lion Winter Gain",
+   "sp": "LI",
+   "times": [
+    "17:00"
+   ],
+   "meals": 1,
+   "items": 2,
+   "type": "seasonal",
+   "from": "11-01",
+   "to": "01-31",
+   "since": "2025-10-12T09:00",
+   "status": "inactive",
+   "levels": {
+    "species": 1,
+    "site": 1
+   },
+   "energy": 2980
+  },
+  {
+   "id": "PL-LBR",
+   "code": "Diet 1257",
+   "name": "Lion Breeding Support",
+   "sp": "LI",
+   "times": [
+    "17:00"
+   ],
+   "meals": 1,
+   "items": 2,
+   "type": "seasonal",
+   "from": "05-01",
+   "to": "07-31",
+   "since": "2026-04-18T09:00",
+   "status": "active",
+   "levels": {
+    "species": 3,
+    "enclosure": 1,
+    "site": 3,
+    "section": 4,
+    "animal": 4
+   },
+   "reason": "Breeding season"
+  },
+  {
+   "id": "PL-LFD",
+   "code": "Diet 1263",
+   "name": "Lion Fast-Day Substitute",
+   "sp": "LI",
+   "times": [
+    "17:00"
+   ],
+   "meals": 1,
+   "items": 2,
+   "type": "timebound",
+   "start": "2026-06-01",
+   "end": "2026-06-30",
+   "since": "2026-05-29T09:00",
+   "status": "active",
+   "levels": {
+    "species": 3,
+    "site": 3,
+    "section": 4,
+    "enclosure": 1,
+    "animal": 4
+   }
+  },
+  {
+   "id": "PL-LSN",
+   "code": "Diet 1261",
+   "name": "Senior Soft Meat Diet",
+   "sp": "LI",
+   "times": [
+    "17:00"
+   ],
+   "meals": 1,
+   "items": 2,
+   "type": "timebound",
+   "start": "2026-06-01",
+   "end": "2026-09-30",
+   "since": "2026-05-27T09:00",
+   "status": "active",
+   "levels": {
+    "animal": 1,
+    "species": 1
+   },
+   "energy": 2210,
+   "reason": "Dental wear"
+  },
+  {
+   "id": "PL-LCB",
+   "code": "Diet 1259",
+   "name": "Lion Cub Starter",
+   "sp": "LI",
+   "times": [
+    "07:00",
+    "16:00"
+   ],
+   "meals": 2,
+   "items": 3,
+   "type": "timebound",
+   "start": "2026-06-10",
+   "end": "2026-07-10",
+   "since": "2026-06-09T09:00",
+   "status": "active",
+   "levels": {
+    "animal": 1
+   }
+  },
+  {
+   "id": "PL-BTS",
+   "code": "Diet 1701",
+   "name": "Tiger Standard Diet",
+   "sp": "BT",
+   "times": [
+    "17:00"
+   ],
+   "meals": 1,
+   "items": 1,
+   "type": "yearround",
+   "since": "2024-11-02T09:00",
+   "status": "active",
+   "levels": {
+    "species": 1,
+    "enclosure": 1
+   },
+   "energy": 9120
+  },
+  {
+   "id": "PL-BTL",
+   "code": "Diet 1703",
+   "name": "Tiger Summer Light",
+   "sp": "BT",
+   "times": [
+    "07:00"
+   ],
+   "meals": 2,
+   "items": 2,
+   "type": "seasonal",
+   "from": "04-15",
+   "to": "06-30",
+   "since": "2026-04-02T09:00",
+   "status": "active",
+   "levels": {
+    "species": 1
+   },
+   "energy": 5480
+  },
+  {
+   "id": "PL-BTR",
+   "code": "Diet 1705",
+   "name": "Tiger Recovery Diet",
+   "sp": "BT",
+   "times": [
+    "08:00",
+    "16:00"
+   ],
+   "meals": 2,
+   "items": 3,
+   "type": "timebound",
+   "start": "2026-02-01",
+   "end": "2026-03-15",
+   "since": "2026-01-30T09:00",
+   "status": "inactive",
+   "levels": {
+    "species": 1,
+    "site": 1
+   },
+   "reason": "Post-surgical care"
+  },
+  {
+   "id": "PL-FLS",
+   "code": "Diet 1801",
+   "name": "Flamingo Pellet Mix",
+   "sp": "FL",
+   "times": [
+    "08:00",
+    "15:00"
+   ],
+   "meals": 2,
+   "items": 3,
+   "type": "yearround",
+   "since": "2025-02-14T09:00",
+   "status": "active",
+   "levels": {
+    "species": 1
+   },
+   "energy": 940
+  },
+  {
+   "id": "PL-FLB",
+   "code": "Diet 1803",
+   "name": "Flamingo Breeding Boost",
+   "sp": "FL",
+   "times": [
+    "08:00"
+   ],
+   "meals": 1,
+   "items": 3,
+   "type": "seasonal",
+   "from": "05-01",
+   "to": "07-31",
+   "since": "2025-04-20T09:00",
+   "status": "active",
+   "levels": {
+    "species": 1,
+    "section": 1
+   },
+   "reason": "Breeding season"
+  },
+  {
+   "id": "PL-KCS",
+   "code": "Diet 1901",
+   "name": "Cobra Feed Cycle",
+   "sp": "KC",
+   "times": [
+    "10:00"
+   ],
+   "meals": 1,
+   "items": 1,
+   "type": "yearround",
+   "since": "2025-03-05T09:00",
+   "status": "active",
+   "levels": {
+    "species": 1
+   }
+  },
+  {
+   "id": "PL-KCF",
+   "code": "Diet 1903",
+   "name": "Cobra Winter Support",
+   "sp": "KC",
+   "times": [
+    "11:00"
+   ],
+   "meals": 1,
+   "items": 1,
+   "type": "timebound",
+   "start": "2026-11-01",
+   "end": "2026-12-15",
+   "since": "2026-06-05T09:00",
+   "status": "inactive",
+   "levels": {
+    "species": 1
+   }
+  },
+  {
+   "id": "PL-MUS",
+   "code": "Diet 2001",
+   "name": "Crocodile Standard Diet",
+   "sp": "MU",
+   "times": [
+    "16:00"
+   ],
+   "meals": 1,
+   "items": 1,
+   "type": "yearround",
+   "since": "2025-01-22T09:00",
+   "status": "active",
+   "levels": {
+    "species": 1,
+    "site": 1
+   }
+  },
+  {
+   "id": "PL-MUW",
+   "code": "Diet 2003",
+   "name": "Crocodile Winter Diet",
+   "sp": "MU",
+   "times": [
+    "14:00"
+   ],
+   "meals": 1,
+   "items": 1,
+   "type": "seasonal",
+   "from": "12-01",
+   "to": "02-28",
+   "since": "2025-11-12T09:00",
+   "status": "inactive",
+   "levels": {
+    "species": 1
+   }
+  },
+  {
+   "id": "PL-BRS",
+   "code": "Diet 2101",
+   "name": "Bullfrog Insect Mix",
+   "sp": "BR",
+   "times": [
+    "18:00"
+   ],
+   "meals": 1,
+   "items": 2,
+   "type": "yearround",
+   "since": "2025-06-01T09:00",
+   "status": "active",
+   "levels": {
+    "species": 2
+   }
+  },
+  {
+   "id": "PL-BRT",
+   "code": "Diet 2103",
+   "name": "Bullfrog Treatment Diet",
+   "sp": "BR",
+   "times": [
+    "18:00"
+   ],
+   "meals": 1,
+   "items": 1,
+   "type": "timebound",
+   "start": "2026-03-01",
+   "end": "2026-04-15",
+   "since": "2026-02-26T09:00",
+   "status": "inactive",
+   "levels": {
+    "species": 1
+   },
+   "reason": "Parasite treatment"
+  },
+  {
+   "id": "PL-MHS",
+   "code": "Diet 2201",
+   "name": "Mahseer Pellet Diet",
+   "sp": "MH",
+   "times": [
+    "09:00",
+    "16:00"
+   ],
+   "meals": 2,
+   "items": 3,
+   "type": "yearround",
+   "since": "2025-05-18T09:00",
+   "status": "active",
+   "levels": {
+    "species": 1
+   },
+   "energy": 610
+  },
+  {
+   "id": "PL-GSS",
+   "code": "Diet 2301",
+   "name": "Squirrel Fruit & Nut Mix",
+   "sp": "GS",
+   "times": [
+    "07:30",
+    "15:30"
+   ],
+   "meals": 2,
+   "items": 3,
+   "type": "yearround",
+   "since": "2025-08-09T09:00",
+   "status": "active",
+   "levels": {
+    "enclosure": 1
+   }
+  },
+  {
+   "id": "PL-TGM",
+   "code": "Diet 1503",
+   "name": "Monsoon Greens",
+   "sp": "ST",
+   "times": [
+    "09:00"
+   ],
+   "meals": 1,
+   "items": 2,
+   "type": "seasonal",
+   "from": "07-01",
+   "to": "09-30",
+   "since": "2025-06-25T09:00",
+   "status": "inactive",
+   "levels": {
+    "species": 2
+   }
+  },
+  {
+   "id": "PL-DWS",
+   "code": "Diet 1603",
+   "name": "Deer Winter Supplement",
+   "sp": "SD",
+   "times": [
+    "07:00"
+   ],
+   "meals": 1,
+   "items": 2,
+   "type": "seasonal",
+   "from": "11-15",
+   "to": "01-31",
+   "since": "2025-10-30T09:00",
+   "status": "inactive",
+   "levels": {
+    "species": 1,
+    "site": 1
+   }
+  }
+ ],
+ "reqs": [
+  {
+   "id": "DR-00421",
+   "sp": "African Cuckoo-Hawk",
+   "level": "enclosure",
+   "target": "EN-1",
+   "title": "Fewer chicks, more calcium for Aviary 03",
+   "text": "Birds in Aviary 03 are gaining weight on the High Protein Diet. Reduce day-old chicks from 4 to 3 a day and add a calcium supplement.",
+   "priority": "medium",
+   "state": "awaiting_kitchen",
+   "type": "yearround",
+   "mode": "change",
+   "at": "2026-06-10T15:55",
+   "by": "Carol Steve",
+   "tname": "Aviary 03"
+  },
+  {
+   "id": "DR-00424",
+   "sp": "Asiatic Lion",
+   "level": "animal",
+   "target": "LN-0012",
+   "title": "Soft food after dental surgery",
+   "text": "Raja has dental surgery on 14 Jun. The vet recommends boneless, minced meat for two weeks, then back to the standard diet.",
+   "priority": "high",
+   "state": "submitted",
+   "type": "timebound",
+   "mode": "new",
+   "at": "2026-06-12T09:10",
+   "by": "Carol Steve",
+   "tname": "Raja"
+  },
+  {
+   "id": "DR-00423",
+   "sp": "Sloth Bear",
+   "level": "section",
+   "target": "SE-4",
+   "title": "Monsoon diet for Bear Wing",
+   "text": "In the monsoon the bears in Bear Wing eat less fruit and need more protein. Suggest a monsoon diet from July to September.",
+   "priority": "low",
+   "state": "in_progress",
+   "type": "seasonal",
+   "mode": "new",
+   "at": "2026-06-05T11:20",
+   "by": "Carol Steve",
+   "tname": "Bear Wing"
+  },
+  {
+   "id": "DR-00417",
+   "sp": "African Cuckoo-Hawk",
+   "level": "animal",
+   "target": "AV-00307",
+   "title": "Extra protein while Tara moults",
+   "text": "Tara has started her moult. Add extra protein for three weeks so the new feathers come in well.",
+   "priority": "medium",
+   "state": "approved",
+   "type": "timebound",
+   "mode": "new",
+   "at": "2026-06-09T10:05",
+   "by": "Carol Steve",
+   "tname": "Tara"
+  },
+  {
+   "id": "DR-00419",
+   "sp": "Great Hornbill",
+   "level": "enclosure",
+   "target": "EN-4",
+   "title": "More fruit for the breeding pair",
+   "text": "Kavi and Meera are nesting. Increase figs and add a second mouse so the female is fed well while sealed in the nest.",
+   "priority": "high",
+   "state": "kitchen_progress",
+   "type": "yearround",
+   "mode": "change",
+   "at": "2026-06-01T09:30",
+   "by": "Carol Steve",
+   "tname": "Hornbill Aviary"
+  },
+  {
+   "id": "DR-00416",
+   "sp": "Spotted Deer",
+   "level": "site",
+   "target": "SI-2",
+   "title": "Richer diet for rescued deer",
+   "text": "Rescued deer at the Rescue Centre are underweight. They need a richer diet than the zoo herd until they recover condition.",
+   "priority": "high",
+   "state": "kitchen_progress",
+   "type": "yearround",
+   "mode": "new",
+   "at": "2026-05-28T14:00",
+   "by": "Carol Steve",
+   "tname": "Rescue Centre"
+  },
+  {
+   "id": "DR-00415",
+   "sp": "African Cuckoo-Hawk",
+   "level": "animal",
+   "target": "AV-00291",
+   "title": "Soft food after wing surgery",
+   "text": "Kiara had a wing fracture repaired on 8 Jun. The vet asks for soft, easily digested food for two weeks.",
+   "priority": "high",
+   "state": "applied",
+   "type": "timebound",
+   "mode": "new",
+   "at": "2026-06-08T16:30",
+   "by": "Carol Steve",
+   "tname": "Kiara"
+  },
+  {
+   "id": "DR-00412",
+   "sp": "Indian Star Tortoise",
+   "level": "species",
+   "target": "ST",
+   "title": "Winter: fewer greens",
+   "text": "Tortoises eat less in winter. Suggest cutting the greens by a third from November to February.",
+   "priority": "low",
+   "state": "rejected",
+   "type": "seasonal",
+   "mode": "change",
+   "at": "2026-05-18T12:00",
+   "by": "Carol Steve",
+   "tname": "Indian Star Tortoise"
+  },
+  {
+   "id": "DR-00410",
+   "sp": "Asiatic Lion",
+   "level": "section",
+   "target": "SE-3",
+   "title": "Add bone meal for Big Cats",
+   "text": "Add bone meal to the evening feed for all lions in Big Cats.",
+   "priority": "low",
+   "state": "cancelled",
+   "type": "yearround",
+   "mode": "change",
+   "at": "2026-05-15T10:00",
+   "by": "Carol Steve",
+   "tname": "Big Cats"
+  },
+  {
+   "id": "DR-00402",
+   "sp": "African Cuckoo-Hawk",
+   "level": "enclosure",
+   "target": "EN-1",
+   "title": "Breeding diet for Aviary 03",
+   "text": "Aviary 03 has two breeding pairs this season. Raise protein for the birds in this aviary.",
+   "priority": "medium",
+   "state": "applied",
+   "type": "yearround",
+   "mode": "new",
+   "at": "2026-03-12T11:00",
+   "by": "Carol Steve",
+   "tname": "Aviary 03"
+  },
+  {
+   "id": "DR-00398",
+   "sp": "Asiatic Lion",
+   "level": "species",
+   "target": "LI",
+   "title": "Leaner lion diet",
+   "text": "Keepers report the lions leave meat every evening. Reduce the meat and add liver for vitamins.",
+   "priority": "medium",
+   "state": "applied",
+   "type": "yearround",
+   "mode": "change",
+   "at": "2026-01-28T10:00",
+   "by": "Carol Steve",
+   "tname": "Asiatic Lion"
+  }
+ ],
+ "fns": [
+  "oncontentvisibilityautostatechange",
+  "onpopstate",
+  "whereChip",
+  "vWhere"
+ ]
+}

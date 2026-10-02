@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<!-- Screen 1 — Diet module entry (Modules home) -->
+<!--
+  Antz tablet app, Diet flow, screen 1: the Modules home with only the Diet tile.
+  Self-contained: screen CSS, JS and the Diet icon are inline (fonts load from Google Fonts, system font fallback offline).
+  Desktop browser: the screen inside iPad frames with a Both / Portrait / Landscape toggle (iframes via srcdoc, true pixel size, scaled to fit).
+  Tablet (touch screen 744px or wider) or ?bare=1: only the screen, full-bleed, adapting to 810 x 1080 and 1080 x 810.
+  ?bare=0 forces the framed preview. ?show=portrait | landscape | both. ?view=list opens list view.
+  The Diet tile opens the V2 prototype Diet module home: ../kitchen/Roshni/V2 Tab prototype of dev kitchen /index.html#m=diet
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Diet Module</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style id="pv-style">
+    body.pv {
+      --page: #E9EFEB; --ink: #1F415B; --muted: #5E6B66; --white: #FFFFFF; --ring: #1F515B;
+      --bezel-c: #17191C; --ease: cubic-bezier(.2,.7,.2,1);
+      margin: 0; min-height: 100dvh; background: var(--page); color: var(--ink);
+      font-family: Inter, -apple-system, BlinkMacSystemFont, system-ui, sans-serif; -webkit-font-smoothing: antialiased;
+      display: flex; flex-direction: column; overflow-x: clip;
+    }
+    .pv *, .pv *::before, .pv *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    .pv button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+    .pv-bar { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding: 20px 24px 0; }
+    .pv-bar h1 { font-size: 20px; line-height: 28px; font-weight: 600; letter-spacing: -.01em; }
+    .pv-seg { display: inline-flex; padding: 4px; gap: 4px; background: #DCE5DF; border-radius: 12px; }
+    .pv-seg button { min-height: 44px; padding: 0 16px; border-radius: 8px; font-size: 15px; font-weight: 500; color: #425349;
+      transition: background-color 220ms var(--ease), transform 120ms var(--ease); }
+    .pv-seg button[aria-pressed="true"] { background: var(--white); color: var(--ink); box-shadow: 0 1px 2px rgba(31,65,91,.08); }
+    .pv-seg button:active { transform: scale(.97); }
+    .pv-seg button:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+    .pv-stage { flex: 1; display: flex; align-items: center; justify-content: center; gap: 40px; padding: 24px; min-height: 0; }
+    .pv-dev { display: grid; justify-items: center; gap: 12px; }
+    .pv-dev[hidden] { display: none; }
+    .pv-cap { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+    .pv-slot { position: relative; }
+    .pv-frame { position: absolute; top: 0; left: 0; transform-origin: 0 0; padding: 28px; background: var(--bezel-c); border-radius: 52px;
+      box-shadow: inset 0 0 0 2px #2C3036, 0 2px 6px rgba(15,25,30,.18), 0 24px 60px rgba(15,25,30,.22); }
+    .pv-frame::before { content: ""; position: absolute; width: 8px; height: 8px; border-radius: 50%; background: #2B3138; }
+    .pv-frame--p::before { top: 10px; left: 50%; margin-left: -4px; }
+    .pv-frame--l::before { left: 10px; top: 50%; margin-top: -4px; }
+    .pv-frame::after { content: ""; position: absolute; inset: 26px; border: 3px solid var(--bezel-c); border-radius: 27px; pointer-events: none; z-index: 1; }
+    .pv-screen { overflow: hidden; border-radius: 24px; clip-path: inset(0 round 24px); background: #DAE7DE; transform: translateZ(0); }
+    .pv-screen iframe { display: block; border: 0; background: #DAE7DE; }
+    @media (prefers-reduced-motion: reduce) { .pv-seg button { transition: none; } .pv-seg button:active { transform: none; } }
+  </style>
+</head>
+<body>
+<template id="screen">
+  <style>
+    :root {
+      --sage: #DAE7DE; --white: #FFFFFF;
+      --label: #425349; --navy: #1F415B; --green: #37BD69;
+      --tab-active: #1E8A4C; --pill: #BFEDE6; --chat: #1AA6C8;
+      --press: #F5FAF7; --ring: #1F515B;
+      --shadow-rest: 0 1px 2px rgba(31,65,91,.04);
+      --shadow-hover: 0 2px 4px rgba(31,65,91,.06), 0 8px 18px rgba(31,65,91,.07);
+      --ease: cubic-bezier(.2,.7,.2,1);
+      --status-h: 24px; --tab-h: 72px; --gut: 16px;
+      /* tile (same as diet-button.html) */
+      --h: 274px; --icon: 75px; --fs: 24px; --gap: 17px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    html { -webkit-text-size-adjust: 100%; overflow-x: clip; }
+    body {
+      background: var(--sage); color: var(--label); overflow: hidden;
+      font-family: Inter, -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+    a { color: inherit; text-decoration: none; }
+    :focus { outline: none; }
+    :focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+
+    .app { display: grid; grid-template-rows: var(--status-h) auto 1fr var(--tab-h); height: 100dvh; }
+
+    /* status bar */
+    .status {
+      display: flex; align-items: center; justify-content: space-between; padding: 0 10px;
+      background: var(--white); color: #0E1512; font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums;
+    }
+    .status__l { display: flex; gap: 10px; }
+    .status__l span + span { font-weight: 500; }
+    .status__r { display: flex; align-items: center; gap: 5px; }
+    .status svg { display: block; }
+
+    /* header */
+    .head {
+      display: grid; grid-template-columns: 1fr auto; grid-template-areas: "title ." ". view";
+      align-items: center; row-gap: 4px; padding: 12px var(--gut) 8px;
+    }
+    .title { grid-area: title; font-size: 24px; line-height: 32px; font-weight: 500; color: var(--navy); letter-spacing: -.01em; }
+    .view { grid-area: view; display: flex; align-items: center; gap: 4px; }
+    .view__label { font-size: 15px; margin-right: 8px; }
+    .toggle {
+      width: 44px; height: 44px; border-radius: 10px; display: grid; place-items: center; color: var(--navy);
+      transition: background-color 220ms var(--ease), transform 120ms var(--ease);
+    }
+    .toggle svg { width: 22px; height: 22px; }
+    .toggle[aria-pressed="true"] { color: var(--green); }
+    @media (hover: hover) { .toggle:hover { background: rgba(31,65,91,.06); } }
+    .toggle:active { transform: scale(.94); background: rgba(31,65,91,.10); }
+
+    /* content */
+    .main { overflow-y: auto; overflow-x: hidden; padding: 8px var(--gut) 32px; }
+    .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--gut); }
+
+    .tile {
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--gap);
+      height: var(--h); background: var(--white); border-radius: 12px; box-shadow: var(--shadow-rest);
+      -webkit-tap-highlight-color: transparent; touch-action: manipulation; user-select: none; -webkit-user-select: none;
+      transition: transform 160ms var(--ease), box-shadow 220ms var(--ease), background-color 220ms var(--ease);
+    }
+    .tile__icon { display: block; width: var(--icon); height: calc(var(--icon) * 73 / 62); }
+    .tile__label { font-size: var(--fs); line-height: 1.2; font-weight: 600; letter-spacing: -.012em; }
+    @media (hover: hover) { .tile:hover { box-shadow: var(--shadow-hover); } }
+    .tile:active { transform: scale(.98); background: var(--press); box-shadow: var(--shadow-rest); }
+    .tile:focus-visible { outline-offset: 3px; }
+
+    /* list view: Diet as one row */
+    .list { display: grid; gap: 8px; }
+    .row {
+      display: flex; align-items: center; gap: 16px; min-height: 72px; padding: 12px 16px 12px 20px;
+      background: var(--white); border-radius: 12px; box-shadow: var(--shadow-rest);
+      -webkit-tap-highlight-color: transparent;
+      transition: transform 160ms var(--ease), background-color 220ms var(--ease);
+    }
+    .row .row__icon { width: 38px; height: calc(38px * 73 / 62); flex: none; }
+    .row b { flex: 1; font-size: 18px; font-weight: 600; }
+    .row .row__chev { width: 20px; height: 20px; flex: none; color: #7A8684; }
+    .icon-defs { position: absolute; width: 0; height: 0; overflow: hidden; }
+    .row:active { transform: scale(.99); background: var(--press); }
+    [hidden] { display: none !important; }
+
+    /* tab bar */
+    .tabs { display: grid; grid-template-columns: repeat(5, 1fr); background: var(--white); box-shadow: 0 -1px 0 rgba(31,65,91,.06); }
+    .tab {
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-height: 44px;
+      font-size: 12px; line-height: 16px; font-weight: 500; letter-spacing: .04em; color: var(--label);
+      -webkit-tap-highlight-color: transparent;
+    }
+    .tab__ic {
+      position: relative; isolation: isolate;
+      display: flex; flex-direction: column; align-items: center; gap: 9px;
+      color: inherit; transition: transform 120ms var(--ease);
+    }
+    .tab__ic::before {
+      content: ""; position: absolute; z-index: -1; border-radius: 999px;
+      top: -5px; left: 50%; width: 60px; height: 32px; margin-left: -30px;
+      transition: background-color 220ms var(--ease);
+    }
+    .tab__ic svg { width: 22px; height: 22px; flex: none; color: var(--navy); }
+    .tab[aria-current="page"] { color: var(--tab-active); }
+    .tab[aria-current="page"] .tab__ic::before { background: var(--pill); }
+    .tab--chat .tab__ic svg { color: var(--chat); }
+    .tab:active .tab__ic { transform: scale(.92); }
+
+    @media (orientation: landscape) {
+      :root { --tab-h: 60px; --h: 244px; --icon: 67px; --fs: 22px; --gap: 15px; }
+      .head { grid-template-areas: "title view"; padding-top: 14px; padding-bottom: 14px; }
+      .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .list { max-width: 720px; }
+      /* iPadOS landscape pattern: centred cluster, icon beside label */
+      .tabs { grid-template-columns: repeat(5, auto); justify-content: center; column-gap: 24px; }
+      .tab { flex-direction: row; font-size: 13px; letter-spacing: .02em; }
+      .tab__ic { flex-direction: row; gap: 8px; height: 40px; padding: 0 16px 0 12px; justify-content: center; }
+      .tab__ic::before { inset: 0; top: 0; left: 0; width: auto; height: auto; margin: 0; }
+      }
+    @media (prefers-reduced-motion: reduce) {
+      .tile, .row, .toggle, .tab__ic, .tab__ic::before { transition: none; }
+      .tile:active, .row:active, .toggle:active, .tab:active .tab__ic { transform: none; }
+    }
+  </style>
+
+  <svg class="icon-defs" aria-hidden="true" focusable="false">
+    <defs>
+    <linearGradient id="diet-g-board" x1="8" y1="12" x2="64" y2="50" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#1FDCD0"/>
+      <stop offset="1" stop-color="#4FCB90"/>
+    </linearGradient>
+    <linearGradient id="diet-g-apple" x1="38" y1="44" x2="68" y2="78" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#14D9C8"/>
+      <stop offset="1" stop-color="#4CC98A"/>
+    </linearGradient>
+    <mask id="diet-hole" maskUnits="userSpaceOnUse" x="0" y="0" width="76" height="88">
+      <rect width="76" height="88" fill="#fff"/>
+      <circle cx="35.8" cy="18.5" r="3.2" fill="#000"/>
+    </mask>
+        <symbol id="diet-glyph" overflow="visible">
+  <!-- clipboard: frame open at the bottom right, inner clip bar, rounded top with hole -->
+  <g fill="url(#diet-g-board)" mask="url(#diet-hole)">
+    <path d="M32.6 70.8H14a6 6 0 0 1-6-6V21.5a6 6 0 0 1 6-6h43.2a6 6 0 0 1 6 6V37.1h-6V21.6H14.2v43.2h18.4z"/>
+    <rect x="20.5" y="21" width="30.6" height="9.8"/>
+    <path d="M27 16a9.5 9.5 0 0 1 17.6 0v6H27z"/>
+  </g>
+  <!-- apple: leaf and stem as one shape, then the ring -->
+  <g fill="url(#diet-g-apple)">
+    <path d="M41.8 40.4C47 39.8 52.3 41.6 54 46.4C55 44.6 56.2 43.4 57.4 42.5A2.4 2.4 0 0 1 60.6 46.1C59.3 47.3 58.3 48.6 57.6 50.9L57.8 53.2L46 53.6V51.7C43 50 41.6 46.5 41.8 40.4z"/>
+  </g>
+  <g fill="none" stroke="url(#diet-g-apple)">
+    <circle cx="52.7" cy="65.3" r="12.25" stroke-width="5.9"/>
+  </g>
+      </symbol>
+    </defs>
+  </svg>
+  <div class="app">
+    <div class="status" aria-hidden="true">
+      <div class="status__l"><span>3:42 PM</span><span>Wed 30 Sep</span></div>
+      <div class="status__r">
+        <svg width="17" height="12" viewBox="0 0 17 12"><path fill="currentColor" d="M8.5 2.2c2.4 0 4.6.9 6.3 2.5l1.2-1.2A10.6 10.6 0 0 0 8.5.5 10.6 10.6 0 0 0 1 3.5l1.2 1.2A9 9 0 0 1 8.5 2.2Zm0 3.4c1.5 0 2.9.6 3.9 1.5l1.2-1.2a7.3 7.3 0 0 0-10.2 0l1.2 1.2c1-.9 2.4-1.5 3.9-1.5Zm0 3.4c.6 0 1.2.2 1.6.6L8.5 11.2 6.9 9.6c.4-.4 1-.6 1.6-.6Z"/></svg>
+        <span>80%</span>
+        <svg width="27" height="13" viewBox="0 0 27 13"><rect x=".5" y=".5" width="23" height="12" rx="3.5" fill="none" stroke="currentColor" opacity=".4"/><rect x="2" y="2" width="16.4" height="9" rx="2" fill="currentColor"/><path d="M25 4.5v4a2 2 0 0 0 0-4Z" fill="currentColor" opacity=".4"/></svg>
+      </div>
+    </div>
+
+    <header class="head">
+      <h1 class="title">Modules</h1>
+      <div class="view" role="group" aria-label="View">
+        <span class="view__label">View</span>
+        <button class="toggle" type="button" data-view="grid" aria-pressed="true" aria-label="Grid view">
+          <svg viewBox="0 0 22 22" fill="currentColor"><rect x="1" y="1" width="9" height="9"/><rect x="12" y="1" width="9" height="9"/><rect x="1" y="12" width="9" height="9"/><rect x="12" y="12" width="9" height="9"/></svg>
+        </button>
+        <button class="toggle" type="button" data-view="list" aria-pressed="false" aria-label="List view">
+          <svg viewBox="0 0 22 22" fill="currentColor"><rect x="1" y="3.5" width="3" height="3" rx="1"/><rect x="7" y="4" width="14" height="2" rx="1"/><rect x="1" y="9.5" width="3" height="3" rx="1"/><rect x="7" y="10" width="14" height="2" rx="1"/><rect x="1" y="15.5" width="3" height="3" rx="1"/><rect x="7" y="16" width="14" height="2" rx="1"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <main class="main">
+      <div class="grid" id="grid">
+        <a class="tile" href="../kitchen/Roshni/V2%20Tab%20prototype%20of%20dev%20kitchen%20/index.html#m=diet" target="_top" aria-label="Diet module">
+          <svg class="tile__icon" viewBox="7 9 62 73" aria-hidden="true" focusable="false"><use href="#diet-glyph"/></svg>
+          <span class="tile__label">Diet</span>
+        </a>
+      </div>
+      <div class="list" id="list" hidden>
+        <a class="row" href="../kitchen/Roshni/V2%20Tab%20prototype%20of%20dev%20kitchen%20/index.html#m=diet" target="_top" aria-label="Diet module">
+          <svg class="row__icon" viewBox="7 9 62 73" aria-hidden="true" focusable="false"><use href="#diet-glyph"/></svg>
+          <b>Diet</b>
+          <svg class="row__chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+        </a>
+      </div>
+    </main>
+
+    <nav class="tabs" aria-label="Main">
+      <button class="tab" type="button"><span class="tab__ic">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M4 10.2 12 4l8 6.2V20h-5.2v-5.6H9.2V20H4z"/></svg>
+        <span class="tab__t">Home</span></span></button>
+      <button class="tab" type="button" aria-current="page"><span class="tab__ic">
+        <svg viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="3" width="8" height="8" rx=".8"/><rect x="13.4" y="2.6" width="7.4" height="7.4" rx=".8" transform="rotate(45 17.1 6.3)"/><rect x="3" y="13" width="8" height="8" rx=".8"/><rect x="13" y="13" width="8" height="8" rx=".8"/></svg>
+        <span class="tab__t">Menu</span></span></button>
+      <button class="tab" type="button"><span class="tab__ic">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="4" r="1.6"/><circle cx="9" cy="9" r="1.6"/><circle cx="15" cy="9" r="1.6"/><path d="M2.5 14.5H6l3.2 1.6h3.6a1.4 1.4 0 0 1 0 2.8H9.5"/><path d="M6 19.8h7.2l7.3-4.6a1.6 1.6 0 0 0-1.8-2.6L14.5 15"/><path d="M2.5 13v7.5"/></svg>
+        <span class="tab__t">Help Desk</span></span></button>
+      <button class="tab" type="button"><span class="tab__ic">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M5 3h9.5L19 7.5V21H5z"/><path d="M14.5 3v4.5H19"/></svg>
+        <span class="tab__t">Notes</span></span></button>
+      <button class="tab tab--chat" type="button"><span class="tab__ic">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 3a9 9 0 0 0-7.8 13.5L3 21l4.6-1.2A9 9 0 1 0 12 3z"/><circle cx="8" cy="12" r="1.3" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.3" fill="currentColor" stroke="none"/><circle cx="16" cy="12" r="1.3" fill="currentColor" stroke="none"/></svg>
+        <span class="tab__t">Chat</span></span></button>
+    </nav>
+  </div>
+  <script>
+  (function () {
+    'use strict';
+    var btns = document.querySelectorAll('.toggle'), grid = document.getElementById('grid'), list = document.getElementById('list');
+    function set(v) {
+      btns.forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.view === v)); });
+      grid.hidden = v !== 'grid'; list.hidden = v !== 'list';
+    }
+    btns.forEach(function (b) { b.addEventListener('click', function () { set(b.dataset.view); }); });
+    set((window.DM_VIEW || new URLSearchParams(location.search).get('view')) === 'list' ? 'list' : 'grid');
+  })();
+  </script>
+</template>
+
+<template id="preview">
+  <div class="pv-bar">
+    <h1>Diet module</h1>
+    <div class="pv-seg" role="group" aria-label="Orientation">
+      <button type="button" data-show="both" aria-pressed="true">Both</button>
+      <button type="button" data-show="portrait" aria-pressed="false">Portrait</button>
+      <button type="button" data-show="landscape" aria-pressed="false">Landscape</button>
+    </div>
+  </div>
+  <main class="pv-stage">
+    <section class="pv-dev" data-o="portrait" aria-label="Portrait, 810 by 1080">
+      <div class="pv-slot"><div class="pv-frame pv-frame--p"><div class="pv-screen"><iframe title="Diet module, portrait" width="810" height="1080" scrolling="no"></iframe></div></div></div>
+      <p class="pv-cap">Portrait, 810 × 1080</p>
+    </section>
+    <section class="pv-dev" data-o="landscape" aria-label="Landscape, 1080 by 810">
+      <div class="pv-slot"><div class="pv-frame pv-frame--l"><div class="pv-screen"><iframe title="Diet module, landscape" width="1080" height="810" scrolling="no"></iframe></div></div></div>
+      <p class="pv-cap">Landscape, 1080 × 810</p>
+    </section>
+  </main>
+</template>
+
+<script>
+(function () {
+  'use strict';
+  var qs = new URLSearchParams(location.search);
+  var screenTpl = document.getElementById('screen');
+  var fonts = '<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>' +
+    '<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">';
+
+  var tablet = matchMedia('(pointer: coarse)').matches && Math.min(screen.width, screen.height) >= 744;
+  var bare = qs.get('bare') === '1' || (qs.get('bare') !== '0' && tablet);
+
+  if (bare) {
+    // only the screen, full-bleed in this document
+    document.getElementById('pv-style').remove();
+    var frag = screenTpl.content.cloneNode(true);
+    var scripts = frag.querySelectorAll('script');
+    var style = frag.querySelector('style');
+    document.head.appendChild(style);
+    document.body.replaceChildren(frag);
+    scripts.forEach(function (old) { var s = document.createElement('script'); s.textContent = old.textContent; old.replaceWith(s); });
+    return;
+  }
+
+  // framed preview: the screen twice, in iframes built from srcdoc
+  document.body.className = 'pv';
+  document.body.replaceChildren(document.getElementById('preview').content.cloneNode(true));
+  var view = qs.get('view') === 'list' ? 'list' : 'grid';
+  // the screen reads ?view from its own location; srcdoc has none, so pass it in
+  var doc = '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">' +
+    '<base target="_top" href="' + location.href.replace(/[?#].*$/, '') + '">' + fonts +
+    '<script>window.DM_VIEW=' + JSON.stringify(view) + ';<\/script></head><body>' + screenTpl.innerHTML + '</body></html>';
+  document.querySelectorAll('.pv-screen iframe').forEach(function (f) { f.srcdoc = doc; });
+
+  var BEZEL = 28, GAP = 40, PAD = 24, CAP = 30;
+  var size = { portrait: [810 + BEZEL * 2, 1080 + BEZEL * 2], landscape: [1080 + BEZEL * 2, 810 + BEZEL * 2] };
+  var stage = document.querySelector('.pv-stage'), devs = document.querySelectorAll('.pv-dev'), btns = document.querySelectorAll('.pv-seg button');
+  var mode = 'both';
+  function fit() {
+    var on = mode === 'both' ? ['portrait', 'landscape'] : [mode];
+    var availW = stage.clientWidth - PAD * 2 - GAP * (on.length - 1);
+    var availH = window.innerHeight - stage.getBoundingClientRect().top - PAD * 2 - CAP;
+    var totalW = on.reduce(function (a, o) { return a + size[o][0]; }, 0);
+    var maxH = Math.max.apply(null, on.map(function (o) { return size[o][1]; }));
+    var s = Math.max(.1, Math.min(1, availW / totalW, availH / maxH));
+    devs.forEach(function (d) {
+      var o = d.dataset.o, slot = d.querySelector('.pv-slot');
+      d.hidden = on.indexOf(o) === -1;
+      slot.style.width = (size[o][0] * s) + 'px';
+      slot.style.height = (size[o][1] * s) + 'px';
+      d.querySelector('.pv-frame').style.transform = 'scale(' + s + ')';
+    });
+  }
+  function show(v) {
+    mode = v;
+    btns.forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.show === v)); });
+    fit();
+    try { localStorage.setItem('diet-module-show', v); } catch (e) {}
+  }
+  btns.forEach(function (b) { b.addEventListener('click', function () { show(b.dataset.show); }); });
+  window.addEventListener('resize', fit);
+  var start = qs.get('show');
+  if (!start) { try { start = localStorage.getItem('diet-module-show'); } catch (e) {} }
+  show(['both', 'portrait', 'landscape'].indexOf(start) !== -1 ? start : 'both');
+})();
+</script>
+</body>
+</html>

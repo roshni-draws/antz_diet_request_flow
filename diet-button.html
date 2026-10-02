@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Diet Module Tile</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <!--
+    Antz tablet Modules screen: the Diet tile only.
+    Sizes come from the iPad reference (1620 x 2160 px at 2x = 810 x 1080 pt):
+      portrait  810 x 1080, 2 columns, 16pt edge + 16pt gutter  -> tile 381 x 274
+      landscape 1080 x 810, 3 columns, 16pt edge + 16pt gutter  -> tile 339 x 244 (same 1.39 ratio)
+    URL options:
+      ?show=portrait | landscape   start the toggle on one orientation
+      ?grid=1                      lay the tile out as the first cell of the real grid for this viewport
+      ?solo=portrait | landscape   only the tile on a transparent page, for PNG export
+  -->
+  <style>
+    :root {
+      --sage: #DAE7DE;          /* page background, sampled from the reference */
+      --white: #FFFFFF;
+      --label: #425349;         /* tile label, sampled */
+      --navy: #1F415B;          /* Antz title navy */
+      --muted: #5E6B66;         /* captions, 5:1 on sage */
+      --press: #F5FAF7;
+      --ring: #1F515B;          /* focus ring, Antz teal */
+      --shadow-rest: 0 1px 2px rgba(31,65,91,.04);
+      --shadow-hover: 0 2px 4px rgba(31,65,91,.06), 0 8px 18px rgba(31,65,91,.07);
+      --ease: cubic-bezier(.2,.7,.2,1);
+
+      /* tile geometry per orientation */
+      --p-w: 381px; --p-h: 274px; --p-icon: 75px; --p-label: 24px; --p-gap: 17px;
+      --l-w: 339px; --l-h: 244px; --l-icon: 67px; --l-label: 22px; --l-gap: 15px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-text-size-adjust: 100%; overflow-x: clip; }
+    body {
+      min-height: 100dvh;
+      background: var(--sage);
+      color: var(--label);
+      font-family: Inter, -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+
+    /* ---------- the tile ---------- */
+    .tile {
+      --w: var(--p-w); --h: var(--p-h); --icon: var(--p-icon); --fs: var(--p-label); --gap: var(--p-gap);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: var(--gap);
+      width: var(--w); height: var(--h);
+      background: var(--white);
+      border-radius: 12px;
+      box-shadow: var(--shadow-rest);
+      color: var(--label);
+      text-decoration: none;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+      user-select: none; -webkit-user-select: none;
+      transition: transform 160ms var(--ease), box-shadow 220ms var(--ease), background-color 220ms var(--ease);
+    }
+    .tile--landscape { --w: var(--l-w); --h: var(--l-h); --icon: var(--l-icon); --fs: var(--l-label); --gap: var(--l-gap); }
+    .tile__icon { display: block; width: var(--icon); height: calc(var(--icon) * 73 / 62); }
+    .tile__label { font-size: var(--fs); line-height: 1.2; font-weight: 600; letter-spacing: -.012em; }
+    @media (hover: hover) { .tile:hover { box-shadow: var(--shadow-hover); } }
+    .tile:active { transform: scale(.98); background: var(--press); box-shadow: var(--shadow-rest); }
+    .tile:focus { outline: none; }
+    .tile:focus-visible { outline: 2px solid var(--ring); outline-offset: 3px; }
+
+    /* ---------- specimen page ---------- */
+    .page { padding: 24px 16px 40px; }
+    .bar { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; }
+    .bar h1 { font-size: 24px; line-height: 32px; font-weight: 500; color: var(--navy); letter-spacing: -.01em; }
+    .seg { display: inline-flex; padding: 4px; gap: 4px; background: rgba(255,255,255,.55); border-radius: 12px; }
+    .seg button {
+      min-height: 44px; padding: 0 16px; border-radius: 8px;
+      font-size: 15px; font-weight: 500; color: var(--label);
+      transition: background-color 220ms var(--ease), transform 120ms var(--ease);
+    }
+    .seg button[aria-pressed="true"] { background: var(--white); color: var(--navy); box-shadow: var(--shadow-rest); }
+    .seg button:active { transform: scale(.97); }
+    .seg button:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+
+    .specimens { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 32px 24px; }
+    .spec { display: grid; gap: 12px; }
+    .spec[hidden] { display: none; }
+    .spec__cap { display: grid; gap: 2px; }
+    .spec__cap b { font-size: 15px; font-weight: 600; color: var(--navy); }
+    .spec__cap span { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+    /* ---------- ?grid=1 : the tile as the first cell of the real grid ---------- */
+    .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; padding: 16px; }
+    .grid .tile { width: 100%; }
+    @media (orientation: landscape) {
+      .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
+
+    /* ---------- ?solo= : export ---------- */
+    body.solo { background: transparent; min-height: 0; }
+    body.solo .tile { box-shadow: none; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .tile, .seg button { transition: none; }
+      .tile:active, .seg button:active { transform: none; }
+    }
+  </style>
+</head>
+<body>
+  <template id="tile-tpl">
+    <a class="tile" href="../kitchen/Roshni/V2%20Tab%20prototype%20of%20dev%20kitchen%20/index.html#m=diet" aria-label="Diet module">
+      <img class="tile__icon" src="diet-icon.svg" alt="" width="75" height="88" draggable="false">
+      <span class="tile__label">Diet</span>
+    </a>
+  </template>
+
+  <main class="page" id="page">
+    <div class="bar">
+      <h1>Diet tile</h1>
+      <div class="seg" role="group" aria-label="Orientation">
+        <button type="button" data-show="both" aria-pressed="true">Both</button>
+        <button type="button" data-show="portrait" aria-pressed="false">Portrait</button>
+        <button type="button" data-show="landscape" aria-pressed="false">Landscape</button>
+      </div>
+    </div>
+    <div class="specimens">
+      <section class="spec" data-o="portrait" aria-label="Portrait tile">
+        <div class="spec__cap"><b>Portrait, 810 × 1080</b><span>Tile 381 × 274 pt, 2 columns</span></div>
+        <div data-slot="portrait"></div>
+      </section>
+      <section class="spec" data-o="landscape" aria-label="Landscape tile">
+        <div class="spec__cap"><b>Landscape, 1080 × 810</b><span>Tile 339 × 244 pt, 3 columns</span></div>
+        <div data-slot="landscape"></div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+  (function () {
+    'use strict';
+    var qs = new URLSearchParams(location.search);
+    var tpl = document.getElementById('tile-tpl');
+    function tile(o) {
+      var el = tpl.content.firstElementChild.cloneNode(true);
+      if (o === 'landscape') el.classList.add('tile--landscape');
+      return el;
+    }
+
+    var solo = qs.get('solo');
+    if (solo === 'portrait' || solo === 'landscape') {
+      document.body.className = 'solo';
+      document.body.replaceChildren(tile(solo));
+      return;
+    }
+
+    if (qs.get('grid') === '1') {
+      var grid = document.createElement('div');
+      grid.className = 'grid';
+      var t = tile('portrait');
+      grid.appendChild(t);
+      document.body.replaceChildren(grid);
+      // landscape keeps the shorter tile and smaller type; width comes from the grid
+      function sync() { t.classList.toggle('tile--landscape', matchMedia('(orientation: landscape)').matches); }
+      sync(); matchMedia('(orientation: landscape)').addEventListener('change', sync);
+      return;
+    }
+
+    document.querySelector('[data-slot="portrait"]').appendChild(tile('portrait'));
+    document.querySelector('[data-slot="landscape"]').appendChild(tile('landscape'));
+
+    var btns = document.querySelectorAll('.seg button');
+    function show(v) {
+      btns.forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.show === v)); });
+      document.querySelectorAll('.spec').forEach(function (s) { s.hidden = v !== 'both' && s.dataset.o !== v; });
+      try { localStorage.setItem('diet-tile-show', v); } catch (e) {}
+    }
+    btns.forEach(function (b) { b.addEventListener('click', function () { show(b.dataset.show); }); });
+    var start = qs.get('show');
+    if (!start) { try { start = localStorage.getItem('diet-tile-show'); } catch (e) {} }
+    show(['both', 'portrait', 'landscape'].indexOf(start) !== -1 ? start : 'both');
+  })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,899 @@
+{
+ "_note": "SAMPLE DATA for the Kitchen Dashboard (not from the source system). Receipts for 1 to 25 Sept 2026 from 8 suppliers into 2 warehouses; received is the accepted quantity, returned is sent back at receiving.",
+ "today": "2026-09-25",
+ "warehouses": [
+  "All permitted warehouses",
+  "central kitchen",
+  "RNR Kitchen"
+ ],
+ "periods": {
+  "today": {
+   "from": "2026-09-25",
+   "to": "2026-09-25"
+  },
+  "week": {
+   "from": "2026-09-21",
+   "to": "2026-09-25"
+  },
+  "month": {
+   "from": "2026-09-01",
+   "to": "2026-09-25"
+  },
+  "custom": {
+   "from": "2026-09-12",
+   "to": "2026-09-25"
+  }
+ },
+ "receipts": [
+  {
+   "grn": "GRN-26-0180",
+   "date": "2026-09-02",
+   "time": "07:00",
+   "supplier": "Nandi Fresh Produce",
+   "warehouse": "central kitchen",
+   "lines": [
+    {
+     "item": "Papaya Red Lady",
+     "unit": "kg",
+     "received": 50,
+     "returned": 0,
+     "reason": ""
+    },
+    {
+     "item": "Banana Robusta",
+     "unit": "kg",
+     "received": 29,
+     "returned": 0,
+     "reason": ""
+    },
+    {
+     "item": "Apple Shimla",
+     "unit": "kg",
+     "received": 25,
+     "returned": 0,
+     "reason": ""
+    },
+    {
+     "item": "Carrot Ooty",
+     "unit": "kg",
+     "received": 33,
+     "returned": 0,
+     "reason": ""
+    },
+    {
+     "item": "Coconut",
+     "unit": "nos",
+     "received": 24,
+     "returned": 0,
+     "reason": ""
+    }
+   ],
+   "signedDc": true
+  },
+  {
+   "grn": "GRN-26-0181",
+   "date": "2026-09-03",
+   "time": "10:20",
+   "supplier": "Sri Vinayaka Foods",
+   "warehouse": "central kitchen",
+   "lines": [
+    {
+     "item": "Rice Sona Masoori",
+     "unit": "kg",
+     "received": 54,
+     "returned": 0,
+     "reason": ""
+    },
+    {
+     "item": "Foxtail Millet",
+     "unit": "kg",
+     "received": 36,
+     "returned": 0,
+     "reason": ""
+    }
+   ],
+   "signedDc": true
+  },
+  {
+   "grn": "GRN-26-0182",
+   "date": "2026-09-04",
+   "time": "05:35",
+   "supplier": "Sri Lakshmi Dairy Agencies",
+   "warehouse": "central kitchen",
+   "lines": [
+    {
+     "item": "Milk Toned",
+     "unit": "ltr",
+     "received": 55,
+     "returned": 0,
+     "reason": ""
+    },
+    {
+     "item": "Curd Bulk",
+     "unit": "ltr",
+     "received": 24,
+     "returned": 0,
+     "reason": ""
+    }
+   ],
+   "signedDc": true
+  },
+  {
+   "grn": "GRN-26-0183",
+   "date": "2026-09-06",
+   "time": "07:40",
+   "supplier": "Kolar Farm Fresh",
+   "warehouse": "RNR Kitchen",
+   "lines": [
+    {
+     "item": "Spinach",
+     "unit": "kg",
+     "received": 12,
+     "returned": 0,
+     "reason": ""
+    },
+    {
+     "item": "Cucumber",
+     "unit": "kg",
+     "received": 18,
+     "returned": 0,
+     "reason": ""
+    },
+    {
+     "item": "Beans",
+     "unit": "kg",
+     "received": 12,
+     "returned": 0,
+     "reason": ""
+    },
+    {
+     "item": "Sweet Potato",
+     "unit": "kg",
+     "received": 18,
+     "returned": 0,
+     "reason": ""
+    }
+   ],
+   "signedDc": true
+  },
+  {
+   "grn": "GRN-26-0184",
+   "date": "2026-09-08",
+   "time": "11:15",
+   "supplier": "Ganesh Seeds & Nuts",
+   "warehouse": "central kitchen",
+   "lines": [
+    {
+     "item": "Sunflower Seeds",
+     "unit": "kg",
+     "received": 28,
+     "returned": 0,
+     "reason": ""
+    },
+    {
+     "item": "Ragi",
+     "unit": "kg",
+     "received": 36,
+     "returned": 0,
+     "reason": ""
+    },
+    {
+     "item": "Maize",
+     "unit": "kg",
+     "received": 50,
+     "returned": 0,
+     "reason": ""
+    }
+   ],
+   "signedDc": true
+  },
+  {
+   "grn": "GRN-26-0185",
+   "date": "2026-09-10",
+   "time": "08:00",
+   "supplier": "Royal Poultry & Meats",
+   "warehouse": "central kitchen",
+   "lines": [
+    {
+     "item": "Chicken Whole Dressed",
+     "unit": "kg",
+     "received": 50,
+     "returned": 0,
+     "reason": ""
+    },
+    {
+     "item": "Mutton With Bone",
+     "unit": "kg",
+     "received": 12,
+     "returned": 0,
+     "reason": ""
+    },
+    {
+     "item": "Eggs Table (Tray Of 30)",
+     "unit": "nos",
+     "received": 300,
+     "returned": 0,
+     "reason": ""
+    }
+   ],
+   "signedDc": true
+  },
+  {
+   "grn": "GRN-26-0186",
+   "date": "2026-09-11",
+   "time": "09:10",
+   "supplier": "Karnataka Live Feed Culture",
+   "warehouse": "RNR Kitchen",
+   "lines": [
+    {
+     "item": "Mealworm Live",
+     "unit": "kg",
+     "received": 4,
+     "returned": 0,
+     "reason": ""
+    },
+    {
+     "item": "Crickets Live",
+     "unit": "nos",
+     "received": 450,
+     "returned": 0,
+     "reason": ""
+    }
+   ],
+   "signedDc": true
+  },
+  {
+   "grn": "GRN-26-0187",
+   "date": "2026-09-12",
+   "time": "07:25",
+   "supplier": "Nandi Fresh Produce",
+   "warehouse": "RNR Kitchen",
+   "lines": [
+    {
+     "item": "Papaya Red Lady",
+     "unit": "kg",
+     "received": 32,
+     "returned": 0,
+     "reason": ""
+    },
+    {
+     "item": "Banana Robusta",
+     "unit": "kg",
+     "received": 26,
+     "returned": 0,
+     "reason": ""
+    },
+    {
+     "item": "Apple Shimla",
+     "unit": "kg",
+     "received": 22,
+     "returned": 0,
+     "reason": ""
+    },
+    {
+     "item": "Carrot Ooty",
+     "unit": "kg",
+     "received": 22,
+     "returned": 0,
+     "reason": ""
+    },
+    {
+     "item": "Coconut",
+     "unit": "nos",
+     "received": 18,
+     "returned": 0,
+     "reason": ""
+    }
+   ],
+   "signedDc": true
+  },
+  {
+   "grn": "GRN-26-0188",
+   "date": "2026-09-15",
+   "time": "05:40",
+   "supplier": "Sri Lakshmi Dairy Agencies",
+   "warehouse": "central kitchen",
+   "lines": [
+    {
+     "item": "Milk Toned",
+     "unit": "ltr",
+     "received": 45,
+     "returned": 0,
+     "reason": ""
+    },
+    {
+     "item": "Curd Bulk",
+     "unit": "ltr",
+     "received": 20,
+     "returned": 0,
+     "reason": ""
+    }
+   ],
+   "signedDc": true
+  },
+  {
+   "grn": "GRN-26-0189",
+   "date": "2026-09-16",
+   "time": "07:35",
+   "supplier": "Kolar Farm Fresh",
+   "warehouse": "central kitchen",
+   "lines": [
+    {
+     "item": "Spinach",
+     "unit": "kg",
+     "received": 16,
+     "returned": 0,
+     "reason": ""
+    },
+    {
+     "item": "Cucumber",
+     "unit": "kg",
+     "received": 24,
+     "returned": 0,
+     "reason": ""
+    },
+    {
+     "item": "Beans",
+     "unit": "kg",
+     "received": 12,
+     "returned": 0,
+     "reason": ""
+    },
+    {
+     "item": "Sweet Potato",
+     "unit": "kg",
+     "received": 24,
+     "returned": 0,
+     "reason": ""
+    }
+   ],
+   "signedDc": true
+  },
+  {
+   "grn": "GRN-26-0190",
+   "date": "2026-09-17",
+   "time": "12:30",
+   "supplier": "Ganesh Seeds & Nuts",
+   "warehouse": "central kitchen",
+   "lines": [
+    {
+     "item": "Sunflower Seeds",
+     "unit": "kg",
+     "received": 28,
+     "returned": 0,
+     "reason": ""
+    },
+    {
+     "item": "Ragi",
+     "unit": "kg",
+     "received": 36,
+     "returned": 0,
+     "reason": ""
+    },
+    {
+     "item": "Maize",
+     "unit": "kg",
+     "received": 25,
+     "returned": 25,
+     "reason": "Wrong item"
+    }
+   ],
+   "signedDc": true
+  },
+  {
+   "grn": "GRN-26-0191",
+   "date": "2026-09-18",
+   "time": "07:05",
+   "supplier": "Nandi Fresh Produce",
+   "warehouse": "central kitchen",
+   "lines": [
+    {
+     "item": "Papaya Red Lady",
+     "unit": "kg",
+     "received": 49,
+     "returned": 0,
+     "reason": ""
+    },
+    {
+     "item": "Banana Robusta",
+     "unit": "kg",
+     "received": 38,
+     "returned": 0,
+     "reason": ""
+    },
+    {
+     "item": "Apple Shimla",
+     "unit": "kg",
+     "received": 33,
+     "returned": 0,
+     "reason": ""
+    },
+    {
+     "item": "Carrot Ooty",
+     "unit": "kg",
+     "received": 32,
+     "returned": 0,
+     "reason": ""
+    },
+    {
+     "item": "Coconut",
+     "unit": "nos",
+     "received": 30,
+     "returned": 0,
+     "reason": ""
+    }
+   ],
+   "signedDc": true
+  },
+  {
+   "grn": "GRN-26-0192",
+   "date": "2026-09-19",
+   "time": "08:15",
+   "supplier": "Royal Poultry & Meats",
+   "warehouse": "central kitchen",
+   "lines": [
+    {
+     "item": "Chicken Whole Dressed",
+     "unit": "kg",
+     "received": 34,
+     "returned": 6,
+     "reason": "Short supply"
+    },
+    {
+     "item": "Mutton With Bone",
+     "unit": "kg",
+     "received": 10,
+     "returned": 0,
+     "reason": ""
+    },
+    {
+     "item": "Eggs Table (Tray Of 30)",
+     "unit": "nos",
+     "received": 240,
+     "returned": 0,
+     "reason": ""
+    }
+   ],
+   "signedDc": true
+  },
+  {
+   "grn": "GRN-26-0193",
+   "date": "2026-09-21",
+   "time": "05:50",
+   "supplier": "Sri Lakshmi Dairy Agencies",
+   "warehouse": "central kitchen",
+   "lines": [
+    {
+     "item": "Milk Toned",
+     "unit": "ltr",
+     "received": 54,
+     "returned": 0,
+     "reason": ""
+    },
+    {
+     "item": "Curd Bulk",
+     "unit": "ltr",
+     "received": 21,
+     "returned": 3,
+     "reason": "Quality"
+    }
+   ],
+   "signedDc": true
+  },
+  {
+   "grn": "GRN-26-0194",
+   "date": "2026-09-22",
+   "time": "07:10",
+   "supplier": "Nandi Fresh Produce",
+   "warehouse": "central kitchen",
+   "lines": [
+    {
+     "item": "Papaya Red Lady",
+     "unit": "kg",
+     "received": 40,
+     "returned": 0,
+     "reason": ""
+    },
+    {
+     "item": "Banana Robusta",
+     "unit": "kg",
+     "received": 32,
+     "returned": 0,
+     "reason": ""
+    },
+    {
+     "item": "Apple Shimla",
+     "unit": "kg",
+     "received": 20,
+     "returned": 0,
+     "reason": ""
+    },
+    {
+     "item": "Carrot Ooty",
+     "unit": "kg",
+     "received": 27,
+     "returned": 0,
+     "reason": ""
+    },
+    {
+     "item": "Coconut",
+     "unit": "nos",
+     "received": 24,
+     "returned": 0,
+     "reason": ""
+    }
+   ],
+   "signedDc": true
+  },
+  {
+   "grn": "GRN-26-0195",
+   "date": "2026-09-23",
+   "time": "06:30",
+   "supplier": "Coastal Fish Traders",
+   "warehouse": "central kitchen",
+   "lines": [
+    {
+     "item": "Fish Mackerel",
+     "unit": "kg",
+     "received": 20,
+     "returned": 8,
+     "reason": "Expired"
+    }
+   ],
+   "signedDc": true
+  },
+  {
+   "grn": "GRN-26-0196",
+   "date": "2026-09-23",
+   "time": "11:40",
+   "supplier": "Ganesh Seeds & Nuts",
+   "warehouse": "RNR Kitchen",
+   "lines": [
+    {
+     "item": "Sunflower Seeds",
+     "unit": "kg",
+     "received": 22,
+     "returned": 0,
+     "reason": ""
+    },
+    {
+     "item": "Ragi",
+     "unit": "kg",
+     "received": 29,
+     "returned": 0,
+     "reason": ""
+    },
+    {
+     "item": "Maize",
+     "unit": "kg",
+     "received": 40,
+     "returned": 0,
+     "reason": ""
+    }
+   ],
+   "signedDc": true
+  },
+  {
+   "grn": "GRN-26-0197",
+   "date": "2026-09-24",
+   "time": "07:20",
+   "supplier": "Kolar Farm Fresh",
+   "warehouse": "central kitchen",
+   "lines": [
+    {
+     "item": "Spinach",
+     "unit": "kg",
+     "received": 10,
+     "returned": 4,
+     "reason": "Quality"
+    },
+    {
+     "item": "Cucumber",
+     "unit": "kg",
+     "received": 20,
+     "returned": 0,
+     "reason": ""
+    },
+    {
+     "item": "Beans",
+     "unit": "kg",
+     "received": 13,
+     "returned": 0,
+     "reason": ""
+    },
+    {
+     "item": "Sweet Potato",
+     "unit": "kg",
+     "received": 20,
+     "returned": 0,
+     "reason": ""
+    }
+   ],
+   "signedDc": false
+  },
+  {
+   "grn": "GRN-26-0198",
+   "date": "2026-09-24",
+   "time": "10:05",
+   "supplier": "Sri Vinayaka Foods",
+   "warehouse": "RNR Kitchen",
+   "lines": [
+    {
+     "item": "Rice Sona Masoori",
+     "unit": "kg",
+     "received": 45,
+     "returned": 0,
+     "reason": ""
+    },
+    {
+     "item": "Foxtail Millet",
+     "unit": "kg",
+     "received": 30,
+     "returned": 0,
+     "reason": ""
+    }
+   ],
+   "signedDc": false
+  },
+  {
+   "grn": "GRN-26-0199",
+   "date": "2026-09-25",
+   "time": "05:45",
+   "supplier": "Sri Lakshmi Dairy Agencies",
+   "warehouse": "RNR Kitchen",
+   "lines": [
+    {
+     "item": "Milk Toned",
+     "unit": "ltr",
+     "received": 45,
+     "returned": 0,
+     "reason": ""
+    },
+    {
+     "item": "Curd Bulk",
+     "unit": "ltr",
+     "received": 20,
+     "returned": 0,
+     "reason": ""
+    }
+   ],
+   "signedDc": false
+  },
+  {
+   "grn": "GRN-26-0200",
+   "date": "2026-09-25",
+   "time": "06:51",
+   "supplier": "Nandi Fresh Produce",
+   "warehouse": "central kitchen",
+   "lines": [
+    {
+     "item": "Papaya Red Lady",
+     "unit": "kg",
+     "received": 50,
+     "returned": 0,
+     "reason": ""
+    },
+    {
+     "item": "Banana Robusta",
+     "unit": "kg",
+     "received": 39,
+     "returned": 0,
+     "reason": ""
+    },
+    {
+     "item": "Apple Shimla",
+     "unit": "kg",
+     "received": 25,
+     "returned": 0,
+     "reason": ""
+    },
+    {
+     "item": "Carrot Ooty",
+     "unit": "kg",
+     "received": 33,
+     "returned": 0,
+     "reason": ""
+    },
+    {
+     "item": "Coconut",
+     "unit": "nos",
+     "received": 30,
+     "returned": 0,
+     "reason": ""
+    }
+   ],
+   "signedDc": false
+  },
+  {
+   "grn": "GRN-26-0201",
+   "date": "2026-09-25",
+   "time": "07:55",
+   "supplier": "Royal Poultry & Meats",
+   "warehouse": "central kitchen",
+   "lines": [
+    {
+     "item": "Chicken Whole Dressed",
+     "unit": "kg",
+     "received": 45,
+     "returned": 0,
+     "reason": ""
+    },
+    {
+     "item": "Mutton With Bone",
+     "unit": "kg",
+     "received": 11,
+     "returned": 0,
+     "reason": ""
+    },
+    {
+     "item": "Eggs Table (Tray Of 30)",
+     "unit": "nos",
+     "received": 240,
+     "returned": 30,
+     "reason": "Damaged"
+    }
+   ],
+   "signedDc": false
+  }
+ ],
+ "pending": [
+  {
+   "dc": "2804",
+   "vendor": "Nandi Fresh Produce",
+   "warehouse": "central kitchen",
+   "arrived": "25 Sept, 08:40"
+  },
+  {
+   "dc": "RP-7731",
+   "vendor": "Royal Poultry & Meats",
+   "warehouse": "central kitchen",
+   "arrived": "25 Sept, 09:05"
+  },
+  {
+   "dc": "SL-2209",
+   "vendor": "Sri Lakshmi Dairy Agencies",
+   "warehouse": "RNR Kitchen",
+   "arrived": "24 Sept, 17:30"
+  },
+  {
+   "dc": "KF-118",
+   "vendor": "Kolar Farm Fresh",
+   "warehouse": "RNR Kitchen",
+   "arrived": "24 Sept, 15:10"
+  },
+  {
+   "dc": "CF-0451",
+   "vendor": "Coastal Fish Traders",
+   "warehouse": "central kitchen",
+   "arrived": "23 Sept, 18:45"
+  }
+ ],
+ "stock": {
+  "_note": "SAMPLE DATA: usable stock per item in the central kitchen, in the Diet Master unit, as of 25 Sept 2026. Expired stock is listed separately and is not usable.",
+  "warehouse": "central kitchen",
+  "items": {
+   "Apple": [
+    158,
+    "kg"
+   ],
+   "Bannana": [
+    30,
+    "kg"
+   ],
+   "Beans": [
+    18,
+    "kg"
+   ],
+   "Carrot": [
+    95,
+    "kg"
+   ],
+   "Chicken": [
+    40,
+    "kg"
+   ],
+   "Curd": [
+    25,
+    "ltr"
+   ],
+   "Fish": [
+    12,
+    "kg"
+   ],
+   "Maize": [
+    80,
+    "kg"
+   ],
+   "MilK": [
+    60,
+    "ltr"
+   ],
+   "Papaya": [
+    40,
+    "kg"
+   ],
+   "Pipeapple": [
+    10,
+    "kg"
+   ],
+   "Rice": [
+    50000,
+    "g"
+   ],
+   "Egg": [
+    1,
+    "pcs"
+   ],
+   "Spinach": [
+    1.5,
+    "kg"
+   ],
+   "Sweet Potato": [
+    0.8,
+    "kg"
+   ],
+   "Cucumber": [
+    25,
+    "kg"
+   ],
+   "Guava": [
+    10,
+    "kg"
+   ],
+   "Watermelon": [
+    45,
+    "kg"
+   ],
+   "Grapes": [
+    8,
+    "kg"
+   ],
+   "Pomegranate": [
+    12,
+    "kg"
+   ],
+   "Ragi": [
+    60,
+    "kg"
+   ],
+   "Sunflower Seeds": [
+    20,
+    "kg"
+   ],
+   "Mutton": [
+    15,
+    "kg"
+   ],
+   "Mealworm": [
+    0,
+    "g"
+   ],
+   "Orange": [
+    2,
+    "kg"
+   ],
+   "Lime": [
+    3,
+    "kg"
+   ],
+   "Lemon": [
+    10,
+    "kg"
+   ],
+   "Grapefruit": [
+    8,
+    "kg"
+   ]
+  },
+  "expired": {
+   "Mealworm": [
+    300,
+    "g"
+   ],
+   "Sweet Potato": [
+    4,
+    "kg"
+   ]
+  }
+ }
+}

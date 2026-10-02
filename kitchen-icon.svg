@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="7 9 62 73" width="75" height="88" role="img" aria-labelledby="kitchen-icon-title">
+  <title id="kitchen-icon-title">Kitchen</title>
+  <!-- Antz Modules: Kitchen glyph (cooking pot + steam). Drawn to match the Diet glyph: same 62 x 73 unit box, 6 unit frame weight,
+       shown at 75 x 88 pt on the portrait tile. Each part carries its own teal-to-green sweep, as in the app. -->
+  <defs>
+    <linearGradient id="kit-g-pot" x1="8" y1="34" x2="66" y2="78" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#1FDCD0"/>
+      <stop offset="1" stop-color="#4FCB90"/>
+    </linearGradient>
+    <linearGradient id="kit-g-steam" x1="20" y1="12" x2="56" y2="33" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#14D9C8"/>
+      <stop offset="1" stop-color="#4CC98A"/>
+    </linearGradient>
+  </defs>
+  <!-- steam: three waves -->
+  <g fill="none" stroke="url(#kit-g-steam)" stroke-width="5.2" stroke-linecap="round">
+    <path d="M25 30.5c-3-2.8-3-5.4 0-8.2s3-5.4 0-8.2"/>
+    <path d="M38 30.5c-3-2.8-3-5.4 0-8.2s3-5.4 0-8.2"/>
+    <path d="M51 30.5c-3-2.8-3-5.4 0-8.2s3-5.4 0-8.2"/>
+  </g>
+  <!-- pot: lid with knob, open body, side handles -->
+  <g fill="url(#kit-g-pot)">
+    <path d="M33 38.5v-1.5a3 3 0 0 1 3-3h4a3 3 0 0 1 3 3v1.5z"/>
+    <rect x="9.5" y="38" width="57" height="6.6" rx="3.3"/>
+    <path d="M14 48h6v19.5a3.5 3.5 0 0 0 3.5 3.5h29a3.5 3.5 0 0 0 3.5-3.5V48h6v19.5a9.5 9.5 0 0 1-9.5 9.5h-29A9.5 9.5 0 0 1 14 67.5z"/>
+    <rect x="8" y="51" width="8" height="6" rx="3"/>
+    <rect x="60" y="51" width="8" height="6" rx="3"/>
+  </g>
+</svg>

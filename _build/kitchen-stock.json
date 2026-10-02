@@ -1,0 +1,455 @@
+{
+ "_note": "SAMPLE DATA: stock containers (batches) for the Stock & expiry row of the Kitchen Dashboard, as of 25 Sept 2026 09:15. Central kitchen usable batches add up to kitchen-sample.json stock.items; expired batches match stock.expired. In-transit containers are counted at the receiving warehouse but not in its in-store totals.",
+ "now": "2026-09-25T09:15",
+ "expiryDays": 7,
+ "batches": [
+  {
+   "item": "Apple",
+   "batch": "B-26-1001",
+   "warehouse": "central kitchen",
+   "qty": 158,
+   "unit": "kg",
+   "expires": "2026-10-16",
+   "status": "in_store"
+  },
+  {
+   "item": "Bannana",
+   "batch": "B-26-1002",
+   "warehouse": "central kitchen",
+   "qty": 12.0,
+   "unit": "kg",
+   "expires": "2026-09-29",
+   "status": "in_store"
+  },
+  {
+   "item": "Bannana",
+   "batch": "B-26-1003",
+   "warehouse": "central kitchen",
+   "qty": 18.0,
+   "unit": "kg",
+   "expires": "2026-10-05",
+   "status": "in_store"
+  },
+  {
+   "item": "Beans",
+   "batch": "B-26-1004",
+   "warehouse": "central kitchen",
+   "qty": 18,
+   "unit": "kg",
+   "expires": "2026-10-03",
+   "status": "in_store"
+  },
+  {
+   "item": "Carrot",
+   "batch": "B-26-1005",
+   "warehouse": "central kitchen",
+   "qty": 95,
+   "unit": "kg",
+   "expires": "2026-10-07",
+   "status": "in_store"
+  },
+  {
+   "item": "Chicken",
+   "batch": "B-26-1006",
+   "warehouse": "central kitchen",
+   "qty": 16.0,
+   "unit": "kg",
+   "expires": "2026-09-27",
+   "status": "in_store"
+  },
+  {
+   "item": "Chicken",
+   "batch": "B-26-1007",
+   "warehouse": "central kitchen",
+   "qty": 24.0,
+   "unit": "kg",
+   "expires": "2026-10-03",
+   "status": "in_store"
+  },
+  {
+   "item": "Curd",
+   "batch": "B-26-1008",
+   "warehouse": "central kitchen",
+   "qty": 10.0,
+   "unit": "ltr",
+   "expires": "2026-09-28",
+   "status": "in_store"
+  },
+  {
+   "item": "Curd",
+   "batch": "B-26-1009",
+   "warehouse": "central kitchen",
+   "qty": 15.0,
+   "unit": "ltr",
+   "expires": "2026-10-04",
+   "status": "in_store"
+  },
+  {
+   "item": "Fish",
+   "batch": "B-26-1010",
+   "warehouse": "central kitchen",
+   "qty": 4.8,
+   "unit": "kg",
+   "expires": "2026-09-26",
+   "status": "in_store"
+  },
+  {
+   "item": "Fish",
+   "batch": "B-26-1011",
+   "warehouse": "central kitchen",
+   "qty": 7.2,
+   "unit": "kg",
+   "expires": "2026-10-02",
+   "status": "in_store"
+  },
+  {
+   "item": "Maize",
+   "batch": "B-26-1012",
+   "warehouse": "central kitchen",
+   "qty": 80,
+   "unit": "kg",
+   "expires": "2026-12-24",
+   "status": "in_store"
+  },
+  {
+   "item": "MilK",
+   "batch": "B-26-1013",
+   "warehouse": "central kitchen",
+   "qty": 24.0,
+   "unit": "ltr",
+   "expires": "2026-09-27",
+   "status": "in_store"
+  },
+  {
+   "item": "MilK",
+   "batch": "B-26-1014",
+   "warehouse": "central kitchen",
+   "qty": 36.0,
+   "unit": "ltr",
+   "expires": "2026-10-03",
+   "status": "in_store"
+  },
+  {
+   "item": "Papaya",
+   "batch": "B-26-1015",
+   "warehouse": "central kitchen",
+   "qty": 16.0,
+   "unit": "kg",
+   "expires": "2026-09-27",
+   "status": "in_store"
+  },
+  {
+   "item": "Papaya",
+   "batch": "B-26-1016",
+   "warehouse": "central kitchen",
+   "qty": 24.0,
+   "unit": "kg",
+   "expires": "2026-10-03",
+   "status": "in_store"
+  },
+  {
+   "item": "Pipeapple",
+   "batch": "B-26-1017",
+   "warehouse": "central kitchen",
+   "qty": 10,
+   "unit": "kg",
+   "expires": "2026-10-05",
+   "status": "in_store"
+  },
+  {
+   "item": "Rice",
+   "batch": "B-26-1018",
+   "warehouse": "central kitchen",
+   "qty": 50000,
+   "unit": "g",
+   "expires": "2027-03-24",
+   "status": "in_store"
+  },
+  {
+   "item": "Egg",
+   "batch": "B-26-1019",
+   "warehouse": "central kitchen",
+   "qty": 1,
+   "unit": "pcs",
+   "expires": "2026-10-05",
+   "status": "in_store"
+  },
+  {
+   "item": "Spinach",
+   "batch": "B-26-1020",
+   "warehouse": "central kitchen",
+   "qty": 1.5,
+   "unit": "kg",
+   "expires": "2026-09-26",
+   "status": "in_store"
+  },
+  {
+   "item": "Sweet Potato",
+   "batch": "B-26-1021",
+   "warehouse": "central kitchen",
+   "qty": 0.8,
+   "unit": "kg",
+   "expires": "2026-10-09",
+   "status": "in_store"
+  },
+  {
+   "item": "Cucumber",
+   "batch": "B-26-1022",
+   "warehouse": "central kitchen",
+   "qty": 25,
+   "unit": "kg",
+   "expires": "2026-10-04",
+   "status": "in_store"
+  },
+  {
+   "item": "Guava",
+   "batch": "B-26-1023",
+   "warehouse": "central kitchen",
+   "qty": 4.0,
+   "unit": "kg",
+   "expires": "2026-10-01",
+   "status": "in_store"
+  },
+  {
+   "item": "Guava",
+   "batch": "B-26-1024",
+   "warehouse": "central kitchen",
+   "qty": 6.0,
+   "unit": "kg",
+   "expires": "2026-10-07",
+   "status": "in_store"
+  },
+  {
+   "item": "Watermelon",
+   "batch": "B-26-1025",
+   "warehouse": "central kitchen",
+   "qty": 18.0,
+   "unit": "kg",
+   "expires": "2026-09-30",
+   "status": "in_store"
+  },
+  {
+   "item": "Watermelon",
+   "batch": "B-26-1026",
+   "warehouse": "central kitchen",
+   "qty": 27.0,
+   "unit": "kg",
+   "expires": "2026-10-06",
+   "status": "in_store"
+  },
+  {
+   "item": "Grapes",
+   "batch": "B-26-1027",
+   "warehouse": "central kitchen",
+   "qty": 8,
+   "unit": "kg",
+   "expires": "2026-10-03",
+   "status": "in_store"
+  },
+  {
+   "item": "Pomegranate",
+   "batch": "B-26-1028",
+   "warehouse": "central kitchen",
+   "qty": 12,
+   "unit": "kg",
+   "expires": "2026-10-13",
+   "status": "in_store"
+  },
+  {
+   "item": "Ragi",
+   "batch": "B-26-1029",
+   "warehouse": "central kitchen",
+   "qty": 60,
+   "unit": "kg",
+   "expires": "2027-02-22",
+   "status": "in_store"
+  },
+  {
+   "item": "Sunflower Seeds",
+   "batch": "B-26-1030",
+   "warehouse": "central kitchen",
+   "qty": 20,
+   "unit": "kg",
+   "expires": "2027-01-23",
+   "status": "in_store"
+  },
+  {
+   "item": "Mutton",
+   "batch": "B-26-1031",
+   "warehouse": "central kitchen",
+   "qty": 6.0,
+   "unit": "kg",
+   "expires": "2026-09-28",
+   "status": "in_store"
+  },
+  {
+   "item": "Mutton",
+   "batch": "B-26-1032",
+   "warehouse": "central kitchen",
+   "qty": 9.0,
+   "unit": "kg",
+   "expires": "2026-10-04",
+   "status": "in_store"
+  },
+  {
+   "item": "Orange",
+   "batch": "B-26-1033",
+   "warehouse": "central kitchen",
+   "qty": 2,
+   "unit": "kg",
+   "expires": "2026-10-09",
+   "status": "in_store"
+  },
+  {
+   "item": "Lime",
+   "batch": "B-26-1034",
+   "warehouse": "central kitchen",
+   "qty": 3,
+   "unit": "kg",
+   "expires": "2026-10-15",
+   "status": "in_store"
+  },
+  {
+   "item": "Lemon",
+   "batch": "B-26-1035",
+   "warehouse": "central kitchen",
+   "qty": 10,
+   "unit": "kg",
+   "expires": "2026-10-15",
+   "status": "in_store"
+  },
+  {
+   "item": "Grapefruit",
+   "batch": "B-26-1036",
+   "warehouse": "central kitchen",
+   "qty": 8,
+   "unit": "kg",
+   "expires": "2026-10-11",
+   "status": "in_store"
+  },
+  {
+   "item": "Mealworm",
+   "batch": "B-26-1037",
+   "warehouse": "central kitchen",
+   "qty": 300,
+   "unit": "g",
+   "expires": "2026-09-23",
+   "status": "in_store"
+  },
+  {
+   "item": "Sweet Potato",
+   "batch": "B-26-1038",
+   "warehouse": "central kitchen",
+   "qty": 4,
+   "unit": "kg",
+   "expires": "2026-09-24",
+   "status": "in_store"
+  },
+  {
+   "item": "Bannana",
+   "batch": "B-26-1039",
+   "warehouse": "RNR Kitchen",
+   "qty": 12,
+   "unit": "kg",
+   "expires": "2026-09-28",
+   "status": "in_store"
+  },
+  {
+   "item": "Papaya",
+   "batch": "B-26-1040",
+   "warehouse": "RNR Kitchen",
+   "qty": 18,
+   "unit": "kg",
+   "expires": "2026-09-26",
+   "status": "in_store"
+  },
+  {
+   "item": "Carrot",
+   "batch": "B-26-1041",
+   "warehouse": "RNR Kitchen",
+   "qty": 20,
+   "unit": "kg",
+   "expires": "2026-10-05",
+   "status": "in_store"
+  },
+  {
+   "item": "MilK",
+   "batch": "B-26-1042",
+   "warehouse": "RNR Kitchen",
+   "qty": 25,
+   "unit": "ltr",
+   "expires": "2026-09-27",
+   "status": "in_store"
+  },
+  {
+   "item": "Ragi",
+   "batch": "B-26-1043",
+   "warehouse": "RNR Kitchen",
+   "qty": 30,
+   "unit": "kg",
+   "expires": "2027-02-12",
+   "status": "in_store"
+  },
+  {
+   "item": "Spinach",
+   "batch": "B-26-1044",
+   "warehouse": "RNR Kitchen",
+   "qty": 2,
+   "unit": "kg",
+   "expires": "2026-09-24",
+   "status": "in_store"
+  },
+  {
+   "item": "Cucumber",
+   "batch": "B-26-1045",
+   "warehouse": "RNR Kitchen",
+   "qty": 8,
+   "unit": "kg",
+   "expires": "2026-10-02",
+   "status": "in_store"
+  },
+  {
+   "item": "Egg",
+   "batch": "B-26-1046",
+   "warehouse": "RNR Kitchen",
+   "qty": 60,
+   "unit": "pcs",
+   "expires": "2026-10-04",
+   "status": "in_store"
+  },
+  {
+   "item": "Sunflower Seeds",
+   "batch": "B-26-1047",
+   "warehouse": "RNR Kitchen",
+   "qty": 6,
+   "unit": "kg",
+   "expires": "2027-01-13",
+   "status": "in_store"
+  },
+  {
+   "item": "Apple",
+   "batch": "B-26-1048",
+   "warehouse": "RNR Kitchen",
+   "qty": 20,
+   "unit": "kg",
+   "expires": "2026-10-15",
+   "status": "in_transit"
+  },
+  {
+   "item": "Watermelon",
+   "batch": "B-26-1049",
+   "warehouse": "RNR Kitchen",
+   "qty": 10,
+   "unit": "kg",
+   "expires": "2026-10-01",
+   "status": "in_transit"
+  }
+ ],
+ "vehicles": {
+  "2804": "KA-05-AB-2231",
+  "RP-7731": "KA-01-MN-7731",
+  "SL-2209": "KA-53-C-4410",
+  "KF-118": "KA-07-F-0118",
+  "CF-0451": "KA-19-D-0451"
+ }
+}

@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="7 9 62 73" width="75" height="88" role="img" aria-labelledby="diet-icon-title">
+  <title id="diet-icon-title">Diet</title>
+  <!-- Antz Modules: Diet glyph (clipboard + apple). Traced from the iPad Modules screen. Glyph is 60 x 70 units; shown at 75 x 88 pt on the portrait tile.
+       Each part carries its own teal-to-green sweep, as in the app. -->
+  <defs>
+    <linearGradient id="diet-g-board" x1="8" y1="12" x2="64" y2="50" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#1FDCD0"/>
+      <stop offset="1" stop-color="#4FCB90"/>
+    </linearGradient>
+    <linearGradient id="diet-g-apple" x1="38" y1="44" x2="68" y2="78" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#14D9C8"/>
+      <stop offset="1" stop-color="#4CC98A"/>
+    </linearGradient>
+    <mask id="diet-hole" maskUnits="userSpaceOnUse" x="0" y="0" width="76" height="88">
+      <rect width="76" height="88" fill="#fff"/>
+      <circle cx="35.8" cy="18.5" r="3.2" fill="#000"/>
+    </mask>
+  </defs>
+  <!-- clipboard: frame open at the bottom right, inner clip bar, rounded top with hole -->
+  <g fill="url(#diet-g-board)" mask="url(#diet-hole)">
+    <path d="M32.6 70.8H14a6 6 0 0 1-6-6V21.5a6 6 0 0 1 6-6h43.2a6 6 0 0 1 6 6V37.1h-6V21.6H14.2v43.2h18.4z"/>
+    <rect x="20.5" y="21" width="30.6" height="9.8"/>
+    <path d="M27 16a9.5 9.5 0 0 1 17.6 0v6H27z"/>
+  </g>
+  <!-- apple: leaf and stem as one shape, then the ring -->
+  <g fill="url(#diet-g-apple)">
+    <path d="M41.8 40.4C47 39.8 52.3 41.6 54 46.4C55 44.6 56.2 43.4 57.4 42.5A2.4 2.4 0 0 1 60.6 46.1C59.3 47.3 58.3 48.6 57.6 50.9L57.8 53.2L46 53.6V51.7C43 50 41.6 46.5 41.8 40.4z"/>
+  </g>
+  <g fill="none" stroke="url(#diet-g-apple)">
+    <circle cx="52.7" cy="65.3" r="12.25" stroke-width="5.9"/>
+  </g>
+</svg>

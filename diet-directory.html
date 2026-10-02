@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<!-- SUPERSEDED by the Diet Directory tab in diet-home.html (diet-home.html#directory). Rebuilt here on the same directory module and data (V2 Tab prototype diet/directory, 32 diets) so it matches. #D-273 opens a diet. Back: diet-home.html#directory. -->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Diet Directory</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* =========================================================
+       1. TOKENS
+       Flow tokens (diet-module-flow.html) + Antz app tokens taken from
+       the live prototype (app/tokens.css, MD3_Antz Figma styles).
+       ========================================================= */
+    :root {
+      /* flow */
+      --white: #FFFFFF;
+      --status-h: 24px;
+      --ring: #1F515B;
+      --ease: cubic-bezier(.2,.7,.2,1);
+      /* Antz app colour (MD3_Antz) */
+      --md3-primary: #37BD69;
+      --md3-on-surface: #006D35;
+      --md3-on-primary-container: #1F515B;
+      --md3-on-secondary-container: #1F415B;
+      --md3-secondary: #00D6C9;
+      --md3-secondary-dark: #00ABAB;
+      --md3-tertiary: #FA6140;
+      --md3-error: #E93353;
+      --md3-add-primary: #00AFD6;
+      --md3-moderate-secondary: #E4B819;
+      --md3-on-tertiary-container: #250E01;
+      --md3-on-surface-variant: #44544A;
+      --md3-neutral-secondary: #7A8684;
+      --md3-background: #EFF5F2;
+      --md3-on-background: #E1F9ED;
+      --md3-displaybg-primary: #E8F4F2;
+      --md3-surface-variant: #DAE7DF;
+      --md3-outline-variant: #C3CEC7;
+      /* app aliases (diet.css) */
+      --head: #000000;
+      --ink: var(--md3-on-surface-variant);
+      --line: rgba(0,0,0,.05);
+      --neutral05: rgba(0,0,0,.05);
+      --primary-a10: rgba(55,189,105,.10);
+      --tertiary-a10: rgba(250,97,64,.10);
+      --add-primary-a10: rgba(0,175,214,.10);
+      --moderate-a10: rgba(228,184,25,.10);
+      --error-a5: rgba(233,51,83,.05);
+      --card-shadow: 0 2px 8px rgba(0,0,0,.08);
+      --grad-greenturq: linear-gradient(116.5deg, var(--md3-secondary) 8.77%, var(--md3-primary) 101.99%);
+      /* spacing (app sp scale) */
+      --sp-4: 4px; --sp-8: 8px; --sp-12: 12px; --sp-16: 16px; --sp-20: 20px; --sp-24: 24px; --sp-32: 32px;
+      --radius: 8px;            /* app card radius */
+    }
+
+    /* =========================================================
+       2. BASE  (reset + Antz text styles)
+       ========================================================= */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    html { -webkit-text-size-adjust: 100%; overflow-x: clip; }
+    body {
+      background: var(--md3-background); color: var(--ink); overflow: hidden;
+      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 14px; -webkit-font-smoothing: antialiased;
+    }
+    button, input { font: inherit; color: inherit; background: none; border: 0; }
+    button { cursor: pointer; }
+    a { color: inherit; text-decoration: none; }
+    :focus { outline: none; }
+    :focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+    [hidden] { display: none !important; }
+    svg { display: block; flex: none; }
+    .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+    .icon-defs { position: absolute; width: 0; height: 0; overflow: hidden; }
+    .t-stat-title    { font-size: 28px; font-weight: 600; line-height: normal; }
+    .t-major-title   { font-size: 24px; font-weight: 600; line-height: normal; }
+    .t-medium-medium { font-size: 20px; font-weight: 500; line-height: normal; }
+    .t-minor-title   { font-size: 16px; font-weight: 600; line-height: normal; }
+    .t-minor-medium  { font-size: 16px; font-weight: 500; line-height: normal; }
+    .t-minor-italic  { font-size: 16px; font-weight: 400; line-height: normal; font-style: italic; }
+    .t-body-title    { font-size: 14px; font-weight: 600; line-height: normal; }
+    .t-body-medium   { font-size: 14px; font-weight: 500; line-height: normal; letter-spacing: .1px; }
+    .t-body-regular  { font-size: 14px; font-weight: 400; line-height: normal; }
+    .t-subtext-title { font-size: 12px; font-weight: 600; line-height: normal; }
+
+    /* =========================================================
+       3. SHELL  (status bar / app bar / scrolling main)
+       ========================================================= */
+    .app { display: grid; grid-template-rows: var(--status-h) auto 1fr; height: 100dvh; }
+    .main { overflow-y: auto; overflow-x: hidden; padding: 0 var(--sp-16) var(--sp-32); }
+
+    /* =========================================================
+       4. STATUS BAR  (same as diet-module-flow.html)
+       ========================================================= */
+    .status {
+      display: flex; align-items: center; justify-content: space-between; padding: 0 10px;
+      background: var(--white); color: #0E1512;
+      font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums;
+    }
+    .status__l { display: flex; gap: 10px; }
+    .status__l span + span { font-weight: 500; }
+    .status__r { display: flex; align-items: center; gap: 5px; }
+
+    /* =========================================================
+       5. APP BAR  (Antz #bar: back, title, site picker)
+       ========================================================= */
+    .bar {
+      display: flex; align-items: center; gap: var(--sp-8);
+      padding: var(--sp-16); background: var(--white); border-bottom: 1px solid var(--line);
+    }
+    .bar__hd { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+    .bar__hd h1 { color: var(--md3-on-primary-container); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .bar__hd p { color: var(--ink); }
+    .iconbtn {
+      width: 44px; height: 44px; border-radius: 22px; display: grid; place-items: center; flex: none;
+      color: var(--md3-on-primary-container); transition: background-color 200ms var(--ease), transform 120ms var(--ease);
+    }
+    @media (hover: hover) { .iconbtn:hover { background: var(--md3-displaybg-primary); } }
+    .iconbtn:active { transform: scale(.94); background: var(--md3-surface-variant); }
+    .sitebtn { display: flex; align-items: center; gap: var(--sp-8); height: 48px; padding: 0 var(--sp-8); color: var(--head); border-radius: 8px; }
+    @media (hover: hover) { .sitebtn:hover { background: var(--md3-displaybg-primary); } }
+    /* =========================================================
+       TABS  (Antz .sdtabs: full-width, green underline)
+       ========================================================= */
+    .sdtabs { display: flex; margin: 0 calc(-1 * var(--sp-16)); background: var(--white); }
+    .sdtabs button {
+      flex: 1; height: 56px; display: flex; align-items: center; justify-content: center; gap: 4px;
+      color: var(--md3-on-surface-variant); border-bottom: 3px solid transparent;
+      transition: color 200ms var(--ease), border-color 200ms var(--ease);
+    }
+    .sdtabs button[aria-selected="true"] { color: var(--md3-primary); border-bottom-color: var(--md3-primary); }
+
+    /* =========================================================
+       SEARCH BAND  (Antz .spband: search field + filter button)
+       ========================================================= */
+    .spband {
+      display: flex; align-items: center; gap: var(--sp-12); margin: 0 calc(-1 * var(--sp-16));
+      padding: var(--sp-16) var(--sp-20); background: rgba(255,255,255,.75);
+    }
+    .spsearch {
+      flex: 1; min-width: 0; height: 48px; display: flex; align-items: center; gap: var(--sp-8); padding: 12px;
+      border: 1px solid var(--neutral05); border-radius: 8px; background: var(--neutral05); color: var(--md3-neutral-secondary);
+    }
+    .spsearch:focus-within { border-color: var(--md3-on-primary-container); background: var(--white); }
+    .spsearch input { flex: 1; min-width: 0; height: 100%; color: var(--head); }
+    .spsearch input::placeholder { color: var(--md3-neutral-secondary); }
+    .spfilter {
+      min-width: 48px; height: 48px; flex: none; display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-4);
+      padding: 0 var(--sp-12); border: 1px solid var(--neutral05); border-radius: 8px; background: var(--neutral05); color: var(--head);
+      transition: background-color 200ms var(--ease), transform 120ms var(--ease);
+    }
+    .spfilter.on { background: var(--md3-on-primary-container); border-color: var(--md3-on-primary-container); color: var(--white); }
+    .spfilter[aria-pressed="true"]:not(.on) { border-color: var(--md3-on-primary-container); background: var(--white); }
+    .spfilter:active { transform: scale(.96); }
+
+    /* filter chips (Antz .spchip: grey, dark teal when on) */
+    .spchips { display: flex; flex-wrap: wrap; gap: var(--sp-12); padding: var(--sp-16) 0 0; }
+    .spchip {
+      height: 40px; padding: 0 var(--sp-16); border-radius: 6px; background: var(--neutral05); color: var(--md3-on-surface-variant);
+      display: inline-flex; align-items: center; gap: 6px; transition: background-color 200ms var(--ease), color 200ms var(--ease);
+    }
+    .spchip[aria-pressed="true"] { background: var(--md3-on-primary-container); color: var(--white); }
+
+    /* list bar (Antz .list-bar: count + sort chip) */
+    .list-bar { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-12); margin: var(--sp-16) 0 var(--sp-8); }
+    .list-bar h2 { color: var(--md3-on-surface-variant); }
+    .chip {
+      height: 40px; padding: 0 var(--sp-16); border-radius: 999px; border: 1px solid var(--md3-outline-variant);
+      background: var(--white); color: var(--ink); display: inline-flex; align-items: center; gap: var(--sp-8); white-space: nowrap;
+      transition: transform 120ms var(--ease);
+    }
+    .chip:active { transform: scale(.97); }
+
+    /* type tags (Antz .ttag) */
+    .ttag { display: inline-flex; align-items: center; gap: 4px; padding: 4px 6px; border-radius: 4px; white-space: nowrap; }
+    .ttag.yearround { color: var(--md3-on-surface); background: var(--md3-on-background); }
+    .ttag.seasonal { color: var(--md3-tertiary); background: var(--tertiary-a10); }
+    .ttag.timebound { color: var(--md3-add-primary); background: var(--add-primary-a10); }
+    .ttag.none { color: var(--md3-neutral-secondary); background: var(--neutral05); }
+
+    /* status pill (Antz "Active" pill on the diet pane) */
+    .pill { display: inline-flex; align-items: center; height: 24px; padding: 0 10px; border-radius: 999px; white-space: nowrap; }
+    .pill.active { color: var(--md3-on-surface); background: var(--md3-on-background); }
+    .pill.inactive { color: var(--md3-neutral-secondary); background: var(--neutral05); }
+    .pill.unassigned { color: var(--md3-neutral-secondary); background: transparent; border: 1px dashed var(--md3-outline-variant); }
+
+    /* empty state (Antz .empty) */
+    .empty { padding: var(--sp-32) var(--sp-24); text-align: center; display: flex; flex-direction: column; align-items: center; gap: var(--sp-8); background: var(--white); border-radius: var(--radius); }
+    .empty .ei { width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center; background: var(--md3-background); color: var(--md3-outline-variant); margin-bottom: var(--sp-4); }
+    .empty b { color: var(--head); }
+    /* =========================================================
+       6. HEADER CARD + MAIN TABS  (Antz Species Diet header:
+       app bar, hairline, three equal tabs with a 3px underline)
+       ========================================================= */
+    .head { background: var(--white); position: relative; z-index: 2; }
+    .head .bar { border-bottom: 1px solid var(--line); }
+    .mtabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); background: var(--white); }
+    .mtab {
+      height: 56px; display: flex; align-items: center; justify-content: center; padding: 0 var(--sp-8);
+      color: var(--md3-on-surface-variant); border-bottom: 3px solid transparent; white-space: nowrap;
+      transition: color 200ms var(--ease), border-color 200ms var(--ease), background-color 200ms var(--ease);
+    }
+    @media (hover: hover) { .mtab:hover { background: #FAFCFB; } }
+    .mtab[aria-selected="true"] { color: var(--md3-primary); border-bottom-color: var(--md3-primary); }
+    .pane[hidden] { display: none !important; }
+
+    /* =========================================================
+       7. SEGMENTS  (secondary filter row inside a tab body:
+       Antz .spchip segmented chips, dark teal when on)
+       ========================================================= */
+    .segrow { display: flex; gap: var(--sp-8); padding: var(--sp-16) 0 0; overflow-x: auto; scrollbar-width: none; }
+    .segrow::-webkit-scrollbar { display: none; }
+    .segrow .spchip { flex: none; }
+    .spchip .n { font-variant-numeric: tabular-nums; opacity: .8; }
+    .rowlabel { color: var(--md3-neutral-secondary); flex: none; align-self: center; min-width: 92px; }
+    /* =========================================================
+       8. DIRECTORY  (V2 tab prototype content in Antz app style)
+       landscape: list 40% + detail 60%; portrait: list, detail opens as a panel
+       ========================================================= */
+    .fchips { display: flex; flex-wrap: wrap; gap: var(--sp-8); padding-top: var(--sp-12); }
+    .fchip {
+      display: inline-flex; align-items: center; gap: var(--sp-8); height: 40px; padding: 0 var(--sp-12) 0 var(--sp-16);
+      border: 1px solid var(--md3-outline-variant); border-radius: 12px; background: var(--white); color: var(--md3-on-surface);
+    }
+    .linkbtn { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 var(--sp-8); border-radius: 8px; color: var(--md3-on-surface); }
+    .linkbtn[aria-disabled="true"] { color: var(--md3-neutral-secondary); }
+    @media (hover: hover) { .linkbtn:hover { background: var(--md3-displaybg-primary); } }
+    .dd-split { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sp-16); align-items: start; }
+    .dd-detail { display: none; }
+    .ddlist { display: grid; gap: var(--sp-8); }
+    .ddrow {
+      width: 100%; display: flex; align-items: center; gap: var(--sp-12); padding: var(--sp-12) var(--sp-16); min-height: 76px;
+      text-align: left; background: var(--white); border-radius: var(--radius); box-shadow: inset 0 0 0 2px transparent;
+      -webkit-tap-highlight-color: transparent; transition: box-shadow 200ms var(--ease), transform 120ms var(--ease);
+    }
+    .ddrow:active { transform: scale(.99); }
+    .ddrow[aria-current="true"] { box-shadow: inset 0 0 0 2px var(--md3-primary); }
+    .ddrow__t { flex: 1; min-width: 0; display: grid; gap: 4px; }
+    .ddrow__t b { color: var(--head); }
+    .ddrow__t b.off { color: var(--md3-neutral-secondary); }
+    .ddrow__t .lb { color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .tags { display: flex; flex-wrap: wrap; gap: 6px; }
+    .tag { display: inline-flex; align-items: center; gap: 4px; height: 24px; padding: 0 8px; border-radius: 4px; white-space: nowrap; font-size: 12px; font-weight: 600; }
+    .tag.grey { color: var(--md3-neutral-secondary); background: var(--neutral05); }
+    .tag.green { color: var(--md3-on-surface); background: var(--md3-on-background); }
+    .tag.orange { color: #C2401F; background: var(--tertiary-a10); }
+    .tag.blue { color: #00799A; background: var(--add-primary-a10); }
+    .tag.teal { color: var(--md3-on-primary-container); background: var(--md3-displaybg-primary); }
+    .tag.red { color: var(--md3-error); background: var(--error-a5); }
+    .ddrow .chev { transform: rotate(-90deg); color: var(--md3-on-primary-container); }
+
+    .dpane { background: var(--white); border-radius: var(--radius); padding: var(--sp-20); display: grid; gap: var(--sp-16); }
+    .dpane + .dpane { margin-top: var(--sp-16); }
+    .dp-head { display: flex; align-items: flex-start; gap: var(--sp-12); }
+    .dp-head .grow { flex: 1; min-width: 0; display: grid; gap: 4px; }
+    .dp-id { display: flex; align-items: center; flex-wrap: wrap; gap: var(--sp-8); }
+    .dp-id b { color: var(--md3-on-secondary-container); }
+    .dp-acts { display: flex; gap: 4px; flex: none; }
+    .win { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 10px; border-radius: 6px; font-size: 14px; font-weight: 500; }
+    .win.current { color: var(--md3-on-surface); background: var(--md3-on-background); }
+    .win.off { color: #00799A; background: var(--add-primary-a10); }
+    .win.inactive { color: var(--md3-neutral-secondary); background: var(--neutral05); }
+    .cert { display: flex; align-items: center; gap: var(--sp-12); padding: var(--sp-12); border-radius: var(--radius); background: var(--md3-background); }
+    .cert.none { background: var(--error-a5); }
+    .cert__ic { width: 40px; height: 40px; border-radius: 8px; display: grid; place-items: center; flex: none; background: var(--white); color: var(--md3-primary); }
+    .cert.none .cert__ic { color: var(--md3-error); }
+    .cert__t { flex: 1; min-width: 0; display: grid; gap: 2px; }
+    .cert__t b { color: var(--head); }
+    .dseg { display: inline-flex; padding: 4px; gap: 4px; border-radius: 10px; border: 1px solid var(--md3-outline-variant); justify-self: start; }
+    .dseg button { height: 36px; padding: 0 var(--sp-16); border-radius: 6px; color: var(--ink); display: inline-flex; align-items: center; gap: 6px; }
+    .dseg button[aria-pressed="true"] { background: var(--md3-on-primary-container); color: var(--white); }
+
+    /* items table (Antz diet pane: TIME / DAY / ITEM / DAILY AMT) */
+    .dtab-wrap { border: 1px solid var(--md3-surface-variant); border-radius: var(--radius); overflow: hidden; overflow-x: auto; }
+    .dtab { width: 100%; border-collapse: collapse; }
+    .dtab th { background: var(--md3-surface-variant); color: var(--ink); text-align: left; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; padding: 10px 12px; }
+    .dtab th.amt, .dtab td.amt { text-align: right; }
+    .dtab td { padding: 12px; vertical-align: top; border-top: 1px solid var(--md3-surface-variant); color: var(--head); }
+    .dtab td + td { border-left: 1px solid var(--md3-surface-variant); }
+    .dtab td.time { font-weight: 600; white-space: nowrap; }
+    .dtab td.day { color: var(--ink); white-space: nowrap; }
+    .dtab td.amt { font-weight: 600; white-space: nowrap; }
+    .it-n { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; font-weight: 600; }
+    .it-k { font-size: 11px; font-weight: 600; letter-spacing: .04em; color: var(--ink); background: var(--neutral05); border-radius: 999px; padding: 2px 8px; }
+    .it-p { color: var(--ink); font-style: italic; }
+    .it-parts { margin: 6px 0 0; padding-left: 10px; border-left: 2px solid var(--md3-surface-variant); display: grid; gap: 2px; color: var(--ink); }
+    .it-parts em { color: var(--md3-neutral-secondary); }
+    .it-alt { color: var(--ink); margin-top: 4px; }
+    .it-alt b { color: var(--head); font-weight: 500; }
+    .it-ex { color: var(--md3-neutral-secondary); margin-top: 4px; }
+
+    /* nutrition */
+    .nut { display: grid; gap: var(--sp-16); }
+    .nut__help { display: flex; gap: 8px; align-items: center; color: var(--ink); }
+    .nut__sec h4 { color: var(--md3-neutral-secondary); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; margin-bottom: 4px; }
+    .nut__row { display: flex; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+    .nut__row b { color: var(--head); font-variant-numeric: tabular-nums; }
+    .nut__row b.zero { color: var(--md3-neutral-secondary); font-weight: 500; }
+    .nut__row small { color: var(--md3-neutral-secondary); font-weight: 400; }
+
+    /* notes, remark, change reason */
+    .kv { display: grid; grid-template-columns: max-content 1fr; gap: 6px 16px; }
+    .kv dt { color: var(--md3-neutral-secondary); }
+    .kv dd { color: var(--head); }
+    .sub h3 { color: var(--head); margin-bottom: 8px; }
+    .remark { display: flex; gap: 10px; padding: var(--sp-12) var(--sp-16); border-radius: var(--radius); background: #FCF4AE; color: var(--head); }
+    .remark svg { color: #8A6D00; }
+    .reason { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; color: var(--ink); }
+
+    /* fed to species */
+    .fed-h { display: flex; align-items: center; flex-wrap: wrap; gap: var(--sp-12); }
+    .fed-h h3 { flex: 1; color: var(--head); }
+    .fed-tools { display: flex; align-items: center; flex-wrap: wrap; gap: var(--sp-8); }
+    .fed-tools .hint { flex: 1; color: var(--md3-neutral-secondary); min-width: 180px; }
+    .sgrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-12); }
+    .scard { display: flex; gap: var(--sp-12); align-items: flex-start; padding: var(--sp-12); border: 1px solid var(--md3-surface-variant); border-radius: var(--radius); }
+    .scard.sel { border-color: var(--md3-primary); background: rgba(55,189,105,.05); }
+    .scard__ic { width: 40px; height: 40px; flex: none; border-radius: 50%; display: grid; place-items: center; background: var(--md3-surface-variant); color: var(--ink); }
+    .scard__t { flex: 1; min-width: 0; display: grid; gap: 2px; }
+    .scard__t b { color: var(--head); }
+    .scard__t i { color: var(--ink); }
+    .scard__m { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; color: var(--md3-neutral-secondary); margin-top: 4px; }
+    .ck { width: 44px; height: 44px; margin: -10px -6px -10px -10px; display: grid; place-items: center; color: var(--md3-on-primary-container); flex: none; }
+    .slist { display: grid; }
+    .slist .scard { border: 0; border-bottom: 1px solid var(--line); border-radius: 0; align-items: center; }
+
+    @media (orientation: landscape) {
+      .dd-split { grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); }
+      .dd-detail { display: block; position: sticky; top: var(--sp-16); max-height: calc(100dvh - var(--status-h) - 138px - 32px); overflow-y: auto; border-radius: var(--radius); }
+      .sgrid { grid-template-columns: minmax(0, 1fr); }
+    }
+
+    /* =========================================================
+       9. PANEL, SHEET, TOAST  (portrait diet detail, filters, feedback)
+       ========================================================= */
+    .dpanel { position: fixed; inset: var(--status-h) 0 0 0; z-index: 20; display: grid; grid-template-rows: auto 1fr; background: var(--md3-background);
+      transform: translateX(0); transition: transform 260ms var(--ease); }
+    .dpanel[hidden] { display: none; }
+    .dpanel__body { overflow-y: auto; padding: var(--sp-16) var(--sp-16) var(--sp-32); }
+    .scrim { position: fixed; inset: 0; z-index: 30; background: rgba(0,0,0,.4); display: flex; align-items: flex-end; justify-content: center; }
+    .scrim[hidden] { display: none; }
+    .sheet { width: min(640px, 100%); max-height: 86dvh; overflow-y: auto; background: var(--white); border-radius: 16px 16px 0 0; padding: var(--sp-8) var(--sp-24) var(--sp-24); display: grid; gap: var(--sp-20); }
+    .sheet .grab { width: 40px; height: 4px; border-radius: 2px; background: var(--md3-outline-variant); justify-self: center; }
+    .sheet__h { display: flex; align-items: center; justify-content: space-between; }
+    .sheet__h h2 { color: var(--head); }
+    .sheet__g { display: grid; gap: var(--sp-12); }
+    .sheet__g h3 { color: var(--ink); }
+    .sheet__g .chips { display: flex; flex-wrap: wrap; gap: var(--sp-8); }
+    .sheet__f { display: flex; gap: var(--sp-12); }
+    .btn { flex: 1; height: 48px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-weight: 600; font-size: 16px; }
+    .btn.pri { background: var(--md3-primary); color: var(--white); }
+    .btn.sec { border: 1px solid var(--md3-outline-variant); color: var(--md3-on-primary-container); }
+    .btn:active { transform: scale(.98); }
+    .toast { position: fixed; left: 50%; bottom: 32px; z-index: 40; transform: translate(-50%, 16px); opacity: 0; pointer-events: none;
+      max-width: calc(100% - 32px); padding: 12px 20px; border-radius: 8px; background: var(--md3-on-primary-container); color: var(--white);
+      transition: opacity 200ms var(--ease), transform 200ms var(--ease); }
+    .toast.on { opacity: 1; transform: translate(-50%, 0); }
+    /* =========================================================
+       REDUCED MOTION
+       ========================================================= */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { transition: none !important; }
+      .iconbtn:active, .chip:active, .spfilter:active, .card-press:active { transform: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="status" aria-hidden="true">
+      <div class="status__l"><span>3:42 PM</span><span>Wed 30 Sep</span></div>
+      <div class="status__r">
+        <svg width="17" height="12" viewBox="0 0 17 12"><path fill="currentColor" d="M8.5 2.2c2.4 0 4.6.9 6.3 2.5l1.2-1.2A10.6 10.6 0 0 0 8.5.5 10.6 10.6 0 0 0 1 3.5l1.2 1.2A9 9 0 0 1 8.5 2.2Zm0 3.4c1.5 0 2.9.6 3.9 1.5l1.2-1.2a7.3 7.3 0 0 0-10.2 0l1.2 1.2c1-.9 2.4-1.5 3.9-1.5Zm0 3.4c.6 0 1.2.2 1.6.6L8.5 11.2 6.9 9.6c.4-.4 1-.6 1.6-.6Z"/></svg>
+        <span>80%</span>
+        <svg width="27" height="13" viewBox="0 0 27 13"><rect x=".5" y=".5" width="23" height="12" rx="3.5" fill="none" stroke="currentColor" opacity=".4"/><rect x="2" y="2" width="16.4" height="9" rx="2" fill="currentColor"/><path d="M25 4.5v4a2 2 0 0 0 0-4Z" fill="currentColor" opacity=".4"/></svg>
+      </div>
+    </div>
+    <div class="head">
+      <header class="bar">
+        <a class="iconbtn" href="diet-home.html#directory" aria-label="Back to Diet"><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M10.3257 18.7717L4.21608 12.5309C4.1366 12.4497 4.08071 12.366 4.04844 12.2797C4.01615 12.1935 4 12.0996 4 11.9981C4 11.8966 4.01615 11.8028 4.04844 11.7165C4.08071 11.6303 4.1366 11.5466 4.21608 11.4654L10.3406 5.20936C10.4747 5.07237 10.6424 5.0026 10.8435 5.00006C11.0447 4.99752 11.2198 5.07236 11.3688 5.22457C11.5178 5.37172 11.5936 5.54803 11.5961 5.75352C11.5985 5.95901 11.5253 6.13787 11.3763 6.29008L6.53326 11.2371H17.2549C17.4685 11.2371 17.6461 11.3094 17.7877 11.454C17.9292 11.5986 18 11.78 18 11.9981C18 12.2163 17.9292 12.3977 17.7877 12.5423C17.6461 12.6869 17.4685 12.7592 17.2549 12.7592H6.53326L11.3912 17.7214C11.5253 17.8584 11.5936 18.0309 11.5961 18.2389C11.5985 18.447 11.5253 18.6245 11.3763 18.7717C11.2322 18.9239 11.0584 19 10.8547 19C10.6511 19 10.4747 18.9239 10.3257 18.7717Z" fill="currentColor"/></svg></a>
+        <div class="bar__hd"><h1 class="t-medium-medium">Diet Directory</h1></div>
+        <button class="sitebtn" type="button" aria-label="Site: All Sites"><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 11.9297C13.5702 11.9297 14.8477 10.6523 14.8477 9.08203C14.8477 7.51181 13.5702 6.23438 12 6.23438C10.4298 6.23438 9.15234 7.51181 9.15234 9.08203C9.15234 10.6523 10.4298 11.9297 12 11.9297ZM12 7.64062C12.7947 7.64062 13.4414 8.28731 13.4414 9.08203C13.4414 9.87675 12.7947 10.5234 12 10.5234C11.2053 10.5234 10.5586 9.87675 10.5586 9.08203C10.5586 8.28731 11.2053 7.64062 12 7.64062ZM11.5562 18.0054L12 18.3667L12.4438 18.0054C12.5007 17.9591 13.8517 16.8539 15.2209 15.2737C17.1194 13.0823 18.082 11.1134 18.082 9.42165V9.08244C18.082 5.72859 15.3537 3 12 3C8.64629 3 5.91797 5.72859 5.91797 9.08244V9.42165C5.91797 11.1134 6.88065 13.0823 8.77908 15.2737C10.1481 16.8539 11.4993 17.9591 11.5562 18.0054ZM7.32422 9.08244C7.32422 6.50395 9.42178 4.40625 12 4.40625C14.5782 4.40625 16.6758 6.50395 16.6758 9.08244V9.42165C16.6758 10.7426 15.8098 12.4423 14.1716 14.3372C13.3385 15.3007 12.4958 16.0906 11.9999 16.532C11.5075 16.0941 10.6727 15.3118 9.84201 14.3529C8.19489 12.4517 7.32422 10.7465 7.32422 9.42165V9.08244ZM21 18.4336C21 18.9656 20.655 19.4187 19.9746 19.7798C19.5013 20.0311 18.8441 20.2522 18.0209 20.4371C16.4047 20.8 14.2665 21 12 21C9.73352 21 7.59531 20.8 5.97908 20.4372C5.15593 20.2524 4.49867 20.0311 4.02544 19.78C3.34497 19.4187 3 18.9656 3 18.4336C3 17.9016 3.34497 17.4485 4.02544 17.0874C4.49867 16.836 5.15593 16.6149 5.97908 16.4301C6.49255 16.3147 7.05917 16.2161 7.66534 16.135C7.68251 16.1549 7.69899 16.1747 7.71629 16.1946C8.10287 16.6408 8.48918 17.0519 8.84885 17.416C8.07005 17.4896 7.34276 17.5904 6.69704 17.7163C5.39337 17.9705 4.75919 18.2617 4.50732 18.4336C4.75919 18.6055 5.39323 18.8967 6.69704 19.1509C8.16151 19.4365 10.0448 19.5938 12 19.5938C13.9552 19.5938 15.8385 19.4365 17.303 19.1509C18.6066 18.8967 19.2408 18.6055 19.4927 18.4336C19.2408 18.2617 18.6068 17.9705 17.303 17.7163C16.6572 17.5904 15.9301 17.4895 15.1513 17.416C15.5108 17.0519 15.8971 16.6408 16.2837 16.1946C16.301 16.1747 16.3176 16.1548 16.3347 16.1348C16.9408 16.2161 17.5074 16.3147 18.0209 16.43C18.8441 16.6148 19.5013 16.836 19.9746 17.0872C20.655 17.4485 21 17.9016 21 18.4336Z" fill="currentColor"/></svg><span class="t-minor-medium">All Sites</span><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 15.9999L4.99995 9.51341L6.63329 7.9999L12 12.9729L17.3666 7.9999L19 9.51341L12 15.9999Z" fill="currentColor"/></svg></button>
+      </header>
+    </div>
+    <main class="main" id="main"><section class="pane" id="p-directory"></section></main>
+  </div>
+  <div class="dpanel" id="dpanel" hidden role="dialog" aria-modal="true" aria-labelledby="dpT">
+    <header class="bar"><button class="iconbtn" type="button" data-pback aria-label="Back to the diet list"><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M10.3257 18.7717L4.21608 12.5309C4.1366 12.4497 4.08071 12.366 4.04844 12.2797C4.01615 12.1935 4 12.0996 4 11.9981C4 11.8966 4.01615 11.8028 4.04844 11.7165C4.08071 11.6303 4.1366 11.5466 4.21608 11.4654L10.3406 5.20936C10.4747 5.07237 10.6424 5.0026 10.8435 5.00006C11.0447 4.99752 11.2198 5.07236 11.3688 5.22457C11.5178 5.37172 11.5936 5.54803 11.5961 5.75352C11.5985 5.95901 11.5253 6.13787 11.3763 6.29008L6.53326 11.2371H17.2549C17.4685 11.2371 17.6461 11.3094 17.7877 11.454C17.9292 11.5986 18 11.78 18 11.9981C18 12.2163 17.9292 12.3977 17.7877 12.5423C17.6461 12.6869 17.4685 12.7592 17.2549 12.7592H6.53326L11.3912 17.7214C11.5253 17.8584 11.5936 18.0309 11.5961 18.2389C11.5985 18.447 11.5253 18.6245 11.3763 18.7717C11.2322 18.9239 11.0584 19 10.8547 19C10.6511 19 10.4747 18.9239 10.3257 18.7717Z" fill="currentColor"/></svg></button><div class="bar__hd"><h1 class="t-medium-medium" id="dpT" data-ptitle></h1><p class="t-body-regular" data-psub></p></div></header>
+    <div class="dpanel__body"></div>
+  </div>
+  <div class="scrim" id="scrim" hidden><div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetT"></div></div>
+  <div class="toast t-body-medium" id="toast" role="status" aria-live="polite"></div>
+  <script>
+  (function () {
+  'use strict';
+/* Antz app icons (from the live prototype's icon library), inline */
+  const IC = {"back": "<path d=\"M10.3257 18.7717L4.21608 12.5309C4.1366 12.4497 4.08071 12.366 4.04844 12.2797C4.01615 12.1935 4 12.0996 4 11.9981C4 11.8966 4.01615 11.8028 4.04844 11.7165C4.08071 11.6303 4.1366 11.5466 4.21608 11.4654L10.3406 5.20936C10.4747 5.07237 10.6424 5.0026 10.8435 5.00006C11.0447 4.99752 11.2198 5.07236 11.3688 5.22457C11.5178 5.37172 11.5936 5.54803 11.5961 5.75352C11.5985 5.95901 11.5253 6.13787 11.3763 6.29008L6.53326 11.2371H17.2549C17.4685 11.2371 17.6461 11.3094 17.7877 11.454C17.9292 11.5986 18 11.78 18 11.9981C18 12.2163 17.9292 12.3977 17.7877 12.5423C17.6461 12.6869 17.4685 12.7592 17.2549 12.7592H6.53326L11.3912 17.7214C11.5253 17.8584 11.5936 18.0309 11.5961 18.2389C11.5985 18.447 11.5253 18.6245 11.3763 18.7717C11.2322 18.9239 11.0584 19 10.8547 19C10.6511 19 10.4747 18.9239 10.3257 18.7717Z\" fill=\"currentColor\"/>", "search": "<path d=\"M20.7263 19.3951L16.289 14.9395C17.4299 13.6301 18.055 11.9826 18.055 10.2675C18.055 6.26026 14.6781 3 10.5275 3C6.37691 3 3 6.26026 3 10.2675C3 14.2747 6.37691 17.535 10.5275 17.535C12.0857 17.535 13.5706 17.0812 14.8401 16.2199L19.3111 20.7093C19.498 20.8967 19.7494 21 20.0187 21C20.2737 21 20.5156 20.9062 20.6992 20.7355C21.0893 20.3731 21.1017 19.7721 20.7263 19.3951ZM10.5275 4.89587C13.5955 4.89587 16.0913 7.30552 16.0913 10.2675C16.0913 13.2295 13.5955 15.6391 10.5275 15.6391C7.45956 15.6391 4.9637 13.2295 4.9637 10.2675C4.9637 7.30552 7.45956 4.89587 10.5275 4.89587Z\" fill=\"currentColor\"/>", "filter-2": "<path d=\"M20.7969 11.7344H11.7079C11.3949 10.5227 10.2924 9.625 8.98438 9.625C7.67632 9.625 6.57384 10.5227 6.26086 11.7344H4.20312C3.81476 11.7344 3.5 12.0491 3.5 12.4375C3.5 12.8259 3.81476 13.1406 4.20312 13.1406H6.26086C6.57384 14.3523 7.67632 15.25 8.98438 15.25C10.2924 15.25 11.3949 14.3523 11.7079 13.1406H20.7969C21.1852 13.1406 21.5 12.8259 21.5 12.4375C21.5 12.0491 21.1852 11.7344 20.7969 11.7344ZM8.98438 13.8438C8.20901 13.8438 7.57812 13.2129 7.57812 12.4375C7.57812 11.6621 8.20901 11.0312 8.98438 11.0312C9.75974 11.0312 10.3906 11.6621 10.3906 12.4375C10.3906 13.2129 9.75974 13.8438 8.98438 13.8438ZM4.20312 7.51562H13.2921C13.6051 8.72728 14.7076 9.625 16.0156 9.625C17.3237 9.625 18.4262 8.72728 18.7391 7.51562H20.7969C21.1852 7.51562 21.5 7.20087 21.5 6.8125C21.5 6.42413 21.1852 6.10938 20.7969 6.10938H18.7391C18.4262 4.89772 17.3238 4 16.0156 4C14.7074 4 13.6051 4.89772 13.2921 6.10938H4.20312C3.81476 6.10938 3.5 6.42413 3.5 6.8125C3.5 7.20087 3.81476 7.51562 4.20312 7.51562ZM16.0156 5.40625C16.791 5.40625 17.4219 6.03714 17.4219 6.8125C17.4219 7.58786 16.791 8.21875 16.0156 8.21875C15.2403 8.21875 14.6094 7.58786 14.6094 6.8125C14.6094 6.03714 15.2403 5.40625 16.0156 5.40625ZM20.7969 17.3594H18.7391C18.4262 16.1477 17.3238 15.25 16.0156 15.25C14.7074 15.25 13.6051 16.1477 13.2921 17.3594H4.20312C3.81476 17.3594 3.5 17.6741 3.5 18.0625C3.5 18.4509 3.81476 18.7656 4.20312 18.7656H13.2921C13.6051 19.9773 14.7076 20.875 16.0156 20.875C17.3237 20.875 18.4262 19.9773 18.7391 18.7656H20.7969C21.1852 18.7656 21.5 18.4509 21.5 18.0625C21.5 17.6741 21.1852 17.3594 20.7969 17.3594ZM16.0156 19.4688C15.2403 19.4688 14.6094 18.8379 14.6094 18.0625C14.6094 17.2871 15.2403 16.6562 16.0156 16.6562C16.791 16.6562 17.4219 17.2871 17.4219 18.0625C17.4219 18.8379 16.791 19.4688 16.0156 19.4688Z\" fill=\"currentColor\"/>", "dropdown": "<path d=\"M12 15.9999L4.99995 9.51341L6.63329 7.9999L12 12.9729L17.3666 7.9999L19 9.51341L12 15.9999Z\" fill=\"currentColor\"/>", "location-icon": "<path d=\"M12 11.9297C13.5702 11.9297 14.8477 10.6523 14.8477 9.08203C14.8477 7.51181 13.5702 6.23438 12 6.23438C10.4298 6.23438 9.15234 7.51181 9.15234 9.08203C9.15234 10.6523 10.4298 11.9297 12 11.9297ZM12 7.64062C12.7947 7.64062 13.4414 8.28731 13.4414 9.08203C13.4414 9.87675 12.7947 10.5234 12 10.5234C11.2053 10.5234 10.5586 9.87675 10.5586 9.08203C10.5586 8.28731 11.2053 7.64062 12 7.64062ZM11.5562 18.0054L12 18.3667L12.4438 18.0054C12.5007 17.9591 13.8517 16.8539 15.2209 15.2737C17.1194 13.0823 18.082 11.1134 18.082 9.42165V9.08244C18.082 5.72859 15.3537 3 12 3C8.64629 3 5.91797 5.72859 5.91797 9.08244V9.42165C5.91797 11.1134 6.88065 13.0823 8.77908 15.2737C10.1481 16.8539 11.4993 17.9591 11.5562 18.0054ZM7.32422 9.08244C7.32422 6.50395 9.42178 4.40625 12 4.40625C14.5782 4.40625 16.6758 6.50395 16.6758 9.08244V9.42165C16.6758 10.7426 15.8098 12.4423 14.1716 14.3372C13.3385 15.3007 12.4958 16.0906 11.9999 16.532C11.5075 16.0941 10.6727 15.3118 9.84201 14.3529C8.19489 12.4517 7.32422 10.7465 7.32422 9.42165V9.08244ZM21 18.4336C21 18.9656 20.655 19.4187 19.9746 19.7798C19.5013 20.0311 18.8441 20.2522 18.0209 20.4371C16.4047 20.8 14.2665 21 12 21C9.73352 21 7.59531 20.8 5.97908 20.4372C5.15593 20.2524 4.49867 20.0311 4.02544 19.78C3.34497 19.4187 3 18.9656 3 18.4336C3 17.9016 3.34497 17.4485 4.02544 17.0874C4.49867 16.836 5.15593 16.6149 5.97908 16.4301C6.49255 16.3147 7.05917 16.2161 7.66534 16.135C7.68251 16.1549 7.69899 16.1747 7.71629 16.1946C8.10287 16.6408 8.48918 17.0519 8.84885 17.416C8.07005 17.4896 7.34276 17.5904 6.69704 17.7163C5.39337 17.9705 4.75919 18.2617 4.50732 18.4336C4.75919 18.6055 5.39323 18.8967 6.69704 19.1509C8.16151 19.4365 10.0448 19.5938 12 19.5938C13.9552 19.5938 15.8385 19.4365 17.303 19.1509C18.6066 18.8967 19.2408 18.6055 19.4927 18.4336C19.2408 18.2617 18.6068 17.9705 17.303 17.7163C16.6572 17.5904 15.9301 17.4895 15.1513 17.416C15.5108 17.0519 15.8971 16.6408 16.2837 16.1946C16.301 16.1747 16.3176 16.1548 16.3347 16.1348C16.9408 16.2161 17.5074 16.3147 18.0209 16.43C18.8441 16.6148 19.5013 16.836 19.9746 17.0872C20.655 17.4485 21 17.9016 21 18.4336Z\" fill=\"currentColor\"/>", "time": "<path d=\"M12 3C16.9624 3.00005 21 7.03756 21 12C20.9999 16.9626 16.9623 21 12 21C7.03753 21 3.00014 16.9627 3 12C3 7.03753 7.03744 3 12 3ZM12 4.29004C7.74882 4.29004 4.29004 7.74891 4.29004 12C4.29018 16.2512 7.74891 19.71 12 19.71C16.251 19.7099 19.7098 16.2512 19.71 12C19.71 7.74894 16.2511 4.29009 12 4.29004ZM11.7549 6.57812C12.111 6.57836 12.3994 6.86753 12.3994 7.22363V11.8467H16.6289C16.9851 11.8467 17.2743 12.1351 17.2744 12.4912C17.2744 12.8475 16.9852 13.1367 16.6289 13.1367H11.7549C11.3986 13.1367 11.1094 12.8475 11.1094 12.4912V7.22363C11.1094 6.86738 11.3986 6.57812 11.7549 6.57812Z\" fill=\"currentColor\"/>", "calendar": "<path d=\"M18.8906 4.40625H18.0469V3H16.6406V4.40625H7.35938V3H5.95312V4.40625H5.10938C3.94627 4.40625 3 5.35252 3 6.51562V18.8906C3 20.0537 3.94627 21 5.10938 21H15.1115L21 14.8851V6.51562C21 5.35252 20.0537 4.40625 18.8906 4.40625ZM15.5156 18.553V16.0078C15.5156 15.6201 15.831 15.3047 16.2188 15.3047H18.6437L15.5156 18.553ZM19.5938 13.8984H16.2188C15.0556 13.8984 14.1094 14.8447 14.1094 16.0078V19.5938H5.10938C4.72167 19.5938 4.40625 19.2783 4.40625 18.8906V9.60938H19.5938V13.8984ZM19.5938 8.20312H4.40625V6.51562C4.40625 6.12792 4.72167 5.8125 5.10938 5.8125H5.95312V7.21875H7.35938V5.8125H16.6406V7.21875H18.0469V5.8125H18.8906C19.2783 5.8125 19.5938 6.12792 19.5938 6.51562V8.20312Z\" fill=\"currentColor\"/>", "star": "<path d=\"m22 9.24-7.19-.62L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21 12 17.27 18.18 21l-1.63-7.03L22 9.24zM12 15.4l-3.76 2.27 1-4.28-3.32-2.88 4.38-.38L12 6.1l1.71 4.04 4.38.38-3.32 2.88 1 4.28L12 15.4z\" fill=\"currentColor\"/>", "paw": "<path d=\"M17.9998 13.6132C16.3851 11.6636 14.344 10.5898 12.2526 10.5898C10.1611 10.5898 8.12003 11.6636 6.50538 13.6132C5.05394 15.3656 4.1875 17.5742 4.1875 19.5211C4.1875 20.4668 4.47663 21.1872 5.04681 21.6623C5.60959 22.1312 6.35261 22.2898 7.18155 22.2898C8.06359 22.2898 9.043 22.1102 10.0053 21.9336C10.8462 21.7794 11.6404 21.6337 12.2526 21.6337C12.781 21.6337 13.526 21.772 14.3146 21.9184C16.1575 22.2605 18.2465 22.6483 19.4532 21.645C20.0268 21.168 20.3177 20.4534 20.3177 19.5211C20.3177 17.5742 19.4513 15.3656 17.9998 13.6132ZM18.5541 20.5637C17.8546 21.1453 16.034 20.8073 14.5712 20.5358C13.717 20.3772 12.9103 20.2274 12.2525 20.2274C11.5124 20.2274 10.6571 20.3844 9.75147 20.5505C8.34845 20.8078 6.60236 21.1282 5.94686 20.582C5.85948 20.5092 5.59361 20.2876 5.59361 19.521C5.59361 17.9158 6.35795 15.9957 7.58828 14.5101C8.93102 12.8889 10.5875 11.996 12.2525 11.996C13.9175 11.996 15.574 12.8889 16.9167 14.5101C18.1471 15.9957 18.9114 17.9158 18.9114 19.521C18.9115 20.2666 18.6425 20.4902 18.5541 20.5637Z\" fill=\"currentColor\" stroke=\"currentColor\" stroke-width=\"0.5\"/> <path d=\"M18.1635 3.02683C17.5727 2.15575 16.7267 1.65625 15.8424 1.65625C14.9581 1.65625 14.1121 2.15584 13.5213 3.02683C12.9786 3.82703 12.6797 4.87787 12.6797 5.98581C12.6797 7.09375 12.9786 8.14459 13.5213 8.9448C14.1121 9.81583 14.9581 10.3154 15.8424 10.3154C16.7268 10.3154 17.5727 9.81583 18.1635 8.9448C18.7063 8.14459 19.0052 7.09375 19.0052 5.98581C19.0052 4.87787 18.7063 3.82698 18.1635 3.02683ZM16.9998 8.15547C16.8089 8.43695 16.4046 8.90922 15.8424 8.90922C15.2803 8.90922 14.8761 8.437 14.6851 8.15547C14.3043 7.594 14.0859 6.80317 14.0859 5.98581C14.0859 5.16841 14.3043 4.37762 14.6851 3.81616C14.876 3.53467 15.2803 3.06241 15.8424 3.06241C16.4046 3.06241 16.8089 3.53462 16.9998 3.81616C17.3806 4.37762 17.599 5.16845 17.599 5.98581C17.5989 6.80317 17.3806 7.594 16.9998 8.15547Z\" fill=\"currentColor\" stroke=\"currentColor\" stroke-width=\"0.5\"/> <path d=\"M10.976 3.02492C10.3852 2.15384 9.53928 1.6543 8.65494 1.6543C7.77059 1.6543 6.92459 2.15389 6.33383 3.02492C5.79111 3.82512 5.49219 4.87597 5.49219 5.98391C5.49219 7.09184 5.79106 8.14269 6.33383 8.94289C6.92464 9.81397 7.77059 10.3136 8.65494 10.3136C9.53928 10.3136 10.3852 9.81397 10.976 8.94289C11.5188 8.14269 11.8177 7.09189 11.8177 5.98391C11.8176 4.87597 11.5188 3.82508 10.976 3.02492ZM9.81219 8.15361C9.62127 8.43509 9.21702 8.90736 8.65489 8.90736C8.09272 8.90736 7.68847 8.43509 7.49755 8.15361C7.11673 7.59214 6.89834 6.80131 6.89834 5.98395C6.89834 5.16655 7.11678 4.37577 7.49755 3.8143C7.68847 3.53281 8.09272 3.06055 8.65489 3.06055C9.21706 3.06055 9.62127 3.53277 9.81219 3.8143C10.193 4.37577 10.4114 5.16659 10.4114 5.98395C10.4114 6.80131 10.193 7.59214 9.81219 8.15361Z\" fill=\"currentColor\" stroke=\"currentColor\" stroke-width=\"0.5\"/> <path d=\"M24.1095 9.82285C23.8713 9.01266 23.3608 8.42396 22.6721 8.16525C22.1178 7.95708 21.4922 7.99238 20.9104 8.26468C20.1086 8.63986 19.4532 9.41461 19.1124 10.3902C18.834 11.1875 18.7992 12.0301 19.0147 12.7631C19.2529 13.5733 19.7634 14.162 20.4522 14.4207C20.6905 14.5103 20.942 14.5547 21.1976 14.5547C21.5363 14.5547 21.8823 14.4765 22.2139 14.3213C23.0157 13.9461 23.6711 13.1714 24.0119 12.1958C24.2903 11.3986 24.325 10.5558 24.1095 9.82285ZM22.6843 11.732C22.4707 12.3433 22.072 12.8351 21.6179 13.0477C21.4508 13.1258 21.1989 13.199 20.9466 13.1043C20.3378 12.8756 20.101 11.824 20.4399 10.854C20.6535 10.2427 21.0521 9.75085 21.5063 9.53827C21.6171 9.48647 21.7651 9.43683 21.9258 9.43683C22.0075 9.43683 22.0926 9.44968 22.1775 9.4816C22.7864 9.71035 23.0232 10.7619 22.6843 11.732Z\" fill=\"currentColor\" stroke=\"currentColor\" stroke-width=\"0.5\"/> <path d=\"M5.38686 10.3902C5.04603 9.41455 4.39067 8.63984 3.58892 8.26466C3.00706 7.99236 2.38137 7.95711 1.82717 8.16523C1.13839 8.42398 0.627871 9.01269 0.3897 9.82283C0.174215 10.5558 0.20895 11.3985 0.487434 12.1957C0.828309 13.1714 1.48362 13.9461 2.28537 14.3213C2.61706 14.4765 2.96295 14.5547 3.30172 14.5547C3.55728 14.5547 3.80881 14.5102 4.04712 14.4207C4.736 14.162 5.24647 13.5732 5.48464 12.7631C5.70003 12.0302 5.66529 11.1875 5.38686 10.3902ZM3.55259 13.1043C3.30036 13.199 3.04836 13.1258 2.88139 13.0477C2.42722 12.8352 2.0285 12.3433 1.81498 11.732C1.47612 10.762 1.71289 9.71047 2.3217 9.48172C2.57389 9.38698 2.82593 9.46025 2.99295 9.53834C3.44717 9.75092 3.84584 10.2427 4.05936 10.854C4.39822 11.8241 4.1614 12.8756 3.55259 13.1043Z\" fill=\"currentColor\" stroke=\"currentColor\" stroke-width=\"0.5\"/>", "sort": "<path d=\"M16 17.01V10h-2v7.01h-3L15 21l4-3.99h-3zM9 3 5 6.99h3V14h2V6.99h3L9 3z\" fill=\"currentColor\"/>", "close": "<path d=\"M12 13.2484L6.507 18.7414C6.33461 18.9138 6.12654 19 5.8828 19C5.63908 19 5.43101 18.9138 5.25861 18.7414C5.0862 18.569 5 18.3609 5 18.1172C5 17.8735 5.0862 17.6654 5.25861 17.493L10.7516 12L5.25861 6.507C5.0862 6.33461 5 6.12654 5 5.8828C5 5.63908 5.0862 5.43101 5.25861 5.25861C5.43101 5.0862 5.63908 5 5.8828 5C6.12654 5 6.33461 5.0862 6.507 5.25861L12 10.7516L17.493 5.25861C17.6654 5.0862 17.8735 5 18.1172 5C18.3609 5 18.569 5.0862 18.7414 5.25861C18.9138 5.43101 19 5.63908 19 5.8828C19 6.12654 18.9138 6.33461 18.7414 6.507L13.2484 12L18.7414 17.493C18.9138 17.6654 19 17.8735 19 18.1172C19 18.3609 18.9138 18.569 18.7414 18.7414C18.569 18.9138 18.3609 19 18.1172 19C17.8735 19 17.6654 18.9138 17.493 18.7414L12 13.2484Z\" fill=\"currentColor\"/>", "just-tick-mark": "<path d=\"M19.9697 7.8125L9.93652 17.8467L4.02734 11.9375L5.7373 10.2285L9.93652 14.4277L10.1133 14.251L18.2607 6.10254L19.9697 7.8125Z\" fill=\"currentColor\" stroke=\"currentColor\" stroke-width=\"0.5\"/>", "pencil": "<path d=\"M20.4397 5.19019L18.8086 3.55894C18.0633 2.81367 16.8508 2.8137 16.1055 3.55894C15.4038 4.2607 4.68623 14.9791 3.96999 15.6954C3.8937 15.7716 3.84259 15.873 3.82437 15.9722L3.00882 20.3766C2.97722 20.5473 3.03164 20.7227 3.15444 20.8455C3.27738 20.9685 3.45281 21.0228 3.62335 20.9912L8.02733 20.1755C8.12911 20.1565 8.22916 20.1049 8.30419 20.0299L20.4397 7.89346C21.1867 7.14646 21.1868 5.93729 20.4397 5.19019ZM4.1855 19.8144L4.67885 17.1501L6.8496 19.321L4.1855 19.8144ZM7.93132 18.9112L5.08863 16.0683L15.4671 5.68902L18.3098 8.53193L7.93132 18.9112ZM19.6939 7.14769L19.0555 7.78616L16.2128 4.94325L16.8512 4.30478C17.1852 3.97073 17.7287 3.97069 18.0628 4.30478L19.6939 5.93603C20.0288 6.27089 20.0288 6.81279 19.6939 7.14769Z\" fill=\"currentColor\" stroke=\"currentColor\" stroke-width=\"0.4\"/>", "timer": "<path d=\"M9.14205 3.81818V2H15.2027V3.81818H9.14205ZM11.2633 14.7273H13.0814V8.66667H11.2633V14.7273ZM12.1723 22C10.9939 22 9.89188 21.7769 8.86629 21.3306C7.84072 20.8844 6.94431 20.2777 6.17707 19.5104C5.40985 18.7432 4.80311 17.8468 4.35687 16.8212C3.91062 15.7956 3.6875 14.6936 3.6875 13.5152C3.6875 12.3367 3.91062 11.2347 4.35687 10.2091C4.80311 9.18352 5.40985 8.28711 6.17707 7.51987C6.94431 6.75265 7.84072 6.14592 8.86629 5.69967C9.89188 5.25343 10.9902 5.0303 12.1612 5.0303C13.1424 5.0303 14.084 5.19444 14.986 5.52273C15.888 5.85101 16.7262 6.30976 17.5006 6.89899L18.8138 5.61111L20.0764 6.87374L18.7885 8.18687C19.3777 8.94445 19.8365 9.77616 20.1648 10.682C20.4931 11.5879 20.6572 12.5335 20.6572 13.5188C20.6572 14.6948 20.4341 15.7956 19.9878 16.8212C19.5416 17.8468 18.9348 18.7432 18.1676 19.5104C17.4004 20.2777 16.504 20.8844 15.4784 21.3306C14.4528 21.7769 13.3508 22 12.1723 22ZM12.1723 20.1818C14.0242 20.1818 15.5983 19.5337 16.8946 18.2374C18.1909 16.9411 18.839 15.367 18.839 13.5152C18.839 11.6633 18.1909 10.0892 16.8946 8.79293C15.5983 7.49663 14.0242 6.84848 12.1723 6.84848C10.3205 6.84848 8.74642 7.49663 7.45013 8.79293C6.15383 10.0892 5.50568 11.6633 5.50568 13.5152C5.50568 15.367 6.15383 16.9411 7.45013 18.2374C8.74642 19.5337 10.3205 20.1818 12.1723 20.1818Z\" fill=\"currentColor\"/>", "reason-or-list": "<path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M17.0145 2.78172H18.405C20.2493 2.78172 21.75 4.28922 21.75 6.14172V19.8142C21.75 21.6667 20.2432 23.1742 18.39 23.1742H5.61C3.7575 23.1742 2.25 21.6667 2.25 19.8142V6.14172C2.25 4.28922 3.7575 2.78172 5.61 2.78172H6.993V2.60922C6.993 1.62447 7.794 0.824219 8.77875 0.824219H15.2288C16.2135 0.824219 17.0145 1.62447 17.0145 2.60922V2.78172ZM8.77875 2.17422C8.53875 2.17422 8.34375 2.36922 8.34375 2.60922V4.30047C8.34375 4.54047 8.53875 4.73547 8.77875 4.73547H15.2288C15.4688 4.73547 15.6637 4.54047 15.6637 4.30047V2.60922C15.6637 2.36922 15.4688 2.17422 15.2288 2.17422H8.77875ZM18.3892 21.8242C19.4977 21.8242 20.3993 20.9227 20.3993 19.8142V6.14172C20.3993 5.01447 19.5233 4.13172 18.405 4.13172H17.0145V4.30122C17.0145 5.28597 16.2135 6.08622 15.2288 6.08622H8.77875C7.794 6.08622 6.993 5.28597 6.993 4.30122V4.13172H5.61C4.5015 4.13172 3.6 5.03322 3.6 6.14172V19.8142C3.6 20.9227 4.5015 21.8242 5.61 21.8242H18.3892ZM14.8197 9.40039H7.58223C7.20948 9.40039 6.90723 9.70264 6.90723 10.0754C6.90723 10.4481 7.20948 10.7504 7.58223 10.7504H14.819C15.1917 10.7504 15.494 10.4481 15.494 10.0754C15.494 9.70264 15.1925 9.40039 14.8197 9.40039ZM10.8357 13.2324H7.58223C7.20948 13.2324 6.90723 13.5347 6.90723 13.9074C6.90723 14.2802 7.20948 14.5824 7.58223 14.5824H10.8357C11.2085 14.5824 11.5107 14.2802 11.5107 13.9074C11.5107 13.5347 11.2085 13.2324 10.8357 13.2324Z\" fill=\"currentColor\"/>", "alert": "<path d=\"M9.65332 4.34353C10.756 2.55246 13.2436 2.55185 14.3467 4.34353L14.4561 4.53494L20.6416 16.533C20.8759 16.9787 21 17.4863 21 17.9998C20.9998 19.654 19.7382 20.9998 18.1875 20.9998H5.8125C4.26181 20.9998 3.0002 19.654 3 17.9998C3 17.4864 3.12405 16.9787 3.3584 16.533L9.54395 4.53494L9.65332 4.34353ZM13.2256 5.2615C12.6873 4.24556 11.3133 4.24459 10.7744 5.2615L4.58887 17.2595C4.58786 17.2615 4.58695 17.2635 4.58594 17.2654C4.46862 17.4879 4.40625 17.7422 4.40625 17.9998C4.40645 18.8268 5.03722 19.4998 5.8125 19.4998H18.1875C18.9628 19.4998 19.5935 18.8268 19.5938 17.9998C19.5938 17.7421 19.5314 17.4879 19.4141 17.2654C19.4131 17.2635 19.4121 17.2615 19.4111 17.2595L13.2256 5.2615ZM12 15.5388C12.3882 15.5388 12.7029 15.8558 12.7031 16.2469C12.7031 16.6381 12.3883 16.9558 12 16.9558C11.6117 16.9558 11.2969 16.6381 11.2969 16.2469C11.2971 15.8558 11.6118 15.5388 12 15.5388ZM12 8.45291C12.3882 8.45291 12.7029 8.76984 12.7031 9.16091V13.4119C12.7031 13.8032 12.3883 14.1199 12 14.1199C11.6117 14.1199 11.2969 13.8032 11.2969 13.4119V9.16091C11.2971 8.76984 11.6118 8.45291 12 8.45291Z\" fill=\"currentColor\"/>", "approved": "<mask maskUnits=\"userSpaceOnUse\" x=\"0\" y=\"0\" width=\"24\" height=\"24\"> <rect width=\"24\" height=\"24\" fill=\"currentColor\"/> </mask> <path d=\"M10.6 13.8L8.45 11.65C8.26667 11.4667 8.03333 11.375 7.75 11.375C7.46667 11.375 7.23333 11.4667 7.05 11.65C6.86667 11.8333 6.775 12.0667 6.775 12.35C6.775 12.6333 6.86667 12.8667 7.05 13.05L9.9 15.9C10.1 16.1 10.3333 16.2 10.6 16.2C10.8667 16.2 11.1 16.1 11.3 15.9L16.95 10.25C17.1333 10.0667 17.225 9.83333 17.225 9.55C17.225 9.26667 17.1333 9.03333 16.95 8.85C16.7667 8.66667 16.5333 8.575 16.25 8.575C15.9667 8.575 15.7333 8.66667 15.55 8.85L10.6 13.8ZM12 22C10.6167 22 9.31667 21.7375 8.1 21.2125C6.88333 20.6875 5.825 19.975 4.925 19.075C4.025 18.175 3.3125 17.1167 2.7875 15.9C2.2625 14.6833 2 13.3833 2 12C2 10.6167 2.2625 9.31667 2.7875 8.1C3.3125 6.88333 4.025 5.825 4.925 4.925C5.825 4.025 6.88333 3.3125 8.1 2.7875C9.31667 2.2625 10.6167 2 12 2C13.3833 2 14.6833 2.2625 15.9 2.7875C17.1167 3.3125 18.175 4.025 19.075 4.925C19.975 5.825 20.6875 6.88333 21.2125 8.1C21.7375 9.31667 22 10.6167 22 12C22 13.3833 21.7375 14.6833 21.2125 15.9C20.6875 17.1167 19.975 18.175 19.075 19.075C18.175 19.975 17.1167 20.6875 15.9 21.2125C14.6833 21.7375 13.3833 22 12 22Z\" fill=\"currentColor\"/>", "info": "<path d=\"M11 17.002H13V11.002H11V17.002ZM12 9.00195C12.2833 9.00195 12.5208 8.90612 12.7125 8.71445C12.9042 8.52279 13 8.28529 13 8.00195C13 7.71862 12.9042 7.48112 12.7125 7.28945C12.5208 7.09779 12.2833 7.00195 12 7.00195C11.7167 7.00195 11.4792 7.09779 11.2875 7.28945C11.0958 7.48112 11 7.71862 11 8.00195C11 8.28529 11.0958 8.52279 11.2875 8.71445C11.4792 8.90612 11.7167 9.00195 12 9.00195ZM12 22.002C10.6167 22.002 9.31667 21.7395 8.1 21.2145C6.88333 20.6895 5.825 19.977 4.925 19.077C4.025 18.177 3.3125 17.1186 2.7875 15.902C2.2625 14.6853 2 13.3853 2 12.002C2 10.6186 2.2625 9.31862 2.7875 8.10195C3.3125 6.88529 4.025 5.82695 4.925 4.92695C5.825 4.02695 6.88333 3.31445 8.1 2.78945C9.31667 2.26445 10.6167 2.00195 12 2.00195C13.3833 2.00195 14.6833 2.26445 15.9 2.78945C17.1167 3.31445 18.175 4.02695 19.075 4.92695C19.975 5.82695 20.6875 6.88529 21.2125 8.10195C21.7375 9.31862 22 10.6186 22 12.002C22 13.3853 21.7375 14.6853 21.2125 15.902C20.6875 17.1186 19.975 18.177 19.075 19.077C18.175 19.977 17.1167 20.6895 15.9 21.2145C14.6833 21.7395 13.3833 22.002 12 22.002ZM12 20.002C14.2333 20.002 16.125 19.227 17.675 17.677C19.225 16.127 20 14.2353 20 12.002C20 9.76862 19.225 7.87695 17.675 6.32695C16.125 4.77695 14.2333 4.00195 12 4.00195C9.76667 4.00195 7.875 4.77695 6.325 6.32695C4.775 7.87695 4 9.76862 4 12.002C4 14.2353 4.775 16.127 6.325 17.677C7.875 19.227 9.76667 20.002 12 20.002Z\" fill=\"currentColor\"/>", "history": "<path d=\"M12 23C9.43333 23 7.16204 22.2208 5.18611 20.6625C3.21019 19.1042 1.92685 17.113 1.33611 14.6889C1.25463 14.3833 1.31574 14.1032 1.51944 13.8486C1.72315 13.594 1.99815 13.4463 2.34444 13.4056C2.67037 13.3648 2.96574 13.4259 3.23056 13.5889C3.49537 13.7519 3.6787 13.9963 3.78056 14.3222C4.26944 16.1556 5.27778 17.6528 6.80556 18.8139C8.33333 19.975 10.0648 20.5556 12 20.5556C14.3833 20.5556 16.4051 19.7255 18.0653 18.0653C19.7255 16.4051 20.5556 14.3833 20.5556 12C20.5556 9.61667 19.7255 7.59491 18.0653 5.93472C16.4051 4.27454 14.3833 3.44444 12 3.44444C10.5944 3.44444 9.28056 3.77037 8.05833 4.42222C6.83611 5.07407 5.80741 5.97037 4.97222 7.11111H7.11111C7.45741 7.11111 7.74769 7.22824 7.98194 7.4625C8.2162 7.69676 8.33333 7.98704 8.33333 8.33333C8.33333 8.67963 8.2162 8.96991 7.98194 9.20417C7.74769 9.43843 7.45741 9.55556 7.11111 9.55556H2.22222C1.87593 9.55556 1.58565 9.43843 1.35139 9.20417C1.11713 8.96991 1 8.67963 1 8.33333V3.44444C1 3.09815 1.11713 2.80787 1.35139 2.57361C1.58565 2.33935 1.87593 2.22222 2.22222 2.22222C2.56852 2.22222 2.8588 2.33935 3.09306 2.57361C3.32731 2.80787 3.44444 3.09815 3.44444 3.44444V5.09444C4.48333 3.79074 5.75139 2.78241 7.24861 2.06944C8.74583 1.35648 10.3296 1 12 1C13.5278 1 14.9588 1.29028 16.2931 1.87083C17.6273 2.45139 18.7884 3.23565 19.7764 4.22361C20.7644 5.21157 21.5486 6.37269 22.1292 7.70694C22.7097 9.0412 23 10.4722 23 12C23 13.5278 22.7097 14.9588 22.1292 16.2931C21.5486 17.6273 20.7644 18.7884 19.7764 19.7764C18.7884 20.7644 17.6273 21.5486 16.2931 22.1292C14.9588 22.7097 13.5278 23 12 23ZM13.2222 11.5111L16.2778 14.5667C16.5019 14.7907 16.6139 15.0759 16.6139 15.4222C16.6139 15.7685 16.5019 16.0537 16.2778 16.2778C16.0537 16.5019 15.7685 16.6139 15.4222 16.6139C15.0759 16.6139 14.7907 16.5019 14.5667 16.2778L11.1444 12.8556C11.0222 12.7333 10.9306 12.5958 10.8694 12.4431C10.8083 12.2903 10.7778 12.1324 10.7778 11.9694V7.11111C10.7778 6.76481 10.8949 6.47454 11.1292 6.24028C11.3634 6.00602 11.6537 5.88889 12 5.88889C12.3463 5.88889 12.6366 6.00602 12.8708 6.24028C13.1051 6.47454 13.2222 6.76481 13.2222 7.11111V11.5111Z\" fill=\"currentColor\"/>", "download": "<path d=\"M17.8333 22H6.16665C4.92022 22 3.74833 21.5146 2.86686 20.6331C1.98542 19.7517 1.5 18.5798 1.5 17.3333V16.1666C1.5 15.5222 2.02231 14.9999 2.66667 14.9999C3.31104 14.9999 3.83335 15.5222 3.83335 16.1666V17.3333C3.83335 17.9566 4.07608 18.5425 4.51672 18.9832C4.95747 19.4239 5.5434 19.6667 6.16665 19.6667H17.8333C18.4565 19.6667 19.0424 19.4239 19.4832 18.9832C19.9239 18.5424 20.1667 17.9565 20.1667 17.3333V16.1666C20.1667 15.5222 20.689 14.9999 21.3333 14.9999C21.9776 14.9999 22.5 15.5222 22.5 16.1666V17.3333C22.5 18.5797 22.0146 19.7516 21.1331 20.6331C20.2516 21.5146 19.0797 22 17.8333 22ZM12 17.3333C11.8386 17.3333 11.6849 17.3005 11.5452 17.2413C11.4147 17.1862 11.2922 17.1061 11.185 17.0014L6.50838 12.3249C6.05279 11.8693 6.05279 11.1306 6.50838 10.675C6.96397 10.2194 7.70272 10.2194 8.15832 10.675L10.8333 13.35V2.16667C10.8333 1.52231 11.3556 1 12 1C12.6443 1 13.1667 1.52231 13.1667 2.16667V13.35L15.8417 10.675C16.2972 10.2194 17.0361 10.2194 17.4916 10.675C17.9472 11.1306 17.9472 11.8693 17.4916 12.3249L12.8249 16.9916C12.6783 17.125 12.5694 17.1929 12.4544 17.2414C12.3129 17.301 12.1603 17.3333 12 17.3333Z\" fill=\"currentColor\"/>", "menu-vertical": "<mask maskUnits=\"userSpaceOnUse\" x=\"0\" y=\"0\" width=\"24\" height=\"24\"> <rect width=\"24\" height=\"24\" fill=\"currentColor\"/> </mask> <path d=\"M12 20C11.45 20 10.9792 19.8042 10.5875 19.4125C10.1958 19.0208 10 18.55 10 18C10 17.45 10.1958 16.9792 10.5875 16.5875C10.9792 16.1958 11.45 16 12 16C12.55 16 13.0208 16.1958 13.4125 16.5875C13.8042 16.9792 14 17.45 14 18C14 18.55 13.8042 19.0208 13.4125 19.4125C13.0208 19.8042 12.55 20 12 20ZM12 14C11.45 14 10.9792 13.8042 10.5875 13.4125C10.1958 13.0208 10 12.55 10 12C10 11.45 10.1958 10.9792 10.5875 10.5875C10.9792 10.1958 11.45 10 12 10C12.55 10 13.0208 10.1958 13.4125 10.5875C13.8042 10.9792 14 11.45 14 12C14 12.55 13.8042 13.0208 13.4125 13.4125C13.0208 13.8042 12.55 14 12 14ZM12 8C11.45 8 10.9792 7.80417 10.5875 7.4125C10.1958 7.02083 10 6.55 10 6C10 5.45 10.1958 4.97917 10.5875 4.5875C10.9792 4.19583 11.45 4 12 4C12.55 4 13.0208 4.19583 13.4125 4.5875C13.8042 4.97917 14 5.45 14 6C14 6.55 13.8042 7.02083 13.4125 7.4125C13.0208 7.80417 12.55 8 12 8Z\" fill=\"currentColor\"/>", "add": "<path d=\"M20.2762 10.6236L13.276 10.6448V3.78241C13.276 3.18447 12.7947 2.70312 12.1968 2.70312C11.599 2.70312 11.1175 3.18447 11.1175 3.78241L11.1386 10.6238H4.43475C3.83682 10.6238 3.35547 11.1052 3.35547 11.7031C3.35547 12.3009 3.83682 12.7822 4.43475 12.7822H11.128V19.6238C11.128 20.2214 11.6094 20.7031 12.2073 20.7031C12.8053 20.7031 13.2866 20.2214 13.2866 19.6238V12.7824H20.2762C20.8741 12.7824 21.3555 12.3007 21.3555 11.7031C21.3555 11.105 20.8687 10.6236 20.2762 10.6236Z\" fill=\"currentColor\"/>", "transfer": "<mask maskUnits=\"userSpaceOnUse\" x=\"0\" y=\"0\" width=\"24\" height=\"24\"> <rect width=\"24\" height=\"24\" fill=\"currentColor\"/> </mask> <path d=\"M7.99609 19.9922L6.59609 18.5672L9.17109 15.9922H1.99609V13.9922H9.17109L6.59609 11.4172L7.99609 9.99219L12.9961 14.9922L7.99609 19.9922ZM15.9961 13.9922L10.9961 8.99219L15.9961 3.99219L17.3961 5.41719L14.8211 7.99219H21.9961V9.99219H14.8211L17.3961 12.5672L15.9961 13.9922Z\" fill=\"currentColor\"/>", "grid": "<path d=\"M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linejoin=\"round\"/>", "list": "<path d=\"M3.42871 16.3564C3.86734 15.9204 4.57602 15.9204 5.01465 16.3564C5.0688 16.4061 5.11621 16.4631 5.15527 16.5254C5.19601 16.5858 5.23162 16.6495 5.26172 16.7158C5.29829 16.7834 5.32725 16.8554 5.34668 16.9297C5.35501 17.0025 5.35501 17.0766 5.34668 17.1494C5.35528 17.2221 5.35527 17.2955 5.34668 17.3682C5.32907 17.4503 5.3001 17.5298 5.26172 17.6045C5.23403 17.6723 5.19854 17.7368 5.15527 17.7959C5.1162 17.8582 5.06884 17.9152 5.01465 17.9648C4.96499 18.019 4.90792 18.0664 4.8457 18.1055C4.78476 18.1486 4.71881 18.1844 4.64941 18.2119C4.5829 18.2407 4.51282 18.2612 4.44141 18.2734C4.36855 18.2818 4.29453 18.2818 4.22168 18.2734C4.1481 18.2746 4.07472 18.267 4.00293 18.251C3.92964 18.2388 3.85755 18.2183 3.78906 18.1895C3.72136 18.1617 3.65681 18.1261 3.59766 18.083C3.53542 18.044 3.47838 17.9965 3.42871 17.9424C3.21759 17.7325 3.09801 17.4471 3.09668 17.1494C3.0958 17.0757 3.10427 17.0017 3.12012 16.9297C3.13204 16.8563 3.1525 16.7842 3.18164 16.7158C3.21173 16.6495 3.24736 16.5858 3.28809 16.5254C3.32712 16.4632 3.37459 16.4061 3.42871 16.3564ZM14.9053 16.0234C15.5264 16.0234 16.0303 16.5273 16.0303 17.1484C16.0301 17.7694 15.5262 18.2725 14.9053 18.2725H7.5957C6.97474 18.2725 6.47092 17.7694 6.4707 17.1484C6.4707 16.5273 6.97461 16.0234 7.5957 16.0234H14.9053ZM3.42871 11.2949C3.86734 10.8589 4.57602 10.8589 5.01465 11.2949C5.06889 11.3445 5.11633 11.4016 5.15527 11.4639C5.1972 11.5256 5.23283 11.5914 5.26172 11.6602C5.29829 11.7257 5.32725 11.7956 5.34668 11.8682C5.35504 11.941 5.35504 12.015 5.34668 12.0879C5.35528 12.1605 5.35527 12.234 5.34668 12.3066C5.32911 12.3887 5.30013 12.4683 5.26172 12.543C5.23399 12.6108 5.19849 12.6752 5.15527 12.7344C5.11619 12.7966 5.06884 12.8536 5.01465 12.9033C4.96498 12.9575 4.90793 13.0049 4.8457 13.0439C4.78476 13.0871 4.71881 13.1228 4.64941 13.1504C4.58293 13.1791 4.5128 13.1996 4.44141 13.2119C4.36855 13.2203 4.29453 13.2203 4.22168 13.2119C4.14795 13.2131 4.07389 13.2056 4.00195 13.1895C3.92885 13.1772 3.85739 13.1567 3.78906 13.1279C3.72138 13.1002 3.6568 13.0645 3.59766 13.0215C3.53543 12.9824 3.47837 12.935 3.42871 12.8809C3.37427 12.8298 3.325 12.773 3.28223 12.7119C3.24311 12.6513 3.20981 12.587 3.18164 12.5205C3.12808 12.3824 3.09889 12.236 3.09668 12.0879C3.09791 11.7902 3.21758 11.5049 3.42871 11.2949ZM19.9668 10.9639C20.5877 10.9641 21.0908 11.4679 21.0908 12.0889C21.0906 12.7096 20.5876 13.2127 19.9668 13.2129H7.5957C6.97474 13.2129 6.47092 12.7098 6.4707 12.0889C6.4707 11.4678 6.97461 10.9639 7.5957 10.9639H19.9668ZM3.42871 6.23438C3.86732 5.79852 4.57508 5.79849 5.01367 6.23438C5.22485 6.44432 5.34444 6.72957 5.3457 7.02734C5.35406 7.10002 5.35406 7.17341 5.3457 7.24609C5.32555 7.32014 5.29755 7.39213 5.26172 7.45996C5.23153 7.52656 5.1952 7.59074 5.1543 7.65137C5.11395 7.71433 5.06667 7.77244 5.01367 7.8252C4.80281 8.03434 4.51767 8.15161 4.2207 8.15137C4.148 8.15947 4.07465 8.1595 4.00195 8.15137C3.91979 8.13408 3.84017 8.10604 3.76562 8.06738C3.69789 8.03955 3.63342 8.00405 3.57422 7.96094C3.51326 7.92222 3.45741 7.87614 3.40625 7.8252C3.35326 7.77245 3.30597 7.71432 3.26562 7.65137C3.22472 7.59074 3.18839 7.52656 3.1582 7.45996C3.12984 7.39127 3.10939 7.31931 3.09668 7.24609C3.08832 7.17341 3.08832 7.10003 3.09668 7.02734C3.09791 6.72957 3.2175 6.44432 3.42871 6.23438ZM18.8418 5.90234C19.4629 5.90237 19.9668 6.40626 19.9668 7.02734C19.9666 7.64825 19.4627 8.15135 18.8418 8.15137H7.5957C6.97474 8.15136 6.47092 7.64826 6.4707 7.02734C6.4707 6.40625 6.97461 5.90235 7.5957 5.90234H18.8418Z\" fill=\"currentColor\"/>", "checkbox-checked": "<path d=\"M10.5176 16.0805L17.6362 8.96199L16.5204 7.84617L10.5176 13.8489L7.49999 10.8312L6.38417 11.9471L10.5176 16.0805ZM4.91404 21C4.37919 21 3.92647 20.8147 3.55588 20.4441C3.18529 20.0735 3 19.6208 3 19.086V4.91404C3 4.37919 3.18529 3.92647 3.55588 3.55588C3.92647 3.18529 4.37919 3 4.91404 3H19.086C19.6208 3 20.0735 3.18529 20.4441 3.55588C20.8147 3.92647 21 4.37919 21 4.91404V19.086C21 19.6208 20.8147 20.0735 20.4441 20.4441C20.0735 20.8147 19.6208 21 19.086 21H4.91404Z\" fill=\"currentColor\"/>", "checkbox-unchecked": "<path d=\"M4.91404 21C4.37919 21 3.92647 20.8147 3.55588 20.4441C3.18529 20.0735 3 19.6208 3 19.086V4.91404C3 4.37919 3.18529 3.92647 3.55588 3.55588C3.92647 3.18529 4.37919 3 4.91404 3H19.086C19.6208 3 20.0735 3.18529 20.4441 3.55588C20.8147 3.92647 21 4.37919 21 4.91404V19.086C21 19.6208 20.8147 20.0735 20.4441 20.4441C20.0735 20.8147 19.6208 21 19.086 21H4.91404ZM4.91404 19.4118H19.086C19.1674 19.4118 19.2421 19.3778 19.31 19.31C19.3778 19.2421 19.4118 19.1674 19.4118 19.086V4.91404C19.4118 4.83258 19.3778 4.75791 19.31 4.69002C19.2421 4.62215 19.1674 4.58821 19.086 4.58821H4.91404C4.83258 4.58821 4.75791 4.62215 4.69002 4.69002C4.62215 4.75791 4.58821 4.83258 4.58821 4.91404V19.086C4.58821 19.1674 4.62215 19.2421 4.69002 19.31C4.75791 19.3778 4.83258 19.4118 4.91404 19.4118Z\" fill=\"currentColor\"/>", "book": "<path d=\"M3.5 5.5c2.5-1 5.5-1 8.5 1 3-2 6-2 8.5-1v13c-2.5-1-5.5-1-8.5 1-3-2-6-2-8.5-1z\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M12 6.5v13\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\"/>"};
+  function ic(n, s) { s = s || 24; return '<svg width="' + s + '" height="' + s + '" viewBox="0 0 24 24" aria-hidden="true" focusable="false">' + IC[n] + '</svg>'; }
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function plural(n, a, b) { return n + ' ' + (n === 1 ? a : (b || a + 's')); }
+  var LAND = window.matchMedia('(orientation: landscape)');
+  var toastT;
+  function toast(msg) { var t = document.getElementById('toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(function () { t.classList.remove('on'); }, 2400); }
+  var TYPE = { yearround: ['Year-round', 'time'], seasonal: ['Seasonal', 'star'], timebound: ['Time-Bound', 'calendar'], none: ['Not scheduled', 'time'] };
+  var STATUS = { active: 'Active', inactive: 'Inactive', unassigned: 'Not assigned' };
+  function ttag(t) { return '<span class="ttag ' + t + ' t-body-medium">' + ic(TYPE[t][1], 16) + TYPE[t][0] + '</span>'; }
+  function pill(s) { return '<span class="pill ' + s + ' t-body-medium">' + STATUS[s] + '</span>'; }
+  /* ---------------- Diet Directory (V2 tab prototype: diet/directory.html + directory.js + directory.data.js) ---------------- */
+  var DIRD = {"sites": ["LSET FARM"], "selectedId": "D-273", "diets": [{"id": "D-273", "verified": false, "update": "pending", "active": false, "chips": ["inactive"], "window": {"text": "Inactive", "state": "inactive"}, "dietitian": {"name": "Amruth reddy", "date": "24-09-26"}, "schedule": [{"time": "4 am to 5 am", "days": [{"day": "Daily", "items": [{"name": "Apple", "alts": [{"name": "Papaya", "amount": "60 kg"}, {"name": "Guava", "ratio": "1:1"}], "amount": "65 kg"}, {"name": "Carrot", "alts": [{"name": "Sweet Potato", "prep": "Steamed", "amount": "40 kg"}], "amount": "40 kg"}, {"name": "Beans", "amount": "30 kg"}, {"name": "Maize", "alts": [{"name": "Ragi", "amount": "20 kg"}], "amount": "25 kg"}, {"name": "Cooked Veg Mix", "amount": "20 kg", "mix": {"label": "MIX", "meta": "2 items · 50% each", "parts": [{"name": "Beans", "note": "Fresh"}, {"name": "Carrot"}]}}, {"name": "Rice", "amount": "10 g"}, {"name": "Fish", "prep": "Raw", "alts": [{"name": "Chicken", "prep": "Raw", "amount": "8 kg"}], "amount": "8 kg"}, {"name": "Curd", "amount": "7 ltr"}, {"name": "Bannana", "prep": "Chopped", "amount": "1 kg"}]}]}], "notes": {"kitchen": "QA kitchen note thaw fish", "site": "QA site note scatter feed"}, "remark": "QA remark monitor weekly", "changeReason": {"label": "Enrichment"}, "nutrition": {"energy": 5000, "protein": 2500, "fat": 50, "carbohydrate": 500, "fiber": 2500, "moisture": 0.5, "calcium": 50, "phosphorus": 1000, "vitaminA": 150, "vitaminD": 0, "vitaminE": 0, "vitaminC": 0}, "species": [{"name": "Alligator Snapping Turtle", "sci": "Macrochelys temminckii", "animals": 1, "kind": "Base", "cls": "reptilia"}, {"name": "Antilles Pinktoe Tarantula", "sci": "Caribena versicolor", "animals": 2, "kind": "Base", "cls": "other"}, {"name": "Aragon Red Pike", "sci": "Crenicichla lugubris", "animals": 2, "kind": "Base", "cls": "other"}, {"name": "Arizona Black-Tailed Prairie Dog", "sci": "Cynomys ludovicianus", "animals": 1, "kind": "Base", "cls": "mammalia"}, {"name": "Atlantic Canary", "sci": "Serinus canaria", "animals": 6, "kind": "Base", "cls": "aves"}, {"name": "Black Curassow", "sci": "Crax alector", "animals": 2, "kind": "Base", "cls": "aves"}, {"name": "Black Iguana", "sci": "Ctenosaura similis", "animals": 1, "kind": "Base", "cls": "reptilia"}, {"name": "Black-Capped Lory", "sci": "Lorius lory", "animals": 2, "kind": "Base", "cls": "aves"}, {"name": "Black-Capped Parakeet", "sci": "Pyrrhura rupicola", "animals": 2, "kind": "Base", "cls": "aves"}, {"name": "Black-Headed Parrot", "sci": "Pionites melanocephalus", "animals": 7, "kind": "Base", "cls": "aves"}, {"name": "Black-Tailed Marmoset", "sci": "Mico melanurus", "animals": 2, "kind": "Base", "cls": "mammalia"}, {"name": "Black-Tufted Marmoset", "sci": "Callithrix penicillata", "animals": 13, "kind": "Base", "cls": "mammalia"}, {"name": "Blue-And-Yellow Macaw", "sci": "Ara ararauna", "animals": 17, "kind": "Base", "cls": "aves"}, {"name": "Blue-Cheeked Amazon", "sci": "Amazona dufresniana", "animals": 4, "kind": "Base", "cls": "aves"}, {"name": "Blue-Crowned Parakeet", "sci": "Aratinga acuticaudata", "animals": 4, "kind": "Base", "cls": "aves"}, {"name": "Blue-Eyed Cockatoo", "sci": "Cacatua ophthalmica", "animals": 11, "kind": "Base", "cls": "aves"}, {"name": "Blue-Faced Parrot-Finch", "sci": "Erythrura trichroa", "animals": 9, "kind": "Base", "cls": "aves"}, {"name": "Blue-Fronted Amazon", "sci": "Amazona aestiva", "animals": 8, "kind": "Base", "cls": "aves"}, {"name": "Blue-Headed Macaw", "sci": "Primolius couloni", "animals": 6, "kind": "Base", "cls": "aves"}, {"name": "Blue-Headed Parrot", "sci": "Pionus menstruus", "animals": 2, "kind": "Base", "cls": "aves"}, {"name": "Blue-Throated Macaw", "sci": "Ara glaucogularis", "animals": 4, "kind": "Base", "cls": "aves"}, {"name": "Blue-Throated Parakeet", "sci": "Pyrrhura cruentata", "animals": 10, "kind": "Base", "cls": "aves"}, {"name": "Brazilian Black Tarantula", "sci": "Grammostola pulchra", "animals": 2, "kind": "Base", "cls": "other"}, {"name": "Brown Anole", "sci": "Anolis sagrei", "animals": 2, "kind": "Base", "cls": "reptilia"}, {"name": "Brown Greater Galago", "sci": "Otolemur crassicaudatus", "animals": 3, "kind": "Base", "cls": "mammalia"}, {"name": "Budgerigar", "sci": "Melopsittacus undulatus", "animals": 6, "kind": "Base", "cls": "aves"}, {"name": "Buffon's Macaw", "sci": "Ara ambiguus", "animals": 3, "kind": "Base", "cls": "aves"}, {"name": "Burrowing Parrot", "sci": "Cyanoliseus patagonus", "animals": 9, "kind": "Base", "cls": "aves"}, {"name": "California Quail", "sci": "Callipepla californica", "animals": 21, "kind": "Base", "cls": "aves"}, {"name": "Cameroon Dwarf Gecko", "sci": "Lygodactylus conraui", "animals": 1, "kind": "Base", "cls": "reptilia"}, {"name": "Cape Parrot", "sci": "Poicephalus robustus", "animals": 7, "kind": "Base", "cls": "aves"}, {"name": "Capybara", "sci": "Hydrochoerus hydrochaeris", "animals": 2, "kind": "Base", "cls": "mammalia"}, {"name": "Cayman Islands Ground Iguana", "sci": "Cyclura nubila", "animals": 3, "kind": "Base", "cls": "reptilia"}, {"name": "Central Bearded Dragon", "sci": "Pogona vitticeps", "animals": 4, "kind": "Base", "cls": "reptilia"}, {"name": "Chaco Golden Knee Tarantula", "sci": "Grammostola pulchripes", "animals": 2, "kind": "Base", "cls": "other"}, {"name": "Channel-Billed Toucan", "sci": "Ramphastos vitellinus", "animals": 2, "kind": "Base", "cls": "aves"}, {"name": "Cherry Finch", "sci": "Neochmia modesta", "animals": 6, "kind": "Base", "cls": "aves"}, {"name": "Chestnut-Eared Aracari", "sci": "Pteroglossus castanotis", "animals": 2, "kind": "Base", "cls": "aves"}, {"name": "Cockatiel", "sci": "Nymphicus hollandicus", "animals": 4, "kind": "Base", "cls": "aves"}, {"name": "Coleto", "sci": "Sarcops calvus", "animals": 2, "kind": "Base", "cls": "aves"}, {"name": "Common Buttonquail", "sci": "Turnix sylvaticus", "animals": 115, "kind": "Base", "cls": "aves"}, {"name": "Common Marmoset", "sci": "Callithrix jacchus", "animals": 14, "kind": "Base", "cls": "mammalia"}, {"name": "Common Ostrich", "sci": "Struthio camelus", "animals": 3, "kind": "Base", "cls": "aves"}, {"name": "Common Raccoon", "sci": "Procyon lotor", "animals": 2, "kind": "Base", "cls": "mammalia"}, {"name": "Common Slider", "sci": "Trachemys scripta", "animals": 5, "kind": "Base", "cls": "reptilia"}, {"name": "Common Snapping Turtle", "sci": "Chelydra serpentina", "animals": 4, "kind": "Base", "cls": "reptilia"}, {"name": "Common Squirrel Monkey", "sci": "Saimiri sciureus", "animals": 6, "kind": "Base", "cls": "mammalia"}, {"name": "Common Waxbill", "sci": "Estrilda astrild", "animals": 17, "kind": "Base", "cls": "aves"}, {"name": "Corn Snake", "sci": "Pantherophis guttatus", "animals": 1, "kind": "Base", "cls": "reptilia"}, {"name": "Cotton-Top Tamarin", "sci": "Saguinus oedipus", "animals": 12, "kind": "Base", "cls": "mammalia"}, {"name": "Coypu", "sci": "Myocastor coypus", "animals": 32, "kind": "Base", "cls": "mammalia"}]}, {"id": "D-311", "listLabel": "Blue-And-Yellow Macaw · Site LSET FARM", "verified": false, "update": "none", "active": true, "chips": ["Site-wide · LSET FARM"], "window": {"text": "all year · Since 25-09-26", "state": "current"}, "dietitian": null, "schedule": [{"time": "7 am to 10 am", "days": [{"day": "Daily", "items": [{"name": "Parrot Fruit Mix", "amount": "300 g", "mix": {"label": "MIX", "meta": "2 items · 50% each", "parts": [{"name": "Apple"}, {"name": "Bannana"}]}}, {"name": "Carrot", "prep": "Chopped", "alts": [{"name": "Sweet Potato", "prep": "Steamed", "amount": "60 g"}], "amount": "60 g"}]}]}, {"time": "4 pm to 6 pm", "days": [{"day": "Daily", "items": [{"name": "Sunflower Seeds", "alts": [{"name": "Maize", "amount": "50 g"}], "amount": "40 g"}, {"name": "Cooked Veg Mix", "amount": "80 g", "mix": {"label": "MIX", "meta": "2 items · 50% each", "parts": [{"name": "Beans", "note": "Fresh"}, {"name": "Carrot"}]}}]}]}], "notes": {"kitchen": "Pack the fruit mix and the veg mix in separate tubs", "site": "Seeds in the afternoon feed only"}, "changeReason": {"label": "Transition", "detail": "LSET FARM macaw ration: more fruit, fewer grains than the species-wide D-273."}, "nutrition": {"energy": 498.5, "protein": 12, "fat": 21.7, "carbohydrate": 75.3, "fiber": 14.8, "moisture": 76.5, "calcium": 95.5, "phosphorus": 363.7, "vitaminA": 17179, "vitaminD": 0, "vitaminE": 15.3, "vitaminC": 31.3}, "sites": ["LSET FARM"], "species": [{"name": "Blue-And-Yellow Macaw", "sci": "Ara ararauna", "animals": 16, "kind": "Base", "cls": "aves"}]}, {"id": "D-312", "listLabel": "Scarlet Macaw · Section Agumbe", "verified": false, "update": "none", "active": true, "chips": ["Section-wide · Agumbe"], "window": {"text": "all year · Since 25-09-26", "state": "current"}, "dietitian": null, "schedule": [{"time": "7 am to 10 am", "days": [{"day": "Daily", "items": [{"name": "Apple", "prep": "Whole", "alts": [{"name": "Pomegranate", "prep": "Whole", "amount": "120 g"}], "amount": "150 g"}, {"name": "Bannana", "prep": "Whole", "amount": "100 g"}, {"name": "Maize", "amount": "50 g"}]}]}], "notes": {"site": "Scatter across the walk perches, not in the bowl"}, "changeReason": {"label": "Enrichment", "detail": "Agumbe macaw walk: whole fruit scattered on the perches for foraging."}, "nutrition": {"energy": 210, "protein": 3.1, "fat": 1.3, "carbohydrate": 52.9, "fiber": 7.2, "moisture": 80.4, "calcium": 15, "phosphorus": 83, "vitaminA": 238.5, "vitaminD": 0, "vitaminE": 0.4, "vitaminC": 19}, "sites": ["LSET FARM"], "species": [{"name": "Scarlet Macaw", "sci": "Ara macao", "animals": 2, "kind": "Base", "cls": "aves"}]}, {"id": "D-313", "listLabel": "Buffon's Macaw · Animal B587", "verified": false, "update": "none", "active": true, "chips": ["Animal-wide · B587"], "window": {"text": "all year · Since 25-09-26", "state": "current"}, "dietitian": null, "schedule": [{"time": "7 am to 10 am", "days": [{"day": "Daily", "items": [{"name": "Papaya", "prep": "Chopped", "alts": [{"name": "Bannana", "prep": "Chopped", "amount": "120 g"}], "amount": "120 g"}, {"name": "Cooked Veg Mix", "prep": "Steamed", "amount": "80 g", "mix": {"label": "MIX", "meta": "2 items · 50% each", "parts": [{"name": "Beans", "note": "Fresh"}, {"name": "Carrot"}]}}, {"name": "Curd", "amount": "30 ml"}]}]}, {"time": "4 pm to 6 pm", "days": [{"day": "Daily", "items": [{"name": "Ragi", "prep": "Cooked", "amount": "40 g"}]}]}], "remark": "B587 is elderly with a worn beak. Soft, chopped food only. Weigh every Monday and tell the vet if it drops below 1.1 kg.", "changeReason": {"label": "Other", "detail": "Elderly bird with a worn beak: soft food only."}, "nutrition": {"energy": 249.9, "protein": 7.1, "fat": 3.2, "carbohydrate": 50.1, "fiber": 7.6, "moisture": 76.6, "calcium": 91.5, "phosphorus": 183.7, "vitaminA": 8128.1, "vitaminD": 0.6, "vitaminE": 0.8, "vitaminC": 80.5}, "sites": ["LSET FARM"], "species": [{"name": "Buffon's Macaw", "sci": "Ara ambiguus", "animals": 1, "kind": "Base", "cls": "aves"}]}, {"id": "D-314", "listLabel": "Blue-And-Yellow Macaw · Enclosure AG 9", "verified": false, "update": "none", "active": true, "chips": ["Enclosure-wide · AG 9"], "window": {"text": "25-09-26 → 25-10-26", "state": "current"}, "dietitian": null, "schedule": [{"time": "7 am to 10 am", "days": [{"day": "Daily", "items": [{"name": "Bannana", "prep": "Chopped", "amount": "100 g"}, {"name": "Egg", "prep": "Cooked", "alts": [{"name": "Curd", "amount": "20 ml"}], "amount": "20 g"}]}]}, {"time": "4 pm to 6 pm", "days": [{"day": "Daily", "items": [{"name": "Parrot Fruit Mix", "amount": "150 g", "mix": {"label": "MIX", "meta": "2 items · 50% each", "parts": [{"name": "Apple"}, {"name": "Bannana"}]}}, {"name": "Maize", "amount": "30 g"}]}]}], "remark": "Weaning juveniles. Offer soft food twice a day and record crop fill on the feed sheet.", "changeReason": {"label": "Transition", "detail": "Two juveniles (DW 07 M 89 and DW 07 M 90) moved in from the Hand Feeding Room; weaning ration until 25-10-26."}, "nutrition": {"energy": 251.6, "protein": 5.6, "fat": 3.2, "carbohydrate": 56.2, "fiber": 7, "moisture": 77.7, "calcium": 23.9, "phosphorus": 107.9, "vitaminA": 326, "vitaminD": 17.4, "vitaminE": 0.5, "vitaminC": 20.7}, "sites": ["LSET FARM"], "species": [{"name": "Blue-And-Yellow Macaw", "sci": "Ara ararauna", "animals": 2, "kind": "Time-Bound", "cls": "aves"}]}, {"id": "D-296", "verified": false, "update": "none", "active": true, "window": {"text": "24-09-26 → 25-10-26", "state": "current"}, "dietitian": {"name": "Amruth reddy", "date": "24-09-26"}, "schedule": [{"time": "4 am to 5 am", "days": [{"day": "Daily", "items": [{"name": "Parrot Fruit Mix", "amount": "20 kg", "mix": {"label": "MIX", "meta": "2 items · 50% each", "parts": [{"name": "Apple"}, {"name": "Bannana"}]}}]}]}], "changeReason": {"label": "Winter"}, "nutrition": {"energy": 123, "protein": 1.2, "fat": 0.4, "carbohydrate": 31.9, "fiber": 4.3, "moisture": 80.2, "calcium": 10, "phosphorus": 29, "vitaminA": 103, "vitaminD": 0, "vitaminE": 0.24, "vitaminC": 11.6}, "species": [{"name": "Common Buttonquail", "sci": "Turnix sylvaticus", "animals": 115, "kind": "Time-Bound", "cls": "aves"}]}, {"id": "D-297", "verified": false, "update": "none", "active": true, "window": {"text": "24-09-26 → 25-10-26", "state": "current"}, "dietitian": null, "schedule": [{"time": "4 am to 5 am", "days": [{"day": "Daily", "items": [{"name": "Rice", "amount": "10 g"}]}]}], "changeReason": {"label": "Winter"}, "nutrition": {"energy": 8, "protein": 0.2, "fat": 0, "carbohydrate": 1.7, "fiber": 0, "moisture": 68.4, "calcium": 1, "phosphorus": 3, "vitaminA": 0, "vitaminD": 0, "vitaminE": 0, "vitaminC": 0}, "species": [{"name": "Common Buttonquail", "sci": "Turnix sylvaticus", "animals": 115, "kind": "Time-Bound", "cls": "aves"}]}, {"id": "D-243", "verified": false, "update": "pending", "active": true, "window": {"text": "all year · Since 22-09-26", "state": "current"}, "dietitian": null, "schedule": [{"time": "4 am to 5 am", "days": [{"day": "Daily", "items": [{"name": "Apple", "alts": [{"name": "Papaya", "ratio": "1:1"}], "amount": "70 kg"}]}]}], "changeReason": {"label": "Test Diet"}, "nutrition": {"energy": 154, "protein": 0.8, "fat": 0.5, "carbohydrate": 40.8, "fiber": 7.1, "moisture": 85.6, "calcium": 18, "phosphorus": 33, "vitaminA": 160, "vitaminD": 0, "vitaminE": 0.53, "vitaminC": 13.6}, "species": [{"name": "Cut-Throat Finch", "sci": "Amadina fasciata", "animals": 7, "kind": "Base", "cls": "aves"}, {"name": "Degu", "sci": "Octodon degus", "animals": 49, "kind": "Base", "cls": "mammalia"}, {"name": "Diamond Dove", "sci": "Geopelia cuneata", "animals": 45, "kind": "Base", "cls": "aves"}, {"name": "Diamond Firetail", "sci": "Stagonopleura guttata", "animals": 10, "kind": "Base", "cls": "aves"}, {"name": "Domesticated Guinea Pig", "sci": "Cavia porcellus", "animals": 2, "kind": "Base", "cls": "mammalia"}, {"name": "Dusky Lory", "sci": "Pseudeos fuscata", "animals": 1, "kind": "Base", "cls": "aves"}, {"name": "Dusky Parrot", "sci": "Pionus fuscus", "animals": 1, "kind": "Base", "cls": "aves"}, {"name": "Dusky-Headed Parakeet", "sci": "Aratinga weddellii", "animals": 4, "kind": "Base", "cls": "aves"}, {"name": "Dwarf Yellow-Headed Gecko", "sci": "Lygodactylus luteopicturatus", "animals": 1, "kind": "Base", "cls": "reptilia"}, {"name": "Eastern Fox Squirrel", "sci": "Sciurus niger", "animals": 1, "kind": "Base", "cls": "mammalia"}]}, {"id": "D-291", "verified": false, "update": "none", "active": true, "chips": ["By sex"], "window": {"text": "all year · Since 23-09-26", "state": "current"}, "dietitian": null, "columns": ["Female", "Male"], "schedule": [{"time": "any time", "days": [{"day": "Daily", "items": [{"name": "Maize", "amount": "5 kg", "extra": ["5 kg", "5 kg"]}]}]}], "nutrition": {"energy": 297, "protein": 11.3, "fat": 4.7, "carbohydrate": 64.5, "fiber": 6.9, "moisture": 76.1, "calcium": 7, "phosphorus": 307, "vitaminA": 645, "vitaminD": 0, "vitaminE": 0.24, "vitaminC": 23.5}, "species": [{"name": "Speckled Pigeon", "sci": "Columba guinea", "animals": 4, "kind": "Base", "cls": "aves"}]}, {"id": "D-256", "verified": false, "update": "pending", "active": true, "window": {"text": "all year · Since 22-09-26", "state": "current"}, "dietitian": null, "schedule": [{"time": "4 am to 5 am", "days": [{"day": "Tue, Wed, Thu, Fri, Sat", "items": [{"name": "Apple", "amount": "50 kg"}]}]}], "changeReason": {"label": "Test Diet"}, "nutrition": {"energy": 305, "protein": 1.5, "fat": 1, "carbohydrate": 81.1, "fiber": 14.1, "moisture": 85.6, "calcium": 35, "phosphorus": 65, "vitaminA": 317, "vitaminD": 0, "vitaminE": 1.06, "vitaminC": 27}, "species": [{"name": "Elegant Imperial Pigeon", "sci": "Ducula concinna", "animals": 2, "kind": "Base", "cls": "aves"}]}, {"id": "D-228", "verified": false, "update": "pending", "active": true, "window": {"text": "all year · Since 22-09-26", "state": "current"}, "dietitian": null, "schedule": [{"time": "4 am to 5 am", "days": [{"day": "Daily", "items": [{"name": "Apple", "amount": "70 kg"}]}]}], "changeReason": {"label": "Test Diet"}, "nutrition": {"energy": 304, "protein": 1.5, "fat": 1, "carbohydrate": 80.8, "fiber": 14, "moisture": 85.6, "calcium": 35, "phosphorus": 64, "vitaminA": 316, "vitaminD": 0, "vitaminE": 1.05, "vitaminC": 26.9}, "species": [{"name": "Crested Partridge", "sci": "Rollulus rouloul", "animals": 4, "kind": "Base", "cls": "aves"}]}, {"id": "D-292", "verified": false, "update": "none", "active": true, "chips": ["By sex"], "window": {"text": "24-09 → 30-11 · yearly", "state": "current"}, "dietitian": null, "columns": ["Female", "Male"], "schedule": [{"time": "4 am to 5 am", "days": [{"day": "Daily", "items": [{"name": "Apple", "prep": "Whole", "amount": "10 kg", "extra": ["5 kg", "10 kg"]}]}]}], "changeReason": {"label": "Other"}, "nutrition": {"energy": 139, "protein": 0.7, "fat": 0.5, "carbohydrate": 36.8, "fiber": 6.4, "moisture": 85.6, "calcium": 16, "phosphorus": 29, "vitaminA": 144, "vitaminD": 0, "vitaminE": 0.48, "vitaminC": 12.3}, "species": [{"name": "Severe Macaw", "sci": "Ara severus", "animals": 8, "kind": "Seasonal", "cls": "aves"}, {"name": "Aldabra Day Gecko", "sci": "Phelsuma abbotti", "animals": 1, "kind": "Base", "cls": "reptilia"}, {"name": "Arawana", "sci": "Osteoglossum bicirrhosum", "animals": 6, "kind": "Base", "cls": "other"}, {"name": "Bali Myna", "sci": "Leucopsar rothschildi", "animals": 14, "kind": "Base", "cls": "aves"}]}, {"id": "D-283", "verified": false, "update": "pending", "active": true, "window": {"text": "all year · Since 23-09-26", "state": "current"}, "dietitian": null, "schedule": [{"time": "4 am to 5 am", "days": [{"day": "Daily", "items": [{"name": "Cooked Veg Mix", "amount": "10 kg", "mix": {"label": "MIX", "meta": "2 items · 50% each", "parts": [{"name": "Beans", "note": "Fresh"}, {"name": "Carrot"}]}}, {"name": "Bannana", "prep": "Chopped", "amount": "10 kg"}, {"name": "Carrot", "prep": "Chopped", "amount": "50 g"}, {"name": "Morning Grain Mix", "amount": "80 g", "mix": {"label": "MIX", "meta": "2 items · 50% each", "parts": [{"name": "Rice or Apple"}, {"name": "Maize"}]}}, {"name": "Chicken", "alts": [{"name": "Egg", "prep": "Cooked", "amount": "40 g"}], "amount": "40 g"}]}]}], "changeReason": {"label": "Transition"}, "nutrition": {"energy": 505, "protein": 252.5, "fat": 5.1, "carbohydrate": 50.5, "fiber": 252.5, "moisture": 0.5, "calcium": 5, "phosphorus": 101, "vitaminA": 15, "vitaminD": 0, "vitaminE": 0, "vitaminC": 0}, "species": [{"name": "Fischer's Lovebird", "sci": "Agapornis fischeri", "animals": 18, "kind": "Base", "cls": "aves"}]}, {"id": "D-277", "verified": false, "update": "pending", "active": true, "window": {"text": "all year · Since 23-09-26", "state": "current"}, "dietitian": null, "schedule": [{"time": "4 am to 5 am", "days": [{"day": "Daily", "items": [{"name": "Cooked Veg Mix", "amount": "10 kg", "mix": {"label": "MIX", "meta": "2 items · 50% each", "parts": [{"name": "Beans", "note": "Fresh"}, {"name": "Carrot"}]}}, {"name": "Bannana", "prep": "Chopped", "amount": "10 kg"}, {"name": "Carrot", "prep": "Chopped", "amount": "50 g"}, {"name": "Morning Grain Mix", "amount": "80 g", "mix": {"label": "MIX", "meta": "2 items · 50% each", "parts": [{"name": "Rice or Apple"}, {"name": "Maize"}]}}]}]}], "nutrition": {"energy": 505, "protein": 252.5, "fat": 5.1, "carbohydrate": 50.5, "fiber": 252.5, "moisture": 0.5, "calcium": 5, "phosphorus": 101, "vitaminA": 15, "vitaminD": 0, "vitaminE": 0, "vitaminC": 0}, "species": [{"name": "Festive Amazon", "sci": "Amazona festiva", "animals": 2, "kind": "Base", "cls": "aves"}]}, {"id": "D-232", "verified": false, "update": "pending", "active": true, "window": {"text": "all year · Since 22-09-26", "state": "current"}, "dietitian": null, "schedule": [{"time": "4 am to 5 am", "days": [{"day": "Daily", "items": [{"name": "Apple", "amount": "70 kg"}]}]}], "changeReason": {"label": "Test Diet"}, "nutrition": {"energy": 265, "protein": 1.3, "fat": 0.9, "carbohydrate": 70.3, "fiber": 12.2, "moisture": 85.6, "calcium": 31, "phosphorus": 56, "vitaminA": 275, "vitaminD": 0, "vitaminE": 0.92, "vitaminC": 23.4}, "species": [{"name": "Crimson Rosella", "sci": "Platycercus elegans", "animals": 1, "kind": "Base", "cls": "aves"}, {"name": "Crimson-Bellied Parakeet", "sci": "Pyrrhura perlata", "animals": 5, "kind": "Base", "cls": "aves"}, {"name": "Cuban Amazon", "sci": "Amazona leucocephala", "animals": 2, "kind": "Base", "cls": "aves"}]}, {"id": "D-226", "verified": false, "update": "none", "active": true, "window": {"text": "all year · Since 22-09-26", "state": "current"}, "dietitian": null, "schedule": [{"time": "7 am to 10 am", "days": [{"day": "Daily", "items": [{"name": "Bannana", "prep": "Chopped", "alts": ["Apple"], "amount": "10 kg"}]}]}], "notes": {"kitchen": "New base diet", "site": "New base diet"}, "nutrition": {"energy": 288, "protein": 3.5, "fat": 1.1, "carbohydrate": 73.9, "fiber": 8.4, "moisture": 74.9, "calcium": 16, "phosphorus": 71, "vitaminA": 207, "vitaminD": 0, "vitaminE": 0.32, "vitaminC": 28.2}, "species": [{"name": "Scarlet Macaw", "sci": "Ara macao", "animals": 11, "kind": "Base", "cls": "aves"}]}, {"id": "D-290", "verified": false, "update": "none", "active": true, "window": {"text": "all year · Since 23-09-26", "state": "current"}, "dietitian": null, "schedule": [{"time": "any time", "days": [{"day": "Daily", "items": [{"name": "Pipeapple", "amount": "2 kg"}]}]}], "notes": {"kitchen": "test"}, "nutrition": {"energy": 125, "protein": 1.4, "fat": 0.3, "carbohydrate": 32.8, "fiber": 3.5, "moisture": 86, "calcium": 33, "phosphorus": 20, "vitaminA": 145, "vitaminD": 0, "vitaminE": 0.05, "vitaminC": 119.5}, "species": [{"name": "Severe Macaw", "sci": "Ara severus", "animals": 8, "kind": "Base", "cls": "aves"}]}, {"id": "D-282", "verified": false, "update": "pending", "active": true, "window": {"text": "all year · Since 23-09-26", "state": "current"}, "dietitian": null, "schedule": [{"time": "4 am to 5 am", "days": [{"day": "Daily", "items": [{"name": "Cooked Veg Mix", "amount": "10 kg", "mix": {"label": "MIX", "meta": "2 items · 50% each", "parts": [{"name": "Beans", "note": "Fresh"}, {"name": "Carrot"}]}}, {"name": "Bannana", "prep": "Chopped", "amount": "10 kg"}, {"name": "Carrot", "prep": "Chopped", "amount": "50 g"}, {"name": "Morning Grain Mix", "amount": "80 g", "mix": {"label": "MIX", "meta": "2 items · 50% each", "parts": [{"name": "Rice or Apple"}, {"name": "Maize"}]}}]}]}], "nutrition": {"energy": 505, "protein": 252.5, "fat": 5.1, "carbohydrate": 50.5, "fiber": 252.5, "moisture": 0.5, "calcium": 5, "phosphorus": 101, "vitaminA": 15, "vitaminD": 0, "vitaminE": 0, "vitaminC": 0}, "species": [{"name": "Goffin's Cockatoo", "sci": "Cacatua goffiniana", "animals": 3, "kind": "Base", "cls": "aves"}]}, {"id": "D-246", "verified": false, "update": "none", "active": true, "window": {"text": "01-06-26 → 31-08-26", "state": "off"}, "dietitian": null, "schedule": [{"time": "4 am to 5 am", "days": [{"day": "Daily", "items": [{"name": "Apple", "amount": "70 kg"}]}]}], "changeReason": {"label": "Summer"}, "nutrition": {"energy": 265, "protein": 1.3, "fat": 0.9, "carbohydrate": 70.3, "fiber": 12.2, "moisture": 85.6, "calcium": 31, "phosphorus": 56, "vitaminA": 275, "vitaminD": 0, "vitaminE": 0.92, "vitaminC": 23.4}, "species": [{"name": "Eclectus Parrot", "sci": "Eclectus roratus", "animals": 8, "kind": "Time-Bound", "cls": "aves"}]}, {"id": "D-247", "verified": false, "update": "pending", "active": true, "window": {"text": "all year · Since 22-09-26", "state": "current"}, "dietitian": null, "schedule": [{"time": "4 am to 5 am", "days": [{"day": "Daily", "items": [{"name": "Apple", "amount": "55 kg"}]}]}], "changeReason": {"label": "Test Diet"}, "nutrition": {"energy": 252, "protein": 1.3, "fat": 0.8, "carbohydrate": 67, "fiber": 11.6, "moisture": 85.6, "calcium": 29, "phosphorus": 53, "vitaminA": 262, "vitaminD": 0, "vitaminE": 0.87, "vitaminC": 22.3}, "species": [{"name": "Eclectus Parrot", "sci": "Eclectus roratus", "animals": 8, "kind": "Base", "cls": "aves"}]}, {"id": "D-248", "verified": false, "update": "pending", "active": true, "window": {"text": "01-12 → 28-02 · yearly", "state": "off"}, "dietitian": null, "schedule": [{"time": "4 am to 5 am", "days": [{"day": "Daily", "items": [{"name": "Apple", "amount": "90 kg"}]}]}], "changeReason": {"label": "Winter"}, "nutrition": {"energy": 278, "protein": 1.4, "fat": 0.9, "carbohydrate": 73.9, "fiber": 12.8, "moisture": 85.6, "calcium": 32, "phosphorus": 59, "vitaminA": 289, "vitaminD": 0, "vitaminE": 0.96, "vitaminC": 24.6}, "species": [{"name": "Eclectus Parrot", "sci": "Eclectus roratus", "animals": 8, "kind": "Seasonal", "cls": "aves"}]}, {"id": "D-275", "verified": false, "update": "pending", "active": true, "chips": ["By weight band"], "window": {"text": "all year · Since 23-09-26", "state": "current"}, "dietitian": null, "columns": ["0-10 kg", "10-50 kg", "50+ kg"], "schedule": [{"time": "any time", "days": [{"day": "Daily", "items": [{"name": "Maize", "amount": "80 g", "extra": ["0.08 kg", "0.08 kg", "0.08 kg"]}]}]}], "remark": "<script>alert(1)<\/script> & \" '  /* ; -- é 日本語 🐢", "changeReason": {"label": "Trial"}, "nutrition": {"energy": 34, "protein": 1.3, "fat": 0.5, "carbohydrate": 7.5, "fiber": 0.8, "moisture": 76.1, "calcium": 1, "phosphorus": 36, "vitaminA": 75, "vitaminD": 0, "vitaminE": 0.03, "vitaminC": 2.7}, "species": [{"name": "Galah Cockatoo", "sci": "Eolophus roseicapilla", "animals": 2, "kind": "Base", "cls": "aves"}]}, {"id": "D-281", "verified": false, "update": "pending", "active": true, "window": {"text": "all year · Since 23-09-26", "state": "current"}, "dietitian": null, "schedule": [{"time": "4 am to 5 am", "days": [{"day": "Daily", "items": [{"name": "Cooked Veg Mix", "amount": "10 kg", "mix": {"label": "MIX", "meta": "2 items · 50% each", "parts": [{"name": "Beans", "note": "Fresh"}, {"name": "Carrot"}]}}, {"name": "Bannana", "prep": "Chopped", "amount": "10 kg"}, {"name": "Carrot", "prep": "Chopped", "amount": "50 g"}, {"name": "Morning Grain Mix", "amount": "80 g", "mix": {"label": "MIX", "meta": "2 items · 50% each", "parts": [{"name": "Rice or Apple"}, {"name": "Maize"}]}}]}]}], "nutrition": {"energy": 505, "protein": 252.5, "fat": 5.1, "carbohydrate": 50.5, "fiber": 252.5, "moisture": 0.5, "calcium": 5, "phosphorus": 101, "vitaminA": 15, "vitaminD": 0, "vitaminE": 0, "vitaminC": 0}, "species": [{"name": "Golden Parakeet", "sci": "Guaruba guarouba", "animals": 6, "kind": "Base", "cls": "aves"}]}, {"id": "D-258", "verified": false, "update": "pending", "active": true, "window": {"text": "all year · Since 22-09-26", "state": "current"}, "dietitian": null, "schedule": [{"time": "4 am to 5 am", "days": [{"day": "Daily", "items": [{"name": "Apple", "amount": "65 kg"}]}]}], "changeReason": {"label": "Winter"}, "nutrition": {"energy": 395, "protein": 2, "fat": 1.3, "carbohydrate": 105, "fiber": 18.2, "moisture": 85.6, "calcium": 46, "phosphorus": 84, "vitaminA": 411, "vitaminD": 0, "vitaminE": 1.37, "vitaminC": 35}, "species": [{"name": "Alligator Gar", "sci": "Atractosteus spatula", "animals": 1, "kind": "Base", "cls": "other"}]}, {"id": "D-288", "verified": false, "update": "pending", "active": true, "chips": ["By sex"], "window": {"text": "all year · Since 23-09-26", "state": "current"}, "dietitian": null, "columns": ["Female", "Male"], "schedule": [{"time": "4 pm to 6 pm", "days": [{"day": "Daily", "items": [{"name": "Chicken", "amount": "200 g", "extra": ["0.15 kg", "0.2 kg"]}]}]}], "changeReason": {"label": "Gestation"}, "nutrition": {"energy": 119, "protein": 21.4, "fat": 3.1, "carbohydrate": 0, "fiber": 0, "moisture": 75.5, "calcium": 12, "phosphorus": 173, "vitaminA": 52, "vitaminD": 0, "vitaminE": 0.21, "vitaminC": 0}, "species": [{"name": "Fennec Fox", "sci": "Vulpes zerda", "animals": 2, "kind": "Base", "cls": "mammalia"}]}, {"id": "D-286", "verified": false, "update": "pending", "active": true, "window": {"text": "all year · Since 23-09-26", "state": "current"}, "dietitian": null, "schedule": [{"time": "7 am to 10 am", "days": [{"day": "Daily", "items": [{"name": "Chicken", "alts": ["Fish"], "amount": "150 g"}]}]}, {"time": "4 pm to 6 pm", "days": [{"day": "Fri", "items": [{"name": "Fish", "amount": "100 g"}]}, {"day": "Every 7 days", "items": [{"name": "Chicken", "amount": "250 g"}]}]}, {"time": "ad lib", "days": [{"day": "Daily", "items": [{"name": "Maize", "amount": "50 g"}]}]}], "changeReason": {"label": "Enrichment"}, "nutrition": {"energy": 26, "protein": 4.1, "fat": 0.6, "carbohydrate": 0.9, "fiber": 0.1, "moisture": 75.7, "calcium": 2, "phosphorus": 37, "vitaminA": 18, "vitaminD": 2, "vitaminE": 0.05, "vitaminC": 0.3}, "species": [{"name": "European Polecat", "sci": "Mustela putorius", "animals": 13, "kind": "Base", "cls": "mammalia"}]}, {"id": "D-263", "verified": false, "update": "pending", "active": true, "window": {"text": "all year · Since 22-09-26", "state": "current"}, "dietitian": null, "schedule": [{"time": "4 am to 5 am", "days": [{"day": "Daily", "items": [{"name": "Apple", "alts": [{"name": "Watermelon", "ratio": "1:1"}], "amount": "65 kg"}, {"name": "Carrot", "amount": "40 kg"}, {"name": "Beans", "alts": [{"name": "Spinach", "prep": "Washed", "amount": "25 kg"}], "amount": "30 kg"}, {"name": "Fish", "amount": "15 kg"}]}]}], "changeReason": {"label": "Test Diet"}, "nutrition": {"energy": 4000, "protein": 2000, "fat": 40, "carbohydrate": 400, "fiber": 2000, "moisture": 0.5, "calcium": 40, "phosphorus": 800, "vitaminA": 120, "vitaminD": 0, "vitaminE": 0, "vitaminC": 0}, "species": [{"name": "Aldabra Giant Tortoise", "sci": "Aldabrachelys gigantea", "animals": 9, "kind": "Base", "cls": "reptilia"}]}, {"id": "D-270", "verified": false, "update": "pending", "active": true, "window": {"text": "all year · Since 23-09-26", "state": "current"}, "dietitian": null, "schedule": [{"time": "4 am to 5 am", "days": [{"day": "Daily", "items": [{"name": "Cooked Veg Mix", "amount": "10 kg", "mix": {"label": "MIX", "meta": "2 items · 50% each", "parts": [{"name": "Beans", "note": "Fresh"}, {"name": "Carrot"}]}}, {"name": "Bannana", "prep": "Chopped", "alts": [{"name": "Papaya", "prep": "Chopped", "amount": "10 kg"}], "amount": "10 kg"}, {"name": "Carrot", "prep": "Chopped", "amount": "2 kg"}]}]}], "changeReason": {"label": "Weight Management", "detail": "Added chopped carrot to increase fibre for the sulcata"}, "nutrition": {"energy": 700, "protein": 350, "fat": 7, "carbohydrate": 70, "fiber": 350, "moisture": 0.6, "calcium": 7, "phosphorus": 140, "vitaminA": 21, "vitaminD": 0, "vitaminE": 0, "vitaminC": 0}, "species": [{"name": "African Spurred Tortoise", "sci": "Centrochelys sulcata", "animals": 1, "kind": "Base", "cls": "reptilia"}]}, {"id": "D-271", "verified": false, "update": "none", "active": true, "window": {"text": "all year · Since 23-09-26", "state": "current"}, "dietitian": null, "schedule": [{"time": "7 am to 10 am", "days": [{"day": "Daily", "items": [{"name": "Fish", "prep": "Raw", "amount": "300 g"}]}]}], "nutrition": {"energy": 48, "protein": 10, "fat": 0.9, "carbohydrate": 0, "fiber": 0, "moisture": 78.1, "calcium": 5, "phosphorus": 85, "vitaminA": 0, "vitaminD": 62, "vitaminE": 0.2, "vitaminC": 0}, "species": [{"name": "Elephantnose Fish", "sci": "Gnathonemus petersii", "animals": 6, "kind": "Base", "cls": "other"}]}, {"id": "D-272", "verified": false, "update": "none", "active": true, "window": {"text": "01-09 → 30-11 · yearly", "state": "current"}, "dietitian": null, "schedule": [{"time": "7 am to 10 am", "days": [{"day": "Daily", "items": [{"name": "Fish", "prep": "Raw", "amount": "500 g"}]}]}], "changeReason": {"label": "Seasonal Change", "detail": "Higher ration during warm Sep-Nov period"}, "nutrition": {"energy": 80, "protein": 16.7, "fat": 1.4, "carbohydrate": 0, "fiber": 0, "moisture": 78.1, "calcium": 8, "phosphorus": 142, "vitaminA": 0, "vitaminD": 103, "vitaminE": 0.33, "vitaminC": 0}, "species": [{"name": "Elephantnose Fish", "sci": "Gnathonemus petersii", "animals": 6, "kind": "Seasonal", "cls": "other"}]}, {"id": "D-280", "verified": false, "update": "none", "active": true, "window": {"text": "01-12-26 → 31-12-26", "state": "off"}, "dietitian": null, "schedule": [{"time": "7 am to 10 am", "days": [{"day": "Daily", "items": [{"name": "Fish", "prep": "Raw", "amount": "400 g"}]}]}], "changeReason": {"label": "Trial"}, "nutrition": {"energy": 64, "protein": 13.4, "fat": 1.1, "carbohydrate": 0, "fiber": 0, "moisture": 78.1, "calcium": 7, "phosphorus": 113, "vitaminA": 0, "vitaminD": 83, "vitaminE": 0.27, "vitaminC": 0}, "species": [{"name": "Elephantnose Fish", "sci": "Gnathonemus petersii", "animals": 6, "kind": "Time-Bound", "cls": "other"}]}, {"id": "D-289", "verified": false, "update": "none", "active": true, "window": {"text": "16-12 → 15-03 · yearly", "state": "off"}, "dietitian": null, "schedule": [{"time": "7 am to 10 am", "days": [{"day": "Daily", "items": [{"name": "Fish", "prep": "Raw", "amount": "450 g"}]}]}], "changeReason": {"label": "Winter"}, "nutrition": {"energy": 72, "protein": 15.1, "fat": 1.3, "carbohydrate": 0, "fiber": 0, "moisture": 78.1, "calcium": 8, "phosphorus": 128, "vitaminA": 0, "vitaminD": 93, "vitaminE": 0.3, "vitaminC": 0}, "species": [{"name": "Elephantnose Fish", "sci": "Gnathonemus petersii", "animals": 6, "kind": "Seasonal", "cls": "other"}]}]};
+  function DirModule(root, opt) {
+    var DIETS = DIRD.diets, PREFIX = opt.prefix;
+    var CLS = [['all', 'All'], ['mammalia', 'Mammalia'], ['aves', 'Aves'], ['reptilia', 'Reptilia'], ['other', 'Other']];
+    var DEF = { site: '', cert: '', upd: '' };
+    var UPD = { pending: 'Needs verification', approved: 'Update approved', any: 'Any updated diet' };
+    var NUT = [['Macros', [['energy', 'Energy', 'kcal', 1], ['protein', 'Protein', 'g', 1], ['fat', 'Fat', 'g', 1], ['carbohydrate', 'Carbohydrate', 'g', 1], ['fiber', 'Fiber', 'g'], ['moisture', 'Moisture', '%']]],
+      ['Minerals', [['calcium', 'Calcium', 'mg'], ['phosphorus', 'Phosphorus', 'mg']]],
+      ['Vitamins', [['vitaminA', 'Vitamin A', 'IU'], ['vitaminD', 'Vitamin D', 'IU'], ['vitaminE', 'Vitamin E', 'mg'], ['vitaminC', 'Vitamin C', 'mg']]]];
+    var st = { q: '', ver: '', cls: 'all', f: { site: '', cert: '', upd: '' }, sel: DIRD.selectedId || DIETS[0].id, tab: 'items', view: 'cards', picked: {}, panel: null };
+    function find(id) { for (var i = 0; i < DIETS.length; i++) if (DIETS[i].id === id) return DIETS[i]; return null; }
+    function label(d) { if (d.listLabel) return d.listLabel; var sp = d.species || []; return sp.length ? sp[0].name + (sp.length > 1 ? ' +' + (sp.length - 1) : '') : 'No species'; }
+    function matches(d, skip) {
+      var q = st.q.trim().toLowerCase(), qid = q.replace(/^d-?/, '');
+      if (skip !== 'cls' && st.cls !== 'all' && !(d.species || []).some(function (s) { return s.cls === st.cls; })) return false;
+      if (st.f.site && (d.sites || []).indexOf(st.f.site) === -1) return false;
+      if (skip !== 'ver' && st.ver === 'verified' && !d.verified) return false;
+      if (skip !== 'ver' && st.ver === 'unverified' && d.verified) return false;
+      if (st.f.cert === 'certified' && !d.dietitian) return false;
+      if (st.f.cert === 'uncertified' && d.dietitian) return false;
+      if (st.f.upd === 'pending' && d.update !== 'pending') return false;
+      if (st.f.upd === 'approved' && d.update !== 'approved') return false;
+      if (st.f.upd === 'any' && d.update !== 'pending' && d.update !== 'approved') return false;
+      if (q) {
+        var idHit = d.id.toLowerCase().indexOf(q) !== -1 || (qid && d.id.toLowerCase().replace('d-', '').indexOf(qid) === 0);
+        var spHit = (d.species || []).some(function (s) { return (s.name || '').toLowerCase().indexOf(q) !== -1 || (s.sci || '').toLowerCase().indexOf(q) !== -1; });
+        if (!idHit && !spHit) return false;
+      }
+      return true;
+    }
+    function count(key, val) { var s = st[key]; st[key] = val; var n = DIETS.filter(function (d) { return matches(d); }).length; st[key] = s; return n; }
+    function nFilters() { return (st.f.site ? 1 : 0) + (st.f.cert ? 1 : 0) + (st.f.upd ? 1 : 0); }
+
+    root.innerHTML =
+      '<div class="spband"><label class="spsearch">' + ic('search', 20) + '<span class="sr-only">Search diets</span><input class="t-body-regular" type="search" data-q placeholder="Search Diet ID or species" autocomplete="off"></label>' +
+      '<button class="spfilter" type="button" data-filters aria-label="Filters">' + ic('filter-2', 24) + '<span class="t-minor-medium" data-fn hidden></span></button></div>' +
+      '<div class="segrow" role="group" aria-label="Verification" data-ver></div>' +
+      '<div class="segrow" role="group" aria-label="Animal class" data-cls></div>' +
+      '<div class="fchips" data-active hidden></div>' +
+      '<div class="list-bar"><h2 class="t-minor-medium" data-count aria-live="polite"></h2><span class="t-body-regular" style="color:var(--md3-neutral-secondary)">Total: ' + DIETS.length + '</span></div>' +
+      '<div class="dd-split"><div class="ddlist" data-list></div><div class="dd-detail" data-detail></div></div>';
+    var $ = function (sel) { return root.querySelector(sel); };
+
+    function drawFilters() {
+      $('[data-ver]').innerHTML = '<span class="rowlabel t-body-medium">Verification</span>' + [['', 'All'], ['verified', 'Verified'], ['unverified', 'Unverified']].map(function (v) {
+        return '<button type="button" class="spchip t-body-medium" data-v="' + v[0] + '" aria-pressed="' + (st.ver === v[0]) + '">' + v[1] + ' <span class="n">' + count('ver', v[0]) + '</span></button>';
+      }).join('');
+      $('[data-cls]').innerHTML = '<span class="rowlabel t-body-medium">Class</span>' + CLS.map(function (c) {
+        return '<button type="button" class="spchip t-body-medium" data-c="' + c[0] + '" aria-pressed="' + (st.cls === c[0]) + '">' + c[1] + ' <span class="n">' + count('cls', c[0]) + '</span></button>';
+      }).join('');
+      var act = [];
+      if (st.f.site) act.push(['site', 'Site: ' + st.f.site]);
+      if (st.f.cert) act.push(['cert', st.f.cert === 'certified' ? 'Certified' : 'Uncertified']);
+      if (st.f.upd) act.push(['upd', UPD[st.f.upd]]);
+      var a = $('[data-active]'); a.hidden = !act.length;
+      a.innerHTML = act.map(function (x) { return '<button type="button" class="fchip t-body-medium" data-unf="' + x[0] + '" aria-label="Remove ' + esc(x[1]) + '">' + esc(x[1]) + ic('close', 20) + '</button>'; }).join('') +
+        (act.length > 1 ? '<button type="button" class="linkbtn t-body-medium" data-unf="*">Clear all</button>' : '');
+      var n = nFilters(), fb = $('[data-filters]'), fn = $('[data-fn]');
+      fb.classList.toggle('on', n > 0); fn.hidden = !n; fn.textContent = n;
+    }
+    function rowHtml(d, on) {
+      var tags = '<span class="tag ' + (d.verified ? 'green' : 'grey') + '">' + (d.verified ? 'Verified' : 'Unverified') + '</span>' +
+        (d.active === false ? '<span class="tag grey">Inactive</span>' : '') +
+        (d.update === 'pending' ? '<span class="tag orange">Update pending</span>' : d.update === 'approved' ? '<span class="tag green">Update approved</span>' : '') +
+        (d.chips || []).filter(function (c) { return String(c).toLowerCase() !== 'inactive'; }).map(function (c) { return '<span class="tag teal">' + esc(c) + '</span>'; }).join('');
+      return '<button type="button" class="ddrow" data-id="' + esc(d.id) + '"' + (on ? ' aria-current="true"' : '') + '>' +
+        '<span class="ddrow__t"><b class="t-minor-title' + (d.active === false ? ' off' : '') + '">' + esc(d.id) + '</b><span class="lb t-body-regular">' + esc(label(d)) + '</span><span class="tags">' + tags + '</span></span>' +
+        '<span class="chev">' + ic('dropdown', 24) + '</span></button>';
+    }
+    function drawList() {
+      var list = DIETS.filter(function (d) { return matches(d); });
+      $('[data-count]').textContent = 'Diets (' + list.length + ')';
+      var split = LAND.matches;
+      if (split && list.length && !list.some(function (d) { return d.id === st.sel; })) st.sel = list[0].id;
+      $('[data-list]').innerHTML = list.length ? list.map(function (d) { return rowHtml(d, split && d.id === st.sel); }).join('') :
+        '<div class="empty"><span class="ei">' + ic('search', 24) + '</span><b class="t-minor-title">No diets match</b><span class="t-body-regular">Try another ID, species or filter.</span><button type="button" class="chip t-body-medium" data-clearall style="margin-top:8px">Clear search and filters</button></div>';
+      return list;
+    }
+    function fmt(v) { v = Number(v) || 0; return v.toLocaleString('en-IN', { maximumFractionDigits: 2 }); }
+    function itemCell(it, cols) {
+      var m = it.mix, h = '<div class="it-n">' + esc(it.name) + (m ? '<span class="it-k">' + (m.label === 'RECIPE' ? 'RECIPE' : 'MIX') + '</span>' : '') + '</div>';
+      var meta = [it.prep, it.cut].filter(Boolean).map(esc).join(', ');
+      if (meta) h += '<div class="it-p t-body-regular">(' + meta + ')</div>';
+      if (m && m.meta) h += '<div class="it-ex t-body-regular">' + esc(m.meta) + '</div>';
+      if (m && m.parts && m.parts.length) h += '<div class="it-parts t-body-regular">' + m.parts.map(function (q) { q = typeof q === 'string' ? { name: q } : q; return '<span>' + esc(q.name) + (q.note ? ' <em>' + esc(q.note) + '</em>' : '') + '</span>'; }).join('') + '</div>';
+      (it.alts || []).forEach(function (a) { a = typeof a === 'string' ? { name: a } : a; var q = a.amount || a.ratio; h += '<div class="it-alt t-body-regular">or <b>' + esc(a.name) + '</b>' + (a.prep ? ' (' + esc(a.prep) + ')' : '') + (q ? ' · ' + esc(q) : '') + '</div>'; });
+      if (it.notes) h += '<div class="it-ex t-body-regular">' + esc(it.notes) + '</div>';
+      return h;
+    }
+    function bands(d) {
+      var sch = d.schedule || [], cols = d.columns || [];
+      if (!sch.length) return '<div class="empty"><b class="t-minor-title">No items in this plan yet</b></div>';
+      var rows = '';
+      sch.forEach(function (b) {
+        var n = 0; (b.days || []).forEach(function (g) { n += Math.max(1, (g.items || []).length); });
+        var first = true;
+        (b.days || []).forEach(function (g) {
+          var its = g.items && g.items.length ? g.items : [null];
+          its.forEach(function (it, i) {
+            rows += '<tr>' + (first ? '<td class="time" rowspan="' + n + '">' + esc(b.time) + '</td>' : '') + (i === 0 ? '<td class="day t-body-regular" rowspan="' + its.length + '">' + esc(g.day) + '</td>' : '') +
+              (it ? '<td>' + itemCell(it, cols) + '</td><td class="amt">' + esc(it.amount || '-') + '</td>' + cols.map(function (c, k) { return '<td class="amt">' + esc((it.extra || [])[k] || '-') + '</td>'; }).join('')
+                : '<td colspan="' + (2 + cols.length) + '" class="t-body-regular" style="color:var(--md3-neutral-secondary)">No items</td>') + '</tr>';
+            first = false;
+          });
+        });
+      });
+      return '<div class="dtab-wrap"><table class="dtab t-body-regular"><thead><tr><th>Time</th><th>Day</th><th>Item</th><th class="amt">Daily amt</th>' + cols.map(function (c) { return '<th class="amt">' + esc(c) + '</th>'; }).join('') + '</tr></thead><tbody>' + rows + '</tbody></table></div>';
+    }
+    function nutrition(d) {
+      var nv = d.nutrition || {};
+      return '<div class="nut"><p class="nut__help t-body-regular">' + ic('info', 20) + 'Per animal, per day. Totals across every item in this plan.</p>' + NUT.map(function (s) {
+        return '<div class="nut__sec"><h4>' + s[0] + '</h4>' + s[1].map(function (r) { var v = Number(nv[r[0]]) || 0;
+          return '<div class="nut__row t-body-regular"><span>' + r[1] + '</span><b class="' + (v === 0 ? 'zero' : '') + '">' + fmt(v) + ' <small>' + r[2] + '</small></b></div>'; }).join('') + '</div>';
+      }).join('') + '</div>';
+    }
+    function extras(d) {
+      var n = d.notes || {}, h = '', kv = '';
+      if (st.tab === 'items' && n.kitchen) kv += '<dt>Kitchen</dt><dd>' + esc(n.kitchen) + '</dd>';
+      if (st.tab === 'items' && n.site) kv += '<dt>Site</dt><dd>' + esc(n.site) + '</dd>';
+      if (kv) h += '<div class="sub"><h3 class="t-minor-title">Notes</h3><dl class="kv t-body-regular">' + kv + '</dl></div>';
+      if (d.remark) h += '<div class="remark t-body-regular">' + ic('info', 20) + '<div><b class="t-body-title">Remark</b><br>' + esc(d.remark) + '</div></div>';
+      if (d.changeReason && d.changeReason.label) h += '<p class="reason t-body-regular">' + ic('history', 20) + 'Change reason <span class="tag orange">' + esc(d.changeReason.label) + '</span>' + (d.changeReason.detail ? '<span>' + esc(d.changeReason.detail) + '</span>' : '') + '</p>';
+      return h;
+    }
+    function kindTag(k) { k = k || 'Base'; return '<span class="tag ' + (/season/i.test(k) ? 'orange' : /time/i.test(k) ? 'blue' : 'green') + '">' + esc(k) + '</span>'; }
+    function species(d) {
+      var sp = d.species || [], picked = st.picked[d.id] || {}, any = Object.keys(picked).some(function (k) { return picked[k]; });
+      var h = '<section class="dpane"><div class="fed-h"><h3 class="t-minor-title">Fed to ' + plural(sp.length, 'species', 'species') + '</h3>' +
+        '<div class="dseg" role="group" aria-label="Species view"><button type="button" data-view="cards" aria-pressed="' + (st.view === 'cards') + '" class="t-body-medium">' + ic('grid', 18) + 'Cards</button><button type="button" data-view="list" aria-pressed="' + (st.view === 'list') + '" class="t-body-medium">' + ic('list', 18) + 'List</button></div></div>' +
+        '<div class="fed-tools"><span class="hint t-body-regular">Select species to move to another diet.</span>' +
+        '<button type="button" class="linkbtn t-body-medium" data-move' + (any ? '' : ' aria-disabled="true"') + '>' + ic('transfer', 20) + 'Move to another diet</button>' +
+        '<button type="button" class="linkbtn t-body-medium" data-addsp>' + ic('add', 20) + 'Add species</button></div>';
+      if (!sp.length) return h + '<div class="empty"><b class="t-minor-title">No species yet</b></div></section>';
+      h += '<div class="' + (st.view === 'cards' ? 'sgrid' : 'slist') + '">' + sp.map(function (s, i) {
+        var on = !!picked[i];
+        return '<div class="scard' + (on ? ' sel' : '') + '"><button type="button" class="ck" data-pick="' + i + '" aria-pressed="' + on + '" aria-label="Select ' + esc(s.name) + '">' + ic(on ? 'checkbox-checked' : 'checkbox-unchecked', 24) + '</button>' +
+          (st.view === 'cards' ? '<span class="scard__ic">' + ic('paw', 22) + '</span>' : '') +
+          '<span class="scard__t"><b class="t-body-title">' + esc(s.name) + '</b>' + (s.sci ? '<i class="t-body-regular">' + esc(s.sci) + '</i>' : '') +
+          '<span class="scard__m t-body-regular">' + (s.animals != null ? plural(s.animals, 'animal') + ' held' : '') + kindTag(s.kind) + '</span></span></div>';
+      }).join('') + '</div></section>';
+      return h;
+    }
+    function detailHtml(d) {
+      if (!d) return '<section class="dpane"><div class="empty"><b class="t-minor-title">Select a diet</b><span class="t-body-regular">Pick a diet to see its plan.</span></div></section>';
+      var inactiveChip = (d.chips || []).some(function (c) { return String(c).toLowerCase() === 'inactive'; });
+      var w = d.window && !(d.window.state === 'inactive' && inactiveChip) ? '<span class="win ' + d.window.state + '">' + ic(d.window.state === 'inactive' ? 'close' : 'calendar', 18) + esc(d.window.text) + '</span>' : '';
+      var chips = (d.chips || []).map(function (c) { return String(c).toLowerCase() === 'inactive' ? '<span class="tag grey">Inactive</span>' : '<span class="tag teal">' + esc(c) + '</span>'; }).join('');
+      var cert = d.dietitian ? '<div class="cert"><span class="cert__ic">' + ic('approved', 24) + '</span><span class="cert__t"><b class="t-body-title">' + esc(d.dietitian.name) + '</b><span class="t-body-regular">Certified dietitian · ' + esc(d.dietitian.date) + '</span></span><button type="button" class="iconbtn" data-certchange aria-label="Change the certifying dietitian">' + ic('pencil', 22) + '</button></div>'
+        : '<div class="cert none"><span class="cert__ic">' + ic('alert', 24) + '</span><span class="cert__t"><b class="t-body-title">Uncertified</b><span class="t-body-regular">No dietitian behind this diet yet</span></span><button type="button" class="chip t-body-medium" data-certify>' + ic('approved', 18) + 'Certify</button></div>';
+      return '<section class="dpane"><div class="dp-head"><div class="grow"><div class="dp-id"><b class="t-medium-medium">' + esc(d.id) + '</b>' +
+        '<span class="tag ' + (d.verified ? 'green' : 'grey') + '">' + (d.verified ? 'Verified' : 'Unverified') + '</span>' +
+        (d.update === 'pending' ? '<span class="tag orange">Update pending</span>' : d.update === 'approved' ? '<span class="tag green">Update approved</span>' : '') + '</div>' +
+        '<span class="t-body-regular" style="color:var(--ink)">' + esc(label(d)) + '</span></div>' +
+        '<div class="dp-acts"><button type="button" class="iconbtn" data-act="edit" aria-label="Edit diet">' + ic('pencil', 22) + '</button><button type="button" class="iconbtn" data-act="pdf" aria-label="Download PDF">' + ic('download', 22) + '</button><button type="button" class="iconbtn" data-act="more" aria-label="Plan actions">' + ic('menu-vertical', 22) + '</button></div></div>' +
+        ((w || chips) ? '<div class="tags">' + w + chips + '</div>' : '') + cert +
+        '<div class="dseg" role="group" aria-label="Diet view"><button type="button" data-dtab="items" aria-pressed="' + (st.tab === 'items') + '" class="t-body-medium">Items</button><button type="button" data-dtab="nutrition" aria-pressed="' + (st.tab === 'nutrition') + '" class="t-body-medium">Nutrition</button></div>' +
+        (st.tab === 'nutrition' ? nutrition(d) : bands(d)) + extras(d) + '</section>' + species(d);
+    }
+    function host() { return LAND.matches ? $('[data-detail]') : (st.panel ? document.querySelector('#dpanel .dpanel__body') : null); }
+    function drawDetail() { var h = host(); if (h) h.innerHTML = detailHtml(find(st.sel)); }
+    function openPanel(id) {
+      var d = find(id), p = document.getElementById('dpanel'); if (!d) return;
+      st.sel = id; st.panel = id;
+      p.querySelector('[data-ptitle]').textContent = d.id; p.querySelector('[data-psub]').textContent = label(d);
+      p.hidden = false; drawDetail(); p.querySelector('.dpanel__body').scrollTop = 0;
+    }
+    function closePanel() { st.panel = null; document.getElementById('dpanel').hidden = true; }
+    function draw() { drawFilters(); drawList(); drawDetail(); }
+
+    root.addEventListener('input', function (e) { if (e.target.matches('[data-q]')) { st.q = e.target.value; drawFilters(); drawList(); drawDetail(); } });
+    root.addEventListener('click', function (e) {
+      var t;
+      if ((t = e.target.closest('[data-v]'))) { st.ver = t.getAttribute('data-v'); draw(); return; }
+      if ((t = e.target.closest('[data-c]'))) { st.cls = t.getAttribute('data-c'); draw(); return; }
+      if ((t = e.target.closest('[data-unf]'))) { var k = t.getAttribute('data-unf'); if (k === '*') st.f = { site: '', cert: '', upd: '' }; else st.f[k] = ''; draw(); return; }
+      if (e.target.closest('[data-clearall]')) { st.q = ''; st.ver = ''; st.cls = 'all'; st.f = { site: '', cert: '', upd: '' }; $('[data-q]').value = ''; draw(); return; }
+      if (e.target.closest('[data-filters]')) { openSheet(); return; }
+      if ((t = e.target.closest('.ddrow'))) {
+        var id = t.getAttribute('data-id');
+        if (id !== st.sel) st.tab = 'items';
+        st.sel = id;
+        if (LAND.matches) { try { history.replaceState(null, '', '#' + PREFIX + id); } catch (x) {} drawList(); drawDetail(); }
+        else location.hash = '#' + PREFIX + id;
+      }
+    });
+    function onDetail(e) {
+      var d = find(st.sel), t; if (!d) return;
+      if ((t = e.target.closest('[data-dtab]'))) { st.tab = t.getAttribute('data-dtab'); drawDetail(); return; }
+      if ((t = e.target.closest('[data-view]'))) { st.view = t.getAttribute('data-view'); drawDetail(); return; }
+      if ((t = e.target.closest('[data-pick]'))) { var m = st.picked[d.id] = st.picked[d.id] || {}, k = t.getAttribute('data-pick'); m[k] = !m[k]; drawDetail(); return; }
+      if (e.target.closest('[data-move]')) { var any = Object.keys(st.picked[d.id] || {}).some(function (k) { return st.picked[d.id][k]; }); toast(any ? 'Moving species to another diet is not part of this prototype.' : 'Select species to move first.'); return; }
+      if (e.target.closest('[data-addsp]')) { toast('Adding species is not part of this prototype.'); return; }
+      if (e.target.closest('[data-certify], [data-certchange]')) { toast('Certifying a diet is not part of this prototype.'); return; }
+      if ((t = e.target.closest('[data-act]'))) { var a = t.getAttribute('data-act'); toast(a === 'edit' ? 'Editing a diet is not part of this prototype.' : a === 'pdf' ? 'Download PDF is not part of this prototype.' : 'Plan actions are not part of this prototype.'); }
+    }
+    $('[data-detail]').addEventListener('click', onDetail);
+    document.querySelector('#dpanel .dpanel__body').addEventListener('click', onDetail);
+
+    /* filters sheet: Site, Certification, Updates (V2 filter sheet) */
+    var draft;
+    function sheetHtml() {
+      function grp(key, title, opts) { return '<div class="sheet__g"><h3 class="t-minor-medium">' + title + '</h3><div class="chips">' + opts.map(function (o) { return '<button type="button" class="spchip t-body-medium" data-sk="' + key + '" data-sv="' + esc(o[0]) + '" aria-pressed="' + (draft[key] === o[0]) + '">' + esc(o[1]) + '</button>'; }).join('') + '</div></div>'; }
+      return '<div class="grab"></div><div class="sheet__h"><h2 class="t-major-title" id="sheetT">Filters</h2><button type="button" class="iconbtn" data-sclose aria-label="Close">' + ic('close', 24) + '</button></div>' +
+        grp('site', 'Site', [['', 'All sites']].concat(DIRD.sites.map(function (s) { return [s, s]; }))) +
+        grp('cert', 'Certification', [['', 'All'], ['uncertified', 'Uncertified'], ['certified', 'Certified']]) +
+        grp('upd', 'Updates', [['', 'All'], ['pending', 'Needs verification'], ['approved', 'Update approved'], ['any', 'Any updated diet']]) +
+        '<div class="sheet__f"><button type="button" class="btn sec" data-sreset>Reset</button><button type="button" class="btn pri" data-sapply>Apply</button></div>';
+    }
+    function openSheet() { draft = { site: st.f.site, cert: st.f.cert, upd: st.f.upd }; var s = document.getElementById('sheet'); s.innerHTML = sheetHtml(); document.getElementById('scrim').hidden = false; }
+    function closeSheet() { document.getElementById('scrim').hidden = true; }
+    document.getElementById('scrim').addEventListener('click', function (e) {
+      var t;
+      if (e.target === this || e.target.closest('[data-sclose]')) { closeSheet(); return; }
+      if ((t = e.target.closest('[data-sk]'))) { draft[t.getAttribute('data-sk')] = t.getAttribute('data-sv'); document.getElementById('sheet').innerHTML = sheetHtml(); return; }
+      if (e.target.closest('[data-sreset]')) { draft = { site: '', cert: '', upd: '' }; document.getElementById('sheet').innerHTML = sheetHtml(); return; }
+      if (e.target.closest('[data-sapply]')) { st.f = draft; closeSheet(); draw(); }
+    });
+    LAND.addEventListener('change', function () { if (LAND.matches) closePanel(); else if (opt.currentId && opt.currentId()) openPanel(opt.currentId()); draw(); });
+    draw();
+    return {
+      count: DIETS.length,
+      show: function (id) {
+        if (id && find(id)) { if (id !== st.sel) st.tab = 'items'; st.sel = id; if (LAND.matches) { closePanel(); drawList(); drawDetail(); } else openPanel(id); }
+        else { closePanel(); drawList(); drawDetail(); }
+      },
+      hasPanel: function () { return !!st.panel; },
+    };
+  }
+  function idFromHash() { var h = location.hash.replace(/^#/, ''); return h ? decodeURIComponent(h) : null; }
+  var dir = DirModule(document.getElementById('p-directory'), { prefix: '', currentId: idFromHash });
+  var pushedPanel = false;
+  document.querySelector('[data-pback]').addEventListener('click', function () { if (pushedPanel) history.back(); else { try { history.replaceState(null, '', location.pathname + location.search); } catch (x) {} dir.show(null); } });
+  window.addEventListener('hashchange', function () { pushedPanel = !!idFromHash(); dir.show(idFromHash()); });
+  dir.show(idFromHash());
+  })();
+  </script>
+</body>
+</html>
