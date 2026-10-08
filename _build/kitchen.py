@@ -245,12 +245,15 @@ KITCHEN_CSS = '''    /* ========================================================
 
 KITCHEN_JS = r'''  var DD = __KDASH__;
   var REQ_SEED = __REQSEED__;
-  /* ---------------- viewing as (same 4 roles as diet-home.html, shared through localStorage) ---------------- */
+  /* ---------------- viewing as (same 7 roles as diet-home.html, shared through localStorage) ---------------- */
   var USERS = [
     { key: 'dietician', name: 'Hydar Ali', title: 'Dietician', role: 'DIETICIAN', what: 'Raises requests. Sees My requests only.' },
     { key: 'head-dietician', name: 'Dr. Meera Iyer', title: 'Head Dietician', role: 'DIET_MANAGER', prd: 'Diet Manager', what: 'Raises, reviews and configures requests. Edits diets.' },
-    { key: 'kitchen-head', name: 'Suresh Gowda', title: 'Kitchen Head', role: 'KITCHEN_HEAD', what: 'Kitchen review: delay, ask for adjustment, send to prep (prototype grant).' },
-    { key: 'kitchen-operator', name: 'Anil Kumar', title: 'Kitchen Operator', role: 'KITCHEN_OPERATOR', what: 'Requests sent to prep and Meal Group Management. No Kitchen Dashboard, no Diet module.' } ];
+    { key: 'kitchen-head', name: 'Suresh Gowda', title: 'Kitchen Head', role: 'KITCHEN_HEAD', what: 'Diet, Kitchen and Inventory. Kitchen review: delay, ask for adjustment, send to prep.' },
+    { key: 'kitchen-operator', name: 'Anil Kumar', title: 'Kitchen Operator', role: 'KITCHEN_OPERATOR', what: 'Requests sent to prep and Meal Group Management. No Kitchen Dashboard, no Diet module.' },
+    { key: 'receiving-manager', name: 'Farhan Shaikh', title: 'Receiving Manager', role: 'RECEIVING_MANAGER', what: 'Inventory and Kitchen. No Diet module.' },
+    { key: 'security', name: 'Ravi Naik', title: 'Security', role: 'SECURITY', what: 'Security module only.' },
+    { key: 'security-admin', name: 'Priya Desai', title: 'Security Admin', role: 'SECURITY_ADMIN', what: 'Security module only.' } ];
   var VIEWER = (function () { var a = new URLSearchParams(location.search).get('as'), sv = savedViewer(), ok = function (k) { return USERS.some(function (u) { return u.key === k; }); }; return USERS.filter(function (u) { return u.key === (ok(a) ? a : ok(sv) ? sv : 'kitchen-head'); })[0]; })();
   function isKitchen() { return VIEWER.role === 'KITCHEN_HEAD' || VIEWER.role === 'KITCHEN_OPERATOR'; }
   function initials(n) { return String(n).replace(/^Dr\.?\s+/i, '').split(/\s+/).slice(0, 2).map(function (w) { return w[0].toUpperCase(); }).join(''); }
@@ -357,7 +360,7 @@ KITCHEN_JS = r'''  var DD = __KDASH__;
       '<p class="kcap t-body-regular">' + ic('info', 16) + 'Changes compare with ' + esc(rng) + '.' + (p.receipts ? '' : ' No receipts were recorded then.') + ' The current period may still be in progress.</p></section>';
   }
   function reqs() { var s = storedReqs(); return s ? s.reqs : REQ_SEED; }
-  function dietLink(q, id) { return 'diet-home.html?as=' + VIEWER.key + (q ? '&kq=' + q : '') + '#request' + (id ? '/' + id : ''); }
+  function dietLink(q, id) { if (!canModule('diet', VIEWER.key)) return '#dashboard/overview'; return 'diet-home.html?as=' + VIEWER.key + (q ? '&kq=' + q : '') + '#request' + (id ? '/' + id : ''); }
   function hbars(list) { var mx = Math.max.apply(null, list.map(function (x) { return x.qty != null ? x.qty : x.lines; }).concat([1]));
     return list.length ? '<div class="hbars">' + list.map(function (x) { var v = x.qty != null ? x.qty : x.lines; return '<div class="hbar t-body-regular"><span title="' + esc(x.name || x.reason) + '">' + esc((x.name || x.reason) + (x.unit ? ' (' + x.unit + ')' : '')) + '</span><i style="width:' + Math.max(3, v / mx * 100) + '%"></i><b>' + fmtN(v) + '</b></div>'; }).join('') + '</div>' : '<p class="kempty t-body-regular">Nothing in this period.</p>'; }
   function rowH(title, desc, chip) { return '<div class="drow__h"><div><h3 class="t-minor-title">' + title + '</h3><p class="t-body-regular">' + desc + '</p></div><span class="per">' + esc(chip || per().label || '') + '</span></div>'; }

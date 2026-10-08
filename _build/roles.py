@@ -15,20 +15,22 @@ STORE_JS = '''  var RQS_KEY = 'antz.diet.requests', VIEW_KEY = 'antz.viewer', SE
   function saveViewer(k) { lsSet(VIEW_KEY, k); }
   function resetDemo() { try { localStorage.removeItem(RQS_KEY); } catch (x) {} location.reload(); }
   /* Module access per role (same table as diet-module-flow.html): Diet for Dietician, Head Dietician, Kitchen Head;
-     Kitchen for Kitchen Head and Kitchen Operator. guardModule shows a full-screen No access state (with Viewing as)
+     Kitchen for Kitchen Head, Kitchen Operator, Receiving Manager; Inventory for Kitchen Head and Receiving Manager;
+     Security for Security and Security Admin. guardModule shows a full-screen No access state (with Viewing as)
      over a module the role cannot use, and returns false. */
-  var MODS = { diet: ['dietician', 'head-dietician', 'kitchen-head'], kitchen: ['kitchen-head', 'kitchen-operator'] };
-  var MODFILE = { diet: ['Diet', 'diet-home.html'], kitchen: ['Kitchen', 'kitchen-home.html'] };
+  var MODS = { diet: ['dietician', 'head-dietician', 'kitchen-head'], kitchen: ['kitchen-head', 'kitchen-operator', 'receiving-manager'],
+    inventory: ['kitchen-head', 'receiving-manager'], security: ['security', 'security-admin'] };
+  var MODFILE = { diet: ['Diet', 'diet-home.html'], kitchen: ['Kitchen', 'kitchen-home.html'], inventory: ['Inventory', 'inventory-home.html'], security: ['Security', 'security-home.html'] };
   function canModule(mod, key) { return MODS[mod].indexOf(key) !== -1; }
   function guardModule(mod, u) {
     var el = document.getElementById('noacc');
     if (canModule(mod, u.key)) { if (el) el.hidden = true; return true; }
     if (!el) { el = document.createElement('div'); el.id = 'noacc'; el.className = 'noacc'; el.setAttribute('role', 'alertdialog'); el.setAttribute('aria-labelledby', 'noaccT'); document.body.appendChild(el); }
-    var other = mod === 'diet' ? 'kitchen' : 'diet', home = 'diet-module-flow.html?as=' + u.key, back = typeof IC !== 'undefined' && IC.back ? ic('back', 24) : '&lsaquo;';
+    var other = ['diet', 'kitchen', 'inventory', 'security'].filter(function (m) { return m !== mod && canModule(m, u.key); })[0], home = 'diet-module-flow.html?as=' + u.key, back = typeof IC !== 'undefined' && IC.back ? ic('back', 24) : '&lsaquo;';
     el.innerHTML = '<header class="bar"><a class="iconbtn" href="' + home + '" aria-label="Back to Modules">' + back + '</a><div class="bar__hd"><h1 class="t-medium-medium">' + MODFILE[mod][0] + '</h1></div><button class="asbtn" type="button" aria-haspopup="dialog" aria-label="Viewing as, switch role"></button></header>' +
       '<div class="noacc__in"><div class="noacc__card"><span class="noacc__i" aria-hidden="true">!</span><h2 class="t-major-title" id="noaccT">No access for ' + u.title + '</h2>' +
       '<p class="t-body-regular">The ' + MODFILE[mod][0] + ' module is not part of the ' + u.title + ' role. Switch role with Viewing as, or go back to Modules.</p>' +
-      '<div class="noacc__f"><a class="btn sec" href="' + home + '">Back to Modules</a>' + (canModule(other, u.key) ? '<a class="btn pri" href="' + MODFILE[other][1] + '?as=' + u.key + '">Open ' + MODFILE[other][0] + '</a>' : '') + '</div></div></div>';
+      '<div class="noacc__f"><a class="btn sec" href="' + home + '">Back to Modules</a>' + (other ? '<a class="btn pri" href="' + MODFILE[other][1] + '?as=' + u.key + '">Open ' + MODFILE[other][0] + '</a>' : '') + '</div></div></div>';
     el.hidden = false; return false;
   }
 '''
@@ -173,7 +175,9 @@ REQ_SHARED_JS = '''  /* ---------------- Diet requests: roles, store, state mach
     { key: 'dietician', id: 'u-dt', name: 'Hydar Ali', role: 'DIETICIAN', title: 'Dietician', perms: ['diet-plans.read'] },
     { key: 'head-dietician', id: 'u-dm', name: 'Dr. Meera Iyer', role: 'DIET_MANAGER', title: 'Head Dietician', prd: 'Diet Manager', perms: ['diet-plans.read', 'diet-plans.write', 'diet-plans.verify'] },
     { key: 'kitchen-head', id: 'u-kh', name: 'Suresh Gowda', role: 'KITCHEN_HEAD', title: 'Kitchen Head', perms: ['diet-plans.read', 'packing.read'], proto: ['packing.write', 'inventory.read'] },
-    { key: 'kitchen-operator', id: 'u-ko', name: 'Anil Kumar', role: 'KITCHEN_OPERATOR', title: 'Kitchen Operator', perms: ['diet-plans.read', 'packing.read', 'packing.write', 'inventory.read'] },
+    { key: 'kitchen-operator', id: 'u-ko', name: 'Anil Kumar', role: 'KITCHEN_OPERATOR', title: 'Kitchen Operator', perms: ['diet-plans.read', 'packing.read', 'packing.write', 'inventory.read'] },    { key: 'receiving-manager', id: 'u-rm', name: 'Farhan Shaikh', role: 'RECEIVING_MANAGER', title: 'Receiving Manager', perms: [] },
+    { key: 'security', id: 'u-sg', name: 'Ravi Naik', role: 'SECURITY', title: 'Security', perms: [] },
+    { key: 'security-admin', id: 'u-sa', name: 'Priya Desai', role: 'SECURITY_ADMIN', title: 'Security Admin', perms: [] },
   ];
   var REQS_ALL = ''' + json.dumps(_req_seed, ensure_ascii=False).replace('</', '<\\/') + ''';
 ''' + STORE_JS + '''  var RQ_STORE = storedReqs(); if (RQ_STORE) REQS_ALL = RQ_STORE.reqs;
@@ -271,7 +275,7 @@ REQ_SHARED_JS = '''  /* ---------------- Diet requests: roles, store, state mach
   function openRoles() {
     sheet('<div class="sheet__h"><div><h2 class="t-major-title" id="rsT">Viewing as</h2><p class="t-body-regular" style="color:var(--ink)">Demo only. Switch role to see what each one can do.</p></div><button type="button" class="iconbtn" data-rsclose aria-label="Close">' + ic('close', 24) + '</button></div>' +
       '<div class="roles" role="radiogroup" aria-label="Role">' + USERS.map(function (u) {
-        var what = { DIETICIAN: 'Raises requests. Sees My requests only.', DIET_MANAGER: 'Raises, reviews and configures requests. Edits diets.', KITCHEN_HEAD: 'Kitchen review: delay, ask for adjustment, send to prep (prototype grant).', KITCHEN_OPERATOR: 'Kitchen only: requests sent to prep and Meal Group Management. No Diet module.' }[u.role];
+        var what = { DIETICIAN: 'Raises requests. Sees My requests only.', DIET_MANAGER: 'Raises, reviews and configures requests. Edits diets.', KITCHEN_HEAD: 'Diet, Kitchen and Inventory. Kitchen review: delay, ask for adjustment, send to prep.', KITCHEN_OPERATOR: 'Kitchen only: requests sent to prep and Meal Group Management. No Diet module.', RECEIVING_MANAGER: 'Inventory and Kitchen. No Diet module.', SECURITY: 'Security module only.', SECURITY_ADMIN: 'Security module only.' }[u.role];
         return '<button type="button" class="role" role="radio" data-as="' + u.key + '" aria-checked="' + (u === RQ.viewer) + '"><span class="av">' + RQ.initials(u.name) + '</span><span class="grow"><b class="t-minor-title">' + esc(u.title) + '</b><span class="t-body-regular">' + esc(u.name) + (u.prd ? ' · PRD role name: ' + u.prd : '') + '</span><small class="t-body-regular">' + esc(what) + '</small></span>' + (u === RQ.viewer ? ic('just-tick-mark', 22) : '') + '</button>';
       }).join('') + '</div><button type="button" class="linkbtn t-body-medium rqreset" data-rqreset>' + ic('history', 18) + 'Reset demo data</button>');
   }

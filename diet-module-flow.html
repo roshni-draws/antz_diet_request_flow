@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!-- Screen 1 - Diet module entry (Modules home). Flow base screen. -->
 <!--
-  Antz tablet app, Diet flow, screen 1: the Modules home with the Diet and Kitchen tiles (Kitchen links to kitchen-home.html, not built yet).
+  Antz tablet app, Diet flow, screen 1: the Modules home with the Diet, Kitchen, Inventory and Security tiles, shown by role.
   Always bare: the screen fills the window and adapts by orientation.
     portrait  (e.g. 810 x 1080): 2 columns
     landscape (e.g. 1080 x 810): 3 columns
@@ -229,6 +229,21 @@
           <rect x="60" y="51" width="8" height="6" rx="3"/>
         </g>
       </symbol>
+      <!-- Security icon (shield and tick), used via <use href="#security-glyph"> -->
+      <symbol id="security-glyph" overflow="visible">
+        <path d="M38 14.5 62 22.6v18.6c0 15.6-10 27.4-24 33.6-14-6.2-24-18-24-33.6V22.6z" fill="none" stroke="url(#kit-g-pot)" stroke-width="6" stroke-linejoin="round"/>
+        <path d="m27.5 44.5 7.5 7.5 14.5-15.5" fill="none" stroke="url(#kit-g-steam)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+      </symbol>
+      <!-- Inventory icon (stacked boxes), used via <use href="#inventory-glyph"> -->
+      <symbol id="inventory-glyph" overflow="visible">
+        <g fill="none" stroke="url(#kit-g-pot)" stroke-width="5.5" stroke-linejoin="round">
+          <rect x="11" y="48" width="25" height="26" rx="3"/>
+          <rect x="40" y="48" width="25" height="26" rx="3"/>
+        </g>
+        <rect x="25.5" y="17" width="25" height="25" rx="3" fill="none" stroke="url(#kit-g-steam)" stroke-width="5.5" stroke-linejoin="round"/>
+        <g fill="url(#kit-g-steam)"><rect x="34.5" y="17" width="7" height="9" rx="1.5"/></g>
+        <g fill="url(#kit-g-pot)"><rect x="20" y="48" width="7" height="9" rx="1.5"/><rect x="49" y="48" width="7" height="9" rx="1.5"/></g>
+      </symbol>
     </defs>
   </svg>
 
@@ -260,16 +275,22 @@
 
     <!-- content -->
     <main class="main">
-      <!-- NOTE: diet-home.html is the next screen in the Diet flow and does not exist yet. -->
       <div class="grid" id="grid">
         <a class="tile" href="diet-home.html" aria-label="Diet module" data-mod="diet">
           <svg class="tile__icon" viewBox="7 9 62 73" aria-hidden="true" focusable="false"><use href="#diet-glyph"/></svg>
           <span class="tile__label">Diet</span>
         </a>
-        <!-- NOTE: kitchen-home.html is the Kitchen module screen and does not exist yet. -->
         <a class="tile" href="kitchen-home.html" aria-label="Kitchen module" data-mod="kitchen">
           <svg class="tile__icon" viewBox="7 9 62 73" aria-hidden="true" focusable="false"><use href="#kitchen-glyph"/></svg>
           <span class="tile__label">Kitchen</span>
+        </a>
+        <a class="tile" href="inventory-home.html" aria-label="Inventory module" data-mod="inventory">
+          <svg class="tile__icon" viewBox="7 9 62 73" aria-hidden="true" focusable="false"><use href="#inventory-glyph"/></svg>
+          <span class="tile__label">Inventory</span>
+        </a>
+        <a class="tile" href="security-home.html" aria-label="Security module" data-mod="security">
+          <svg class="tile__icon" viewBox="7 9 62 73" aria-hidden="true" focusable="false"><use href="#security-glyph"/></svg>
+          <span class="tile__label">Security</span>
         </a>
       </div>
       <div class="list" id="list" hidden>
@@ -278,10 +299,19 @@
           <span class="row__label">Diet</span>
           <svg class="row__chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
         </a>
-        <!-- NOTE: kitchen-home.html does not exist yet. -->
         <a class="row" href="kitchen-home.html" aria-label="Kitchen module" data-mod="kitchen">
           <svg class="row__icon" viewBox="7 9 62 73" aria-hidden="true" focusable="false"><use href="#kitchen-glyph"/></svg>
           <span class="row__label">Kitchen</span>
+          <svg class="row__chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+        </a>
+        <a class="row" href="inventory-home.html" aria-label="Inventory module" data-mod="inventory">
+          <svg class="row__icon" viewBox="7 9 62 73" aria-hidden="true" focusable="false"><use href="#inventory-glyph"/></svg>
+          <span class="row__label">Inventory</span>
+          <svg class="row__chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+        </a>
+        <a class="row" href="security-home.html" aria-label="Security module" data-mod="security">
+          <svg class="row__icon" viewBox="7 9 62 73" aria-hidden="true" focusable="false"><use href="#security-glyph"/></svg>
+          <span class="row__label">Security</span>
           <svg class="row__chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
         </a>
       </div>
@@ -301,15 +331,20 @@
     btns.forEach(function (b) { b.addEventListener('click', function () { set(b.dataset.view); }); });
     set(new URLSearchParams(location.search).get('view') === 'list' ? 'list' : 'grid');
   })();
-  /* Viewing as: same 4 roles and sheet as diet-home and kitchen-home, shared through ?as= and localStorage 'antz.viewer'.
-     Tiles show by role: Diet for Dietician, Head Dietician, Kitchen Head; Kitchen for Kitchen Head and Kitchen Operator. */
+  /* Viewing as: same 7 roles and sheet as diet-home and kitchen-home, shared through ?as= and localStorage 'antz.viewer'.
+     Tiles show by role: Diet for Dietician, Head Dietician, Kitchen Head; Kitchen for Kitchen Head, Kitchen Operator, Receiving Manager;
+     Inventory for Kitchen Head and Receiving Manager; Security for Security and Security Admin. */
   (function () {
     var USERS = [
       { key: 'dietician', name: 'Hydar Ali', title: 'Dietician', what: 'Diet module. Raises requests and sees My requests.' },
       { key: 'head-dietician', name: 'Dr. Meera Iyer', title: 'Head Dietician', what: 'Diet module. Reviews and configures requests, edits diets.' },
-      { key: 'kitchen-head', name: 'Suresh Gowda', title: 'Kitchen Head', what: 'Diet and Kitchen. Checks stock and sends requests to prep.' },
-      { key: 'kitchen-operator', name: 'Anil Kumar', title: 'Kitchen Operator', what: 'Kitchen only. Requests sent to prep and Meal Group Management.' } ];
-    var MODS = { diet: ['dietician', 'head-dietician', 'kitchen-head'], kitchen: ['kitchen-head', 'kitchen-operator'] };
+      { key: 'kitchen-head', name: 'Suresh Gowda', title: 'Kitchen Head', what: 'Diet, Kitchen and Inventory. Checks stock and sends requests to prep.' },
+      { key: 'kitchen-operator', name: 'Anil Kumar', title: 'Kitchen Operator', what: 'Kitchen only. Requests sent to prep and Meal Group Management.' },
+      { key: 'receiving-manager', name: 'Farhan Shaikh', title: 'Receiving Manager', what: 'Inventory and Kitchen.' },
+      { key: 'security', name: 'Ravi Naik', title: 'Security', what: 'Security module only.' },
+      { key: 'security-admin', name: 'Priya Desai', title: 'Security Admin', what: 'Security module only.' } ];
+    var MODS = { diet: ['dietician', 'head-dietician', 'kitchen-head'], kitchen: ['kitchen-head', 'kitchen-operator', 'receiving-manager'],
+      inventory: ['kitchen-head', 'receiving-manager'], security: ['security', 'security-admin'] };
     var ok = function (k) { return USERS.some(function (u) { return u.key === k; }); };
     var a = new URLSearchParams(location.search).get('as'), v = null;
     try { v = JSON.parse(localStorage.getItem('antz.viewer') || 'null'); } catch (x) {}

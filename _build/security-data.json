@@ -1,0 +1,520 @@
+{
+ "sites": [
+  {
+   "id": "S1",
+   "name": "Central Zone",
+   "code": "CZ"
+  },
+  {
+   "id": "S2",
+   "name": "Carnivore Complex",
+   "code": "CC"
+  },
+  {
+   "id": "S3",
+   "name": "Rescue Centre",
+   "code": "RC"
+  },
+  {
+   "id": "S4",
+   "name": "Elephant Care Centre",
+   "code": "ECC"
+  },
+  {
+   "id": "S5",
+   "name": "Herbivore Zone",
+   "code": "HZ"
+  }
+ ],
+ "departments": [
+  {
+   "id": "D1",
+   "name": "Kitchen"
+  },
+  {
+   "id": "D2",
+   "name": "Hospital"
+  },
+  {
+   "id": "D3",
+   "name": "Warehouse"
+  },
+  {
+   "id": "D4",
+   "name": "Carpentry"
+  },
+  {
+   "id": "D5",
+   "name": "Pharmacy"
+  }
+ ],
+ "buildings": [
+  {
+   "id": "B01",
+   "dept": "D1",
+   "site": "S1",
+   "name": "Antz Kitchen",
+   "code": "KIT-01",
+   "note": "Central production kitchen"
+  },
+  {
+   "id": "B02",
+   "dept": "D1",
+   "site": "S4",
+   "name": "Herbivore Kitchen",
+   "code": "KIT-02",
+   "note": "Browse and fodder prep"
+  },
+  {
+   "id": "B03",
+   "dept": "D1",
+   "site": "S3",
+   "name": "Rescue Centre Kitchen",
+   "code": "KIT-03",
+   "note": "Small-batch and hand-rearing"
+  },
+  {
+   "id": "B04",
+   "dept": "D2",
+   "site": "S3",
+   "name": "Wildlife Hospital",
+   "code": "HOS-01",
+   "note": "Surgery and ICU"
+  },
+  {
+   "id": "B05",
+   "dept": "D2",
+   "site": "S4",
+   "name": "Elephant Hospital",
+   "code": "HOS-02",
+   "note": "Large-animal theatre"
+  },
+  {
+   "id": "B06",
+   "dept": "D2",
+   "site": "S3",
+   "name": "Quarantine Hospital",
+   "code": "HOS-03",
+   "note": "Isolation wards, restricted"
+  },
+  {
+   "id": "B07",
+   "dept": "D3",
+   "site": "S1",
+   "name": "Central Warehouse",
+   "code": "WHS-01",
+   "note": "Main goods receiving"
+  },
+  {
+   "id": "B08",
+   "dept": "D3",
+   "site": "S1",
+   "name": "Cold Chain Warehouse",
+   "code": "WHS-02",
+   "note": "Chilled and frozen only"
+  },
+  {
+   "id": "B09",
+   "dept": "D3",
+   "site": "S5",
+   "name": "Dry Goods Warehouse",
+   "code": "WHS-03",
+   "note": "Fodder, grain and bedding"
+  },
+  {
+   "id": "B10",
+   "dept": "D4",
+   "site": "S1",
+   "name": "Main Carpentry Workshop",
+   "code": "CAR-01",
+   "note": "Enclosure furniture"
+  },
+  {
+   "id": "B11",
+   "dept": "D4",
+   "site": "S2",
+   "name": "Enclosure Fabrication Unit",
+   "code": "CAR-02",
+   "note": "Steel and mesh"
+  },
+  {
+   "id": "B12",
+   "dept": "D4",
+   "site": "S1",
+   "name": "Furniture & Signage Shop",
+   "code": "CAR-03",
+   "note": "Signage and visitor fit-out"
+  },
+  {
+   "id": "B13",
+   "dept": "D5",
+   "site": "S3",
+   "name": "Central Pharmacy",
+   "code": "PHA-01",
+   "note": "Controlled-drug store"
+  },
+  {
+   "id": "B14",
+   "dept": "D5",
+   "site": "S4",
+   "name": "Veterinary Dispensary",
+   "code": "PHA-02",
+   "note": "Day dispensing"
+  },
+  {
+   "id": "B15",
+   "dept": "D5",
+   "site": "S2",
+   "name": "Field Pharmacy",
+   "code": "PHA-03",
+   "note": "Mobile darting and field kits"
+  }
+ ],
+ "gates": [
+  {
+   "id": "G01",
+   "bld": "B01",
+   "name": "Gate 1",
+   "purposes": [
+    "Entry",
+    "Exit"
+   ],
+   "note": "Main vendor entry, weighbridge alongside",
+   "active": true,
+   "live": 4
+  },
+  {
+   "id": "G02",
+   "bld": "B01",
+   "name": "Gate 2",
+   "purposes": [
+    "Entry",
+    "Exit"
+   ],
+   "note": "Staff and light vehicles",
+   "active": true,
+   "live": 0
+  },
+  {
+   "id": "G03",
+   "bld": "B01",
+   "name": "Service Gate",
+   "purposes": [
+    "Service"
+   ],
+   "note": "Service yard, LPG, waste, laundry",
+   "active": true,
+   "live": 1
+  },
+  {
+   "id": "G05",
+   "bld": "B02",
+   "name": "Fodder Gate",
+   "purposes": [
+    "Entry",
+    "Exit"
+   ],
+   "note": "Tractor and trailer width",
+   "active": true,
+   "live": 0
+  },
+  {
+   "id": "G06",
+   "bld": "B02",
+   "name": "Service Gate",
+   "purposes": [
+    "Service"
+   ],
+   "note": "",
+   "active": true,
+   "live": 0
+  },
+  {
+   "id": "G07",
+   "bld": "B03",
+   "name": "Gate A",
+   "purposes": [
+    "Entry",
+    "Exit",
+    "Service"
+   ],
+   "note": "Single shared gate",
+   "active": true,
+   "live": 0
+  },
+  {
+   "id": "G08",
+   "bld": "B04",
+   "name": "Ambulance Gate",
+   "purposes": [
+    "Emergency",
+    "Entry"
+   ],
+   "note": "Kept clear at all times",
+   "active": true,
+   "live": 0
+  },
+  {
+   "id": "G09",
+   "bld": "B04",
+   "name": "Supply Gate",
+   "purposes": [
+    "Service"
+   ],
+   "note": "Consumables and linen",
+   "active": true,
+   "live": 0
+  },
+  {
+   "id": "G10",
+   "bld": "B05",
+   "name": "Main Gate",
+   "purposes": [
+    "Entry",
+    "Exit"
+   ],
+   "note": "Elephant-crate clearance 4.2 m",
+   "active": true,
+   "live": 0
+  },
+  {
+   "id": "G11",
+   "bld": "B06",
+   "name": "Isolation Gate",
+   "purposes": [
+    "Entry",
+    "Exit"
+   ],
+   "note": "Footbath and disinfection bay",
+   "active": true,
+   "live": 0
+  },
+  {
+   "id": "G12",
+   "bld": "B07",
+   "name": "Gate 1",
+   "purposes": [
+    "Entry"
+   ],
+   "note": "Goods-in, 3 docks",
+   "active": true,
+   "live": 0
+  },
+  {
+   "id": "G13",
+   "bld": "B07",
+   "name": "Gate 2",
+   "purposes": [
+    "Exit",
+    "Waste removal"
+   ],
+   "note": "",
+   "active": true,
+   "live": 0
+  },
+  {
+   "id": "G14",
+   "bld": "B08",
+   "name": "Cold Dock",
+   "purposes": [
+    "Entry",
+    "Exit"
+   ],
+   "note": "Sealed dock, reefer only",
+   "active": true,
+   "live": 0
+  },
+  {
+   "id": "G15",
+   "bld": "B09",
+   "name": "Bulk Gate",
+   "purposes": [
+    "Entry",
+    "Exit"
+   ],
+   "note": "Weighbridge on the apron",
+   "active": true,
+   "live": 0
+  },
+  {
+   "id": "G16",
+   "bld": "B10",
+   "name": "Workshop Gate",
+   "purposes": [
+    "Entry",
+    "Exit",
+    "Service"
+   ],
+   "note": "",
+   "active": true,
+   "live": 0
+  },
+  {
+   "id": "G17",
+   "bld": "B11",
+   "name": "Fabrication Gate",
+   "purposes": [
+    "Entry",
+    "Exit"
+   ],
+   "note": "Crane access",
+   "active": true,
+   "live": 0
+  },
+  {
+   "id": "G18",
+   "bld": "B12",
+   "name": "Shop Gate",
+   "purposes": [
+    "Service"
+   ],
+   "note": "",
+   "active": false,
+   "live": 0
+  },
+  {
+   "id": "G19",
+   "bld": "B13",
+   "name": "Secure Gate",
+   "purposes": [
+    "Entry",
+    "Exit"
+   ],
+   "note": "Controlled drugs, two-person rule",
+   "active": true,
+   "live": 0
+  },
+  {
+   "id": "G20",
+   "bld": "B14",
+   "name": "Dispensary Gate",
+   "purposes": [
+    "Entry"
+   ],
+   "note": "",
+   "active": true,
+   "live": 0
+  },
+  {
+   "id": "G21",
+   "bld": "B15",
+   "name": "Field Gate",
+   "purposes": [
+    "Entry",
+    "Exit"
+   ],
+   "note": "Unmanned outside daylight hours",
+   "active": true,
+   "live": 0
+  }
+ ],
+ "activity": [
+  {
+   "id": "GV-9001",
+   "gate": "G01",
+   "state": "UPCOMING",
+   "vehicleNo": "GJ-10-XY-2210",
+   "vendor": "Jamnagar Fresh Farms",
+   "purpose": "DELIVERY",
+   "driver": "Hitesh Parmar",
+   "eta": "2026-09-23T14:10:00",
+   "challanNo": "DC-JFF-4488",
+   "lines": 9,
+   "note": "Weekly F&V run"
+  },
+  {
+   "id": "GV-9002",
+   "gate": "G01",
+   "state": "UPCOMING",
+   "vehicleNo": "GJ-01-KA-9087",
+   "vendor": "Asterveda Health Care Pvt. Ltd",
+   "purpose": "DELIVERY",
+   "driver": "Nitin Bhatt",
+   "eta": "2026-09-23T15:30:00",
+   "challanNo": "DC-AST-1120",
+   "lines": 2,
+   "note": "Neonatal milk, chilled"
+  },
+  {
+   "id": "GV-9003",
+   "gate": "G01",
+   "state": "AT_GATE",
+   "vehicleNo": "GJ-10-KL-7781",
+   "vendor": "Saurashtra Meat Suppliers",
+   "purpose": "DELIVERY",
+   "driver": "Imran Shaikh",
+   "atGateAt": "2026-09-23T13:42:00",
+   "challanNo": "DC-SMS-2260",
+   "lines": 3,
+   "note": "Reefer, keep engine running"
+  },
+  {
+   "id": "GV-9004",
+   "gate": "G01",
+   "state": "INSIDE",
+   "vehicleNo": "GJ-10-MN-3390",
+   "vendor": "AquaLive Feeders",
+   "purpose": "DELIVERY",
+   "driver": "Prakash Menon",
+   "enteredAt": "2026-09-23T12:05:00",
+   "challanNo": "DC-AQL-3391",
+   "lines": 4,
+   "note": "Live fish, 45 min limit"
+  },
+  {
+   "id": "GV-9005",
+   "gate": "G03",
+   "state": "INSIDE",
+   "vehicleNo": "GJ-12-TR-5540",
+   "vendor": "Estate Facilities",
+   "purpose": "SERVICE",
+   "driver": "Ramesh Bhai",
+   "enteredAt": "2026-09-23T11:20:00",
+   "challanNo": "",
+   "lines": 0,
+   "note": "LPG cylinder swap"
+  },
+  {
+   "id": "GV-9006",
+   "gate": "G01",
+   "state": "EXITED",
+   "vehicleNo": "GJ-10-AB-4412",
+   "vendor": "GreenLeaf Fodder Co-op",
+   "purpose": "DELIVERY",
+   "driver": "Devji Bhai",
+   "enteredAt": "2026-09-23T08:15:00",
+   "exitedAt": "2026-09-23T09:40:00",
+   "challanNo": "DC-GLF-8890",
+   "lines": 2,
+   "note": ""
+  },
+  {
+   "id": "GV-9007",
+   "gate": "G01",
+   "state": "EXITED",
+   "vehicleNo": "GJ-03-PQ-1176",
+   "vendor": "Mahalaxmi Hardware",
+   "purpose": "DELIVERY",
+   "driver": "Suresh Rana",
+   "enteredAt": "2026-09-22T16:02:00",
+   "exitedAt": "2026-09-22T16:48:00",
+   "challanNo": "DC-MLH-0455",
+   "lines": 1,
+   "note": "Chef unavailable, released without the sealed DC"
+  },
+  {
+   "id": "GV-9008",
+   "gate": "G03",
+   "state": "EXITED",
+   "vehicleNo": "GJ-10-KL-7781",
+   "vendor": "Saurashtra Meat Suppliers",
+   "purpose": "DELIVERY",
+   "driver": "Imran Shaikh",
+   "enteredAt": "2026-09-22T06:40:00",
+   "exitedAt": "2026-09-22T08:05:00",
+   "challanNo": "DC-SMS-2210",
+   "lines": 3,
+   "note": ""
+  }
+ ]
+}

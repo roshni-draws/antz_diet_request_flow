@@ -324,3 +324,4 @@ GRAD_DEFS = '''  <svg class="icon-defs" aria-hidden="true" focusable="false">
 exec(open(os.path.join(HERE, 'pages.py')).read())
 exec(open(os.path.join(HERE, 'home2.py')).read())
 exec(open(os.path.join(HERE, 'kitchen.py')).read())
+exec(open(os.path.join(HERE, 'modules.py')).read())

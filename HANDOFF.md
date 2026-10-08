@@ -94,7 +94,63 @@ Guard rules:
 - **Meal-group pages** follow the Dev system_local kitchen pages faithfully (no extra features). Kitchen roles edit; diet roles see them read-only.
 - **Role access** (`MODS` in `roles.py` `STORE_JS`, same table in `diet-module-flow.html`):
   - Diet: Dietician, Head Dietician, Kitchen Head.
-  - Kitchen: Kitchen Head, Kitchen Operator.
+  - Kitchen: Kitchen Head, Kitchen Operator, Receiving Manager.
+  - Inventory (`inventory-home.html`, blank for now): Kitchen Head, Receiving Manager.
+  - Security (`security-home.html`): what you see depends on the role.
+    - **Security Admin:** Sites | Departments, both for configuration.
+      - **Sites:** the same site transfers Security sees. A **Manage sites** button (`#sites/manage`) is where sites, codes and the site in-charge are added and edited.
+      - **Departments:** go from a department to its buildings, then to a building's gates (for example Kitchen, then Antz Kitchen, then Gate 1, Gate 2 and Service Gate). You can add departments, buildings and gates, and edit a gate's name, purposes and whether it's active.
+      - **Security tablet:** on a building you can choose "Show on security tablet" and tick "On tablet" for each gate.
+      - **Building tabs:** each building has Configuration | Dashboard (`#departments/D1/B01`, `.../dashboard`).
+        - **Configuration:** the gates, with **Configure tabs** for each gate (Vehicle entry and Vehicle exit only; no transfer tabs, because these departments are not animal related). By default the tabs follow what the gate is used for.
+        - **Look:** the two building tabs use the same full-width tab bar as Sites | Departments. Inside a building there is no breadcrumb and no Sites | Departments bar. The header shows the building name, with the department and code below it, and the back arrow goes to the department.
+        - **Dashboard:** gate chips (All gates, or one or more gates) and a calendar button in one bar. The filter applies to everything.
+          - **Date and time:** the calendar button opens a sheet in the same chip style as the Diet filter sheet. Date: Today, Yesterday, This week, This month, or Custom (From and To). Time of day: All day, Morning, Afternoon, Evening, Night, or Custom (start and end). The button shows what's applied and turns dark teal when it isn't Today, all day.
+          - **Summary panel:** Entries, Exits, Inside now, and Exit paperwork (a with / without challan split).
+          - **Below:** By gate (entries, exits, without challan, inside) and Latest movements on the left, with Exits without challan (and their reasons) on the right. In portrait, exits without challan comes first.
+          - **Vehicles panel** (was Latest movements): tabs All | Checked in | Checked out | Upcoming, with counts. Upcoming vehicles are tagged Due, or Late once their expected time has passed. Tapping a row opens a read-only detail drawer from the right. Checked in and out use the security detail (vehicles, challans, digitised lines, sealed DC, comments, See all timeline) without action buttons. Upcoming shows the expected vehicle, ETA and challan. Escape or the dark area closes it.
+          - **Data:** the sample visits come from `_build/security_visits.py` (1 to 30 Sep, nothing after the mock 3:42 PM, plus 2 to 4 vehicles expected later on 30 Sep for each building).
+    - **Security:** Sites | Gates.
+      - **Sites:** recreated from the mobile screenshots in `secuirty/site transfer`.
+        - **Layout:** site cards open a site page with 5 tabs (Animal, Egg, Egg Discard, Hospital and Carcass Transfer). Each has a pending filter. Landscape shows the list and detail side by side; portrait shows the list, then the detail.
+        - **Actions:** Security Checkout and Check-in, and Confirm discard.
+        - **Timeline:** in the detail footer, matching mobile IMG_0644. See all opens it above Current Status and Hide closes it. Newest is first, each row has its time, a ticked dot and a green card with the event and its value (for example "Animals loaded for transfer 3/3" or "Temperature checked 25°C"). Security actions are added as they happen. When it opens, the detail behind dims (tap the dark area or press Escape to close), the panel slides up, and the rows rise in one after another. The motion is off under reduced motion.
+      - **Gates:** the building and gates the admin configured. Tapping a gate opens the gate screen (`_build/security_gate_ui.py`, `#gates/G01/<tab>`), built from the site page's parts.
+        - **Layout:** a header band with the building and a gate switcher, then tabs All | Checked in | Checked out (from the admin's Vehicle entry and exit settings). There are no transfer tabs at gates. Below is a search for vendor, DC number or vehicle, with a scan button and a Sealed DC filter.
+        - **Cards:** Checked-in (with Record Exit), Draft (tap to finish), and Checked-Out with Sealed DC Uploaded (sealed stamp) or Pending (tap to upload).
+        - **Vehicle detail** (tap a card; `#gates/G01/<tab>/<visit id>`): laid out like the transfer detail. Landscape shows the list and detail side by side and opens the first vehicle; portrait shows the list, then the detail with an "All vehicles" link (the All | Checked in | Checked out tabs are hidden while a vehicle is open).
+          - **Header:** status chip, vendor, vehicle number, gate, entry time and the driver with call and message.
+          - **Sections:**
+            - Vehicle entries: one entry can hold several vehicles. Each vehicle is a collapsible row (number and how many challans) holding its details, the challans on it, photos, Edit and Remove. Add vehicle sits in the header.
+            - Challan details: collapsible rows showing number, items and "Split across N vehicles" or "On <vehicle>". Chips set which vehicles carry the challan (at least one). Each has photos and Delete. Add challan picks the vehicles.
+            - Digitised challans: a dark header bar (Item | Qty, Condition, Expiry), with each line as a white card split in two: the matched item with "On DC 'x'" under it, then qty, condition and an expiry pill. Damaged lines are tinted pink, with a Returned tag and the returned quantity. Before processing the challan shows "Waiting to be digitised" and the footer reads "Inside, waiting for receiving".
+            - QA cases (`GSC` / `gtScen` in `security_gate_ui.py`): each gate shows exactly 16 entries.
+              - Checked in (8): not processed and processed, each as 1 vehicle 1 challan, 1 vehicle 2 challans, 2 vehicles 2 challans (one each) and 2 vehicles 1 challan (split).
+              - Checked out (8): without and with the sealed DC, for the same four combinations.
+              - Processed means the challans are digitised and show item lines. Not processed shows "Waiting to be digitised".
+              - Three cases include a Damaged line marked "Returned, N returned".
+              - Checked-in list cards are tagged "Processed" or "Not processed".
+            - Sealed DC: take a photo, or show the stamp once uploaded.
+            - Security details.
+            - Comments (same as transfers, kept per vehicle).
+          - **Look:** sections are split by hairlines. Photos are 64px tiles with one dashed Add tile, each challan has a "Challan 1" label with a delete icon, and the sealed DC box uses the neutral palette.
+          - **Footer:** the same See all / Hide timeline as transfers (entry, challans checked, receiving, exit, sealed DC), current status, a progress bar, and Cancel / Mark exit (Check in for drafts, Upload sealed DC for pending exits). A sealed DC attached before the exit is saved as uploaded when the exit is marked.
+        - **+ button:** sits over the list in landscape and is hidden while a vehicle is open in portrait.
+        - **Log entry** (`#gates/G01/<tab>/new`, opened from + then Log Entry): a form in the detail column, built from the same parts as the entry detail.
+          - **Vehicles:** collapsible rows. Each has vehicle number* and vendor*, driver and phone, entry gate (this gate, 3:42 PM) and exit gate ("Decide at the gate"), and a photo box that becomes thumbnails with remove buttons. Add vehicle and Remove vehicle are available.
+          - **Challans:** collapsible rows with challan number*, and, when there are 2 or more vehicles, chips for which vehicles carry it. Each has photos. Add challan and Delete challan are available.
+          - **Security:** security name (filled in from Viewing as) and a photo.
+          - **Footer:** Cancel and Mark entry. Mark entry stays greyed until the required fields are filled; tapping it anyway marks the missing fields and rows in red and moves to the first gap. Saving creates a checked-in, not processed entry and opens its detail.
+        - **Record exit** (`#gates/G01/<tab>/exit-<visit id>`): Record Exit on a card, Mark exit on the detail, or + then Log exit (pick the vehicle, then Continue) all open the same log form, already filled from the entry. That means vehicles with driver, phone and vendor, the challans, and the security name.
+          - **Header:** "Recording exit".
+          - **Gates:** the entry gate shows the time it entered, and the exit gate shows this gate at 3:42 PM, tinted.
+          - **Sealed DC:** an extra section. Take a photo, or skip it and the exit saves with the sealed DC pending.
+          - **Mark exit:** saves any edits, checks the entry out, and opens its detail.
+        - **+ button:** Log Entry (opens the form above), Log Exit (pick the vehicle, sealed DC received or not) and Upload Sealed DC (pick the vehicle, attach a demo photo).
+        - **Storage:** changes are kept in localStorage `antz.security.gate`, timed at the mock 3:42 PM.
+    - **Storage:** the config is kept in localStorage `antz.security.cfg` and transfer changes in `antz.security.tx`.
+    - **Build:** `_build/security.py`, which uses `security-data.json` (from the Tab prototype's `flow-data.js`), `security_tx.py` for the sample transfers, `security_tx_ui.py` and `security_cfg_ui.py`.
+  - The Receiving Manager sees the Kitchen Dashboard and Meal Group Management read-only. The Diet requests links stay on the dashboard, because the role has no Diet access.
   - The Modules screen has the Viewing-as pill and shows tiles by role.
   - Opening a module the role can't use shows "No access for <role>" (`guardModule`).
   - The Kitchen Operator gets Requests | Meal Group Management (`#requests`, read-only list of Sent to prep). There is no Dashboard, and Prep Sheet "From DR" links go to `#requests/<id>`.
@@ -136,6 +192,8 @@ Target: GitHub `roshni-draws/ANTS_diet_tab`. Nothing is committed or pushed.
 - [ ] Delete stray test outputs (`kh-*.html`) if any are left.
 
 ## 9. User preferences
+
+- No coloured edge strips (left or top accent bars) on rounded boxes. Show state with a tag or a count badge instead. The Security page follows this; some Diet and Kitchen notes still have edge strips.
 
 - Keep changes small and do exactly what was asked. No extra features.
 - Open results in Arc for review.
