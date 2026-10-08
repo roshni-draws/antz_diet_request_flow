@@ -1,0 +1,87 @@
+<!doctype html>
+<!-- Device preview: runs the whole prototype inside an iPad-sized frame (iPad mini 744 x 1133 by default), portrait or landscape.
+     The app inside is the real pages (diet-module-flow.html and the rest), so every screen, role and link works as usual.
+     ?d=mini|ipad|pro11|proto  &o=p|l  &src=<page>  pick the device, orientation and starting page. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Antz Device Preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root { --bg: #E8EEEB; --bar: #FFFFFF; --ink: #1F415B; --muted: #6B7A78; --line: #D5DFDA; --accent: #1F515B; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #14191A; --bar: #1E2526; --ink: #E6EFEC; --muted: #9AA8A5; --line: #2E3839; --accent: #8FD3C2; } }
+  :root[data-theme="dark"] { --bg: #14191A; --bar: #1E2526; --ink: #E6EFEC; --muted: #9AA8A5; --line: #2E3839; --accent: #8FD3C2; }
+  * { box-sizing: border-box; margin: 0; }
+  html, body { height: 100%; }
+  body { background: var(--bg); color: var(--ink); font: 14px/1.4 Inter, system-ui, sans-serif; display: grid; grid-template-rows: auto 1fr; overflow: hidden; }
+  .bar { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 16px; padding: 10px 16px; background: var(--bar); border-bottom: 1px solid var(--line); }
+  .bar b { font-weight: 600; }
+  .grp { display: inline-flex; padding: 3px; gap: 2px; border-radius: 10px; background: var(--bg); }
+  .grp button { min-height: 36px; padding: 0 12px; border: 0; border-radius: 8px; background: transparent; color: var(--muted); font: inherit; cursor: pointer; white-space: nowrap; }
+  .grp button[aria-pressed="true"] { background: var(--bar); color: var(--ink); font-weight: 600; box-shadow: 0 1px 2px rgba(0,0,0,.12); }
+  .meta { color: var(--muted); font-variant-numeric: tabular-nums; }
+  .sp { flex: 1; }
+  .lnk { min-height: 36px; display: inline-flex; align-items: center; padding: 0 12px; border-radius: 8px; border: 1px solid var(--line); color: var(--ink); text-decoration: none; background: transparent; font: inherit; cursor: pointer; }
+  .lnk.exit { background: var(--accent); border-color: var(--accent); color: var(--bar); font-weight: 600; }
+  .stage { min-height: 0; display: grid; place-items: center; overflow: auto; padding: 24px; }
+  .frame { position: relative; flex: none; border-radius: 36px; padding: 18px; background: #0E1113; box-shadow: 0 24px 60px rgba(0,0,0,.28), inset 0 0 0 2px #2A3034; transform-origin: center center; }
+  .frame iframe { display: block; border: 0; border-radius: 20px; background: #fff; }
+  .cam { position: absolute; width: 6px; height: 6px; border-radius: 50%; background: #2A3034; }
+  @media (max-width: 640px) { .bar { padding: 8px 12px; } .stage { padding: 12px; } }
+</style>
+</head>
+<body>
+  <div class="bar" role="toolbar" aria-label="Device preview">
+    <b>Device</b>
+    <span class="grp" id="dev" role="group" aria-label="Device"></span>
+    <span class="grp" id="ori" role="group" aria-label="Orientation"><button type="button" data-o="p">Portrait</button><button type="button" data-o="l">Landscape</button></span>
+    <span class="grp" id="zoom" role="group" aria-label="Zoom"><button type="button" data-z="fit">Fit</button><button type="button" data-z="1">100%</button></span>
+    <span class="meta" id="meta"></span>
+    <span class="sp"></span>
+    <button type="button" class="lnk" id="home">Modules</button>
+    <a class="lnk exit" id="open" href="diet-module-flow.html">Exit iPad view</a>
+  </div>
+  <div class="stage" id="stage"><div class="frame" id="frame"><span class="cam" id="cam"></span><iframe id="app" title="Antz app" src="about:blank"></iframe></div></div>
+<script>
+(function () {
+  var DEV = { mini: ['iPad mini', 744, 1133], ipad: ['iPad', 820, 1180], pro11: ['iPad Pro 11"', 834, 1210], proto: ['Design size', 810, 1080] };
+  var q = new URLSearchParams(location.search), st = { d: DEV[q.get('d')] ? q.get('d') : 'mini', o: q.get('o') === 'l' ? 'l' : 'p', z: q.get('z') === '1' ? '1' : 'fit' };
+  var app = document.getElementById('app'), frame = document.getElementById('frame'), stage = document.getElementById('stage'), cam = document.getElementById('cam');
+  try { var saved = JSON.parse(localStorage.getItem('antz.preview') || 'null'); if (saved && !q.get('d')) { if (DEV[saved.d]) st.d = saved.d; if (saved.o) st.o = saved.o; if (saved.z) st.z = saved.z; } } catch (e) {}
+  document.getElementById('dev').innerHTML = Object.keys(DEV).map(function (k) { return '<button type="button" data-d="' + k + '">' + DEV[k][0] + '</button>'; }).join('');
+  var src = q.get('src') || 'diet-module-flow.html'; app.src = src;
+  function size() { var d = DEV[st.d], w = st.o === 'p' ? d[1] : d[2], h = st.o === 'p' ? d[2] : d[1]; return [w, h]; }
+  function apply() {
+    var s = size(), w = s[0], h = s[1];
+    app.style.width = w + 'px'; app.style.height = h + 'px';
+    if (st.o === 'p') { cam.style.left = '50%'; cam.style.top = '6px'; cam.style.transform = 'translateX(-50%)'; } else { cam.style.top = '50%'; cam.style.left = '6px'; cam.style.transform = 'translateY(-50%)'; }
+    var fw = w + 36, fh = h + 36, sw = stage.clientWidth - 48, sh = stage.clientHeight - 48, k = st.z === 'fit' ? Math.min(1, sw / fw, sh / fh) : 1;
+    frame.style.transform = k < 1 ? 'scale(' + k + ')' : 'none';
+    frame.style.margin = k < 1 ? (-(fh * (1 - k)) / 2) + 'px ' + (-(fw * (1 - k)) / 2) + 'px' : '0';
+    document.getElementById('meta').textContent = DEV[st.d][0] + ' · ' + w + ' × ' + h + (k < 1 ? ' · shown at ' + Math.round(k * 100) + '%' : '');
+    [].forEach.call(document.querySelectorAll('[data-d]'), function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-d') === st.d)); });
+    [].forEach.call(document.querySelectorAll('[data-o]'), function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-o') === st.o)); });
+    [].forEach.call(document.querySelectorAll('[data-z]'), function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-z') === st.z)); });
+    try { localStorage.setItem('antz.preview', JSON.stringify(st)); } catch (e) {}
+    try { var u = new URLSearchParams(location.search); u.set('d', st.d); u.set('o', st.o); history.replaceState(null, '', '?' + u.toString()); } catch (e) {} sync();
+  }
+  document.querySelector('.bar').addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.d) st.d = b.dataset.d; else if (b.dataset.o) st.o = b.dataset.o; else if (b.dataset.z) st.z = b.dataset.z;
+    else if (b.id === 'home') { app.src = 'diet-module-flow.html' + (function () { try { var v = app.contentWindow.location.search; return v || ''; } catch (x) { return ''; } })(); return; }
+    apply();
+  });
+  /* keep "Open full page" pointing at the screen shown in the frame */
+  function sync() { try { var l = app.contentWindow.location; if (l.href === 'about:blank') return; var cur = l.pathname.split('/').pop() + l.search + l.hash; document.getElementById('open').href = cur; var u = new URLSearchParams(location.search); u.set('src', cur); history.replaceState(null, '', '?' + u.toString()); } catch (e) {} }
+  app.addEventListener('load', function () { sync(); try { app.contentWindow.addEventListener('hashchange', sync); } catch (e) {} });
+  addEventListener('message', function (e) { if (e.source !== app.contentWindow || !e.data || typeof e.data.antzLoc !== 'string') return; var cur = e.data.antzLoc;
+    if (!/^[\w.-]+\.html/.test(cur)) return; document.getElementById('open').href = cur; try { var u = new URLSearchParams(location.search); u.set('src', cur); history.replaceState(null, '', '?' + u.toString()); } catch (x) {} });
+  addEventListener('resize', apply);
+  apply();
+})();
+</script>
+</body>
+</html>

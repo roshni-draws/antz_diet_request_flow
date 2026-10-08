@@ -307,6 +307,8 @@ def page(fname, title, top_comment, css, body, js='', tools=True):
 </body>
 </html>
 '''
+    if fname in globals().get('FIG_PAGES', ()):   # prototype-only Copy to Figma toolbar
+        html = html.replace('</head>', NEWUI_HEAD + FIG_HEAD + NEWUI_CSS + '</head>', 1).replace('\n</body>', '\n' + FIG_BODY + '</body>', 1)
     assert '—' not in html and '–' not in html, fname
     open(OUT + fname, 'w').write(html)
     print('wrote', fname, len(html))
@@ -321,6 +323,8 @@ GRAD_DEFS = '''  <svg class="icon-defs" aria-hidden="true" focusable="false">
     </defs>
   </svg>'''
 
+exec(open(os.path.join(HERE, 'figma_bar.py')).read())
+exec(open(os.path.join(HERE, 'newui.py')).read())
 exec(open(os.path.join(HERE, 'pages.py')).read())
 exec(open(os.path.join(HERE, 'home2.py')).read())
 exec(open(os.path.join(HERE, 'kitchen.py')).read())

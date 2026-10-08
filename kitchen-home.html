@@ -1010,6 +1010,68 @@
       .iconbtn:active, .chip:active, .spfilter:active, .card-press:active { transform: none !important; }
     }
   </style>
+  <script>try { if (localStorage.getItem('antz.ui') === 'new') document.documentElement.classList.add('ui-new'); } catch (e) {}</script>
+  <script src="https://mcp.figma.com/mcp/html-to-design/capture.js" async></script><!-- Figma html-to-design capture; inert unless used from the Figma button -->
+  <style id="ui-new-css">
+    /* ===== New UI: Antz Design Library skin (only when html.ui-new) ===== */
+    html.ui-new { --dl-head: #1F415B; --dl-teal: #1F515B; --dl-muted: #7A8684; --dl-line: #C3CEC7; --dl-outline: #839D8D; --dl-n05: rgba(0,0,0,.05); --dl-a10: rgba(0,0,0,.10); --dl-sec: #DDEBE9; --dl-surface: #F2FFF8; --dl-green: #37BD69; --radius: 10px; --card-shadow: none; }
+    /* header: .hdr (white, 20px, title in OnSecondaryContainer, subtitle neutralSecondary) */
+    html.ui-new .bar { padding: 20px 20px 20px 16px; gap: 12px; border-bottom: 0; box-shadow: 0 4px 4px 0 rgba(0,0,0,.05); }
+    html.ui-new .bar__hd h1 { color: var(--dl-head); }
+    html.ui-new .bar__hd p { color: var(--dl-muted); }
+    html.ui-new .bar .iconbtn, html.ui-new .sthero .iconbtn, html.ui-new .gthero .iconbtn { border-radius: 8px; }
+    html.ui-new .asbtn { border-radius: 8px; border-color: var(--dl-line); min-height: 40px; }
+    html.ui-new .sitebtn { height: 40px; padding: 6px 12px; border-radius: 8px; background: #fff; border: 1px solid var(--dl-line); }
+    /* primary tabs: .tab-primary pills (40px, min 138, radius 8, grey + hairline shadow; active dark teal) */
+    html.ui-new .mtabs, html.ui-new .txtabs, html.ui-new .rdtabs { display: flex !important; gap: 12px; padding: 16px 20px 12px; background: #fff; border-bottom: 0; overflow-x: auto; scrollbar-width: none; grid-template-columns: none !important; }
+    html.ui-new .mtabs[hidden], html.ui-new .txtabs[hidden], html.ui-new .rdtabs[hidden], html.ui-new [hidden] { display: none !important; }
+    html.ui-new .mtabs::-webkit-scrollbar, html.ui-new .txtabs::-webkit-scrollbar { display: none; }
+    html.ui-new .mtab, html.ui-new .txtab, html.ui-new .rdtab { flex: 0 0 auto; height: 40px; min-height: 40px; min-width: 138px; padding: 8px 16px; border: 0 !important; border-radius: 8px; background: var(--dl-n05); color: var(--md3-on-surface-variant); box-shadow: 0 1px 3px 0 var(--dl-a10); font-weight: 500; }
+    html.ui-new .mtab[aria-selected="true"], html.ui-new .txtab[aria-selected="true"], html.ui-new .rdtab[aria-selected="true"] { background: var(--dl-teal); color: #fff; box-shadow: none; filter: drop-shadow(0 1px 1.5px var(--dl-a10)); }
+    html.ui-new .txtab .n, html.ui-new .rdtab .n { background: rgba(255,255,255,.18); color: inherit; }
+    html.ui-new .txtab:not([aria-selected="true"]) .n { background: #fff; color: var(--dl-teal); }
+    html.ui-new .head .mtabs { border-top: 1px solid var(--line); }
+    /* segmented controls: .tab-seg (white track radius 14, items radius 10, active dark teal) */
+    html.ui-new .seg3, html.ui-new .dseg, html.ui-new .dvtabs, html.ui-new .sdtabs { padding: 5px; gap: 0; border-radius: 14px; background: #fff; box-shadow: 0 1px 3px var(--dl-a10); }
+    html.ui-new .seg3 button, html.ui-new .dseg button, html.ui-new .dseg a, html.ui-new .dvtabs button, html.ui-new .sdtabs button { min-height: 36px; height: 36px; border-radius: 10px; border: 0; color: var(--md3-on-surface-variant); background: transparent; box-shadow: none; }
+    html.ui-new .seg3 button[aria-selected="true"], html.ui-new .dseg button[aria-pressed="true"], html.ui-new .dseg a[aria-selected="true"], html.ui-new .dvtabs button[aria-selected="true"], html.ui-new .sdtabs button[aria-selected="true"] { background: var(--dl-teal); color: #fff; font-weight: 500; }
+    html.ui-new .dvtabs button[aria-selected="true"] .n { background: rgba(255,255,255,.2); color: #fff; }
+    /* filter chips: .tab-dd / .app-filter-chip (white, radius 8, outline) */
+    html.ui-new .spchip, html.ui-new .pchip, html.ui-new .daychips button, html.ui-new .pl-chip, html.ui-new .ws-chip { border-radius: 8px; background: #fff; border: 1px solid var(--dl-line); color: var(--md3-on-surface-variant); }
+    html.ui-new .spchip[aria-pressed="true"], html.ui-new .daychips button[aria-pressed="true"], html.ui-new .pl-chip[aria-pressed="true"], html.ui-new .ws-chip[aria-pressed="true"] { background: var(--dl-teal); border-color: var(--dl-teal); color: #fff; }
+    html.ui-new .pchip:has(input:checked) { background: var(--dl-teal); border-color: var(--dl-teal); color: #fff; }
+    /* search + icon buttons: .tab-search (outlined) and .tab-iconbox (44px, displaybgSecondary) */
+    html.ui-new .spsearch { background: #fff; border: 1px solid var(--dl-line); border-radius: 8px; height: 44px; }
+    html.ui-new .spfilter { width: 44px; min-width: 44px; height: 44px; border-radius: 8px; background: var(--dl-sec); border-color: transparent; }
+    html.ui-new .spfilter.on, html.ui-new .spfilter[aria-pressed="true"] { background: var(--dl-teal); color: #fff; }
+    html.ui-new .ddate.spfilter { width: auto; padding: 0 12px; background: #fff; border: 1px solid var(--dl-line); }
+    html.ui-new .ddate.spfilter.on { background: var(--dl-teal); color: #fff; border-color: var(--dl-teal); }
+    html.ui-new .ddate.spfilter.on svg { color: #fff; }
+    /* buttons: .btn (radius 4, 40px; primary green, secondary outlined teal, reject outlined error) */
+    html.ui-new .btn { border-radius: 4px; }
+    html.ui-new .btn.sec { border: 1px solid var(--dl-teal); color: var(--dl-teal); background: #fff; }
+    html.ui-new .btn.danger { border: .5px solid var(--md3-error); }
+    html.ui-new .btn.add, html.ui-new .btn.exit { border-radius: 4px; }
+    html.ui-new .cfgedit, html.ui-new .linkbtn.gadd { border-radius: 4px; }
+    /* inputs: .app-field (56px, radius 4, Outline border on Surface; focus 1.5px Primary on white) */
+    html.ui-new .gin input, html.ui-new .fgrid input[type=text], html.ui-new .fgrid input[type=date], html.ui-new .fgrid input[type=time], html.ui-new .fgrid select, html.ui-new .txform input, html.ui-new .txform textarea { height: 56px; border-radius: 4px; border: 1px solid var(--dl-outline); background: var(--dl-surface); color: var(--dl-teal); }
+    html.ui-new .txform textarea { min-height: 88px; height: auto; }
+    html.ui-new .gin input:focus, html.ui-new .fgrid input:focus, html.ui-new .fgrid select:focus, html.ui-new .txform input:focus, html.ui-new .txform textarea:focus { background: #fff; border: 1.5px solid var(--dl-green); box-shadow: none; outline: none; }
+    html.ui-new .gin.ro b { height: 56px; border-radius: 4px; }
+    html.ui-new .gin.bad input { border-color: var(--md3-error); background: #fff; }
+    /* list cards: .app-listing-card (white, radius 10, no shadow) and panels: .pcard (radius 8, 16px) */
+    html.ui-new .gvc, html.ui-new .txc, html.ui-new .stcard, html.ui-new .spk, html.ui-new .cfgrow, html.ui-new .dvc, html.ui-new .rqcard, html.ui-new .spcard, html.ui-new .dietcard { border-radius: 10px; box-shadow: none; }
+    html.ui-new .gvc[aria-current="true"], html.ui-new .txc[aria-current="true"] { border-color: var(--dl-teal); }
+    html.ui-new .dpan, html.ui-new .dsum, html.ui-new .tabcard, html.ui-new .kpanel, html.ui-new .scard, html.ui-new .dcard, html.ui-new .sum4 > *, html.ui-new .kcard { border-radius: 8px; box-shadow: none; }
+    html.ui-new .gacc__i { border-radius: 8px; }
+    /* tags: .app-tag radius 5 */
+    html.ui-new .tag, html.ui-new .gplus, html.ui-new .gtab, html.ui-new .gchip, html.ui-new .dctag, html.ui-new .gcond, html.ui-new .gexp, html.ui-new .slive, html.ui-new .ttag, html.ui-new .pill, html.ui-new .dmv { border-radius: 5px; }
+    /* sheets keep their shape; the grab bar and title follow the header colour */
+    html.ui-new .sheet__h h2 { color: var(--dl-head); }
+    /* Modules screen tiles */
+    html.ui-new .tile, html.ui-new .row { border-radius: 10px; box-shadow: none; }
+    html.ui-new .head .title { color: var(--dl-head); }
+  </style>
 </head>
 <body>
   <div class="app">
@@ -2410,6 +2472,105 @@
 
 
   applyViewer(true); route(); routeMG();
+  })();
+  </script>
+  <!-- Figma capture toolbar (prototype only, not part of the app) -->
+  <style>
+    .figbar { position: fixed; left: 12px; bottom: 12px; z-index: 90; display: flex; align-items: center; gap: 6px; padding: 4px; border-radius: 22px; background: rgba(20, 24, 28, .88); color: #fff; font: 500 13px/1 Inter, system-ui, sans-serif; box-shadow: 0 6px 20px rgba(0,0,0,.25); }
+    .figbar button { min-height: 36px; padding: 0 12px; border: 0; border-radius: 18px; background: transparent; color: #fff; font: inherit; cursor: pointer; white-space: nowrap; }
+    .figbar button:hover:not([disabled]) { background: rgba(255,255,255,.14); }
+    .figbar button[disabled] { opacity: .4; cursor: not-allowed; }
+    .figbar button[aria-pressed="true"] { background: #fff; color: #14181C; }
+    .figbar .figbar__tog { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; }
+    .figbar .figbar__tog svg { width: 14px; height: 14px; }
+    .figbar .figbar__ipad { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; }
+    .figbar .figbar__ipad svg { width: 16px; height: 16px; }
+    .figbar .figbar__ui { font-weight: 600; }
+    .figbar .figbar__ui[aria-pressed="true"] { background: #37BD69; color: #fff; }
+    .figbar__sep { width: 1px; height: 20px; background: rgba(255,255,255,.25); }
+    .figbar__acts { display: none; align-items: center; gap: 2px; }
+    .figbar.open .figbar__acts { display: flex; }
+    .figbar__st { max-width: 260px; padding: 0 10px 0 4px; color: rgba(255,255,255,.75); font-weight: 400; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .figbar__st[data-tone="ok"] { color: #8EF0B4; } .figbar__st[data-tone="error"] { color: #FFB4C0; }
+    .figbar__outline { position: absolute; z-index: 89; pointer-events: none; border: 2px solid #0D99FF; background: rgba(13,153,255,.08); border-radius: 4px; }
+    body.is-figma-picking, body.is-figma-picking * { cursor: crosshair !important; }
+    @media print { .figbar { display: none; } }
+  </style>
+  <div class="figbar" id="figbar" role="toolbar" aria-label="Copy to Figma, prototype only"></div>
+  <script>
+  (function () {
+    var bar = document.getElementById('figbar'); if (!bar) return;
+    var PICK = 'data-figma-pick', open = false, picking = false, busy = false, msg = '', tone = '';
+    var LOGO = '<svg viewBox="0 0 38 57" aria-hidden="true"><path fill="#1ABCFE" d="M19 28.5a9.5 9.5 0 1 1 19 0 9.5 9.5 0 0 1-19 0z"/><path fill="#0ACF83" d="M0 47.5A9.5 9.5 0 0 1 9.5 38H19v9.5a9.5 9.5 0 1 1-19 0z"/><path fill="#FF7262" d="M19 0v19h9.5a9.5 9.5 0 1 0 0-19H19z"/><path fill="#F24E1E" d="M0 9.5A9.5 9.5 0 0 0 9.5 19H19V0H9.5A9.5 9.5 0 0 0 0 9.5z"/><path fill="#A259FF" d="M0 28.5A9.5 9.5 0 0 0 9.5 38H19V19H9.5A9.5 9.5 0 0 0 0 28.5z"/></svg>';
+    var IPAD = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="5" y="2.5" width="14" height="19" rx="2.5"/><path d="M11 18.5h2"/></svg>';
+    function ready() { return !!(window.figma && window.figma.captureForDesign); }
+    /* the sheet or panel on top right now: a visible bottom sheet, else an open full-screen panel */
+    function topSheet() { var s = [].slice.call(document.querySelectorAll('.scrim:not([hidden]) .sheet, .rscrim:not([hidden]) .rsheet, .ddrawer:not([hidden]) .ddrawer__p')).filter(function (e) { return e.offsetParent !== null; }); return s[s.length - 1] || null; }
+    function draw() {
+      var sh = !!topSheet();
+      var cls = 'figbar' + (open ? ' open' : ''); if (bar.className !== cls) bar.className = cls;
+      bar.innerHTML = '<button type="button" class="figbar__ui" data-fig="ui" aria-pressed="' + document.documentElement.classList.contains('ui-new') + '" title="Switch between the current UI and the Antz Design Library UI">' + (document.documentElement.classList.contains('ui-new') ? 'New UI on' : 'New UI') + '</button><span class="figbar__sep" aria-hidden="true"></span>' + (window.self === window.top ? '<button type="button" class="figbar__ipad" data-fig="ipad" title="See this screen in an iPad mini frame">' + IPAD + 'iPad view</button><span class="figbar__sep" aria-hidden="true"></span>' : '') + '<button type="button" class="figbar__tog" data-fig="tog" aria-expanded="' + open + '" title="Copy to Figma">' + LOGO + 'Figma</button>' +
+        '<span class="figbar__acts"><button type="button" data-fig="screen">Copy screen</button><button type="button" data-fig="sheet"' + (sh ? '' : ' disabled title="Open a sheet or panel first"') + '>Copy sheet</button>' +
+        '<button type="button" data-fig="pick" aria-pressed="' + picking + '">' + (picking ? 'Cancel pick' : 'Pick element') + '</button>' +
+        '<span class="figbar__st" role="status" data-tone="' + tone + '">' + (msg || (ready() ? (picking ? 'Tap anything to copy it, Esc cancels' : 'Copies to the clipboard, paste into Figma') : 'Loading the Figma script')) + '</span></span>';
+    }
+    function say(t, k) { msg = t; tone = k || ''; draw(); }
+    /* Figma reads each SVG on its own: inline <use> symbols and copy any gradient / mask / clip an SVG points to into that SVG */
+    function flatten(root) {
+      [].forEach.call((root || document).querySelectorAll('svg'), function (svg, n) {
+        if (svg.closest('#figbar') || svg.classList.contains('icon-defs')) return;
+        [].forEach.call(svg.querySelectorAll('use'), function (u) {
+          var ref = (u.getAttribute('href') || u.getAttribute('xlink:href') || '').replace(/^#/, ''), sym = ref && document.getElementById(ref); if (!sym) return;
+          var g = document.createElementNS('http://www.w3.org/2000/svg', 'g'); [].forEach.call(sym.childNodes, function (c) { g.appendChild(c.cloneNode(true)); }); u.parentNode.replaceChild(g, u);
+        });
+        var defs = svg.querySelector(':scope > defs'), map = {};
+        [].forEach.call(svg.querySelectorAll('*'), function (el) {
+          ['fill', 'stroke', 'mask', 'clip-path', 'filter'].forEach(function (at) {
+            var v = el.getAttribute(at), m = v && v.match(/url\(#([^)]+)\)/); if (!m) return; var id = m[1];
+            if (svg.querySelector('[id="' + id + '"]')) return;
+            if (!map[id]) { var src = document.getElementById(id); if (!src) return; if (!defs) { defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs'); svg.insertBefore(defs, svg.firstChild); } var c = src.cloneNode(true); map[id] = id + '-f' + n; c.id = map[id]; defs.appendChild(c); }
+            el.setAttribute(at, 'url(#' + map[id] + ')');
+          });
+        });
+      });
+    }
+    function capture(selector, label) {
+      if (!ready()) return say('The Figma script has not loaded (it needs internet).', 'error');
+      if (busy) return; busy = true; say('Copying ' + label);
+      bar.style.visibility = 'hidden'; outline.hidden = true; try { flatten(document); } catch (e) {}
+      Promise.resolve().then(function () { return window.figma.captureForDesign({ selector: selector, delayMs: 0 }); })
+        .then(function (r) { if (r && r.success === false) say('Could not copy: ' + r.error, 'error'); else say(label.charAt(0).toUpperCase() + label.slice(1) + ' copied. Paste into Figma.', 'ok'); })
+        .catch(function (e) { say('Could not copy: ' + (e && e.message || e), 'error'); })
+        .then(function () { busy = false; bar.style.visibility = ''; [].forEach.call(document.querySelectorAll('[' + PICK + ']'), function (x) { x.removeAttribute(PICK); }); setTimeout(function () { if (!busy) { msg = ''; tone = ''; draw(); } }, 4000); });
+    }
+    var outline = document.createElement('div'); outline.className = 'figbar__outline'; outline.hidden = true; document.body.appendChild(outline);
+    function inPage(el) { return el && el.closest && !el.closest('#figbar') && el !== outline && el !== document.body && el !== document.documentElement; }
+    function show(el) { var r = el.getBoundingClientRect(); outline.style.top = (r.top + scrollY) + 'px'; outline.style.left = (r.left + scrollX) + 'px'; outline.style.width = r.width + 'px'; outline.style.height = r.height + 'px'; outline.hidden = false; }
+    function target(el) { return el.closest('.tile, .row, .gvc, .txc, .stcard, .spk, .cfgrow, .gacc__i, .glines, .dkpi, .dsum, .dpan, .dcard, .scard, .kpanel, .card, .sheet, .txdh, .txfoot, .txsec, section, button, a') || el; }
+    function stopPick() { picking = false; outline.hidden = true; document.body.classList.remove('is-figma-picking'); draw(); }
+    document.addEventListener('mouseover', function (e) { if (picking && inPage(e.target)) show(target(e.target)); }, true);
+    document.addEventListener('click', function (e) {
+      if (!picking || !inPage(e.target)) return;
+      e.preventDefault(); e.stopImmediatePropagation();
+      var el = target(e.target), name = (el.className && typeof el.className === 'string' && el.className.split(' ')[0]) || el.tagName.toLowerCase();
+      el.setAttribute(PICK, '1'); stopPick(); capture('[' + PICK + '="1"]', 'the ' + name);
+    }, true);
+    document.addEventListener('keydown', function (e) { if (picking && e.key === 'Escape') { e.stopImmediatePropagation(); stopPick(); } }, true);
+    bar.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-fig]'); if (!b || b.disabled) return; var a = b.getAttribute('data-fig');
+      if (a === 'ui') { var on = !document.documentElement.classList.contains('ui-new'); document.documentElement.classList.toggle('ui-new', on); try { localStorage.setItem('antz.ui', on ? 'new' : 'old'); } catch (e) {} try { if (window.self !== window.top) parent.postMessage({ antzUi: on }, '*'); } catch (e) {} draw(); return; }
+      if (a === 'ipad') { var here = location.pathname.split('/').pop() + location.search + location.hash; location.href = 'preview.html?src=' + encodeURIComponent(here); return; }
+      if (a === 'tog') { open = !open; if (!open && picking) stopPick(); else draw(); return; }
+      if (a === 'screen') return capture('body', 'the screen');
+      if (a === 'sheet') { var s = topSheet(); if (!s) return; s.setAttribute(PICK, '1'); return capture('[' + PICK + '="1"]', 'the sheet'); }
+      if (a === 'pick') { if (picking) return stopPick(); picking = true; document.body.classList.add('is-figma-picking'); draw(); }
+    });
+    /* keep Copy sheet in step with sheets opening and closing */
+    var lastSh = null; new MutationObserver(function (ms) { if (busy || !open) return; if (ms.every(function (m) { return bar.contains(m.target) || m.target === outline; })) return; var sh = !!topSheet(); if (sh !== lastSh) { lastSh = sh; draw(); } }).observe(document.body, { subtree: true, attributes: true, attributeFilter: ['hidden', 'class'] });
+    var wait = setInterval(function () { if (ready()) { clearInterval(wait); draw(); } }, 400); setTimeout(function () { clearInterval(wait); }, 20000);
+    draw();
+    /* inside the iPad preview frame: tell the preview which screen is showing, so Exit iPad view returns to it */
+    if (window.self !== window.top) { var tell = function () { try { parent.postMessage({ antzLoc: location.pathname.split('/').pop() + location.search + location.hash }, '*'); } catch (e) {} }; tell(); addEventListener('hashchange', tell); }
   })();
   </script>
 </body>

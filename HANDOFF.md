@@ -191,6 +191,54 @@ Target: GitHub `roshni-draws/ANTS_diet_tab`. Nothing is committed or pushed.
 - [ ] Remove the local `/Users/...` fallback output path in `_build/build.py`.
 - [ ] Delete stray test outputs (`kh-*.html`) if any are left.
 
+## New UI (Antz Design Library skin)
+
+- **Switch:** the **New UI** button, first in the bottom-left prototype bar on every page (Modules, Diet, Kitchen, Security, Inventory), switches the same screens to the Antz Design Library look. The design library is the claude.ai artifact G4z41FWKrhN6kDySJuK6Za, whose tablet components were approved on 21 Sep. The choice is saved in localStorage `antz.ui` and applies across pages and inside the iPad view.
+- **Restyle only:** `_build/newui.py` (`NEWUI_CSS`, `NEWUI_HEAD`), with every rule under `html.ui-new`. Off means exactly the old UI; no screen, flow or data changed.
+- **What changes:**
+  - Header: `.hdr`, 20px padding with a soft shadow.
+  - Main tabs: `.tab-primary` pills, 40px tall, at least 138px wide, radius 8, grey, with the active one dark teal.
+  - Segmented controls: `.tab-seg`.
+  - Filter chips: `.tab-dd`.
+  - Search: outlined `.tab-search`.
+  - Icon buttons: `.tab-iconbox`.
+  - Inputs: `.app-field`, 56px, radius 4, Outline on Surface, 1.5px Primary on focus.
+  - Buttons: `.btn`, radius 4, secondary outlined teal.
+  - List cards: `.app-listing-card`, radius 10, no shadow. Panels: `.pcard` radius 8. Tags: radius 5.
+
+## iPad view (prototype only)
+
+- **Entering:** the **iPad view** button, left of the Figma pill on every page, opens `preview.html?src=<current screen>`. That shows the same screen inside an iPad frame, iPad mini 744 x 1133 by default.
+- **Preview bar:** device (iPad mini, iPad 820 x 1180, iPad Pro 11" 834 x 1210, Design size 810 x 1080), Portrait / Landscape, Fit / 100%, a Modules button, and **Exit iPad view**. Exit goes back to the normal full-screen page on whatever screen the frame shows.
+- **How it tracks the screen:** pages inside the frame report their address to the preview (postMessage), so this also works with local files. The preview remembers the last device and orientation, and a refresh keeps the screen.
+- **Normal view:** unchanged; the pages themselves were not modified for the iPad sizes. I checked the main Diet, Kitchen and Security screens at 744 x 1133 and 1133 x 744: none of them scrolls sideways, and there were no errors.
+
+## Copy to Figma (prototype only)
+
+- **Where:** a small **Figma** pill in the bottom left of the Modules screen and the Diet, Kitchen, Security and Inventory pages. `diet-directory.html` is left unchanged.
+- **What it does:** tap it for Copy screen, Copy sheet (the open sheet, panel or drawer), and Pick element (tap anything; Esc cancels). Each copies to the clipboard via Figma's html-to-design script (`mcp.figma.com/mcp/html-to-design/capture.js`), ready to paste into Figma. It needs internet, and the bar hides itself while copying.
+- **Icons:** before each copy the bar runs `flatten()`. That inlines `<use>` symbols and copies any gradient, mask or clip an SVG points to into that SVG, because Figma reads each SVG on its own; without it the Modules icons and the Kitchen Meal Group icons pasted half empty. The Diet glyph's clip hole is now a white circle instead of a mask.
+- **Code:** `_build/figma_bar.py` (`FIG_HEAD`, `FIG_BODY`, `FIG_PAGES`), added by `page()` in `build.py`. The same snippet is pasted into the hand-made `diet-module-flow.html`.
+
+## Figma component library (New UI, iPad mini)
+
+- **File:** Kitchen---Diet_2026_roshni (`Lorx42E5FLDBqrdCrZX76c`), Components page, section "Antz New UI · iPad mini" (`412:1763`). Every component uses the file's "Antz / App colors" variables and the `Antz/App/t-*` text styles.
+- **Action items** (`412:1764`):
+  - Button, Pill tab, Segment item and Segmented control
+  - Filter chip, Search bar, Icon box, Input field
+  - Tag, Action pill, FAB
+- **Cards** (`415:1765`):
+  - Gate vehicle card, Transfer card, Site card
+  - Stat item, Species card, Item line
+  - Collapsible row, Vehicle row, Timeline row
+- **Icons** (`434:1763`): 32 line icons, 24px (`Icon/back`, `Icon/truck`, `Icon/qr` and more). Each icon's colour comes from a variable, so it can be changed per copy.
+- **Screen patterns** (`434:1880`):
+  - App bar, Gate header, Detail header, Detail footer
+  - Bottom sheet, Gate config row
+  - Kitchen summary card, Diet directory card
+  - Comment, Comment input, Photo tile, Sealed DC, Toast
+- Write to that file only when asked, and only on the Components page.
+
 ## 9. User preferences
 
 - No coloured edge strips (left or top accent bars) on rounded boxes. Show state with a tag or a count badge instead. The Security page follows this; some Diet and Kitchen notes still have edge strips.
