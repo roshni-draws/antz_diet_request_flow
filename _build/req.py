@@ -18,6 +18,23 @@ REQ_CSS = '''    /* =========================================================
     .fld .ferr { color: var(--md3-error); font-size: 13px; }
     .curdiet { display: grid; gap: 2px; padding: var(--sp-12) var(--sp-16); border-radius: 8px; background: var(--md3-background); }
     .curdiet b { color: var(--head); }
+    /* Send to dietician picker */
+    .dpick { display: grid; gap: var(--sp-8); }
+    .dp { display: flex; align-items: center; gap: var(--sp-12); min-height: 64px; padding: var(--sp-8) var(--sp-16); border-radius: var(--radius); border: 1px solid var(--md3-outline-variant); background: var(--white); text-align: left; width: 100%; }
+    .dp[aria-checked="true"] { border-color: var(--md3-on-primary-container); box-shadow: 0 0 0 1px var(--md3-on-primary-container); background: var(--md3-displaybg-primary); }
+    .dp .av { width: 40px; height: 40px; flex: none; border-radius: 50%; display: grid; place-items: center; background: var(--md3-surface-variant); color: var(--head); font-weight: 600; }
+    .dp .grow { flex: 1; min-width: 0; display: grid; gap: 2px; }
+    .dp .grow b { color: var(--head); }
+    .dp .grow small { color: var(--ink); }
+    .dpst { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; color: var(--ink); }
+    .dpst i { width: 10px; height: 10px; border-radius: 50%; background: var(--md3-outline-variant); }
+    .dpst.on { color: var(--md3-on-surface); }
+    .dpst.on i { background: var(--md3-primary); }
+    .dpst.off i { background: transparent; border: 2px solid var(--ink); width: 10px; height: 10px; box-sizing: border-box; }
+    .dpempty { display: flex; gap: var(--sp-12); padding: var(--sp-16); border-radius: var(--radius); background: #FFF6DB; color: var(--head); }
+    .dpempty svg { flex: none; color: #8A5A00; }
+    .dpempty div { display: grid; gap: 4px; }
+    .dpempty span { color: var(--ink); }
     .curdiet small { color: var(--md3-neutral-secondary); }
     .toast .tact { margin-left: 12px; min-height: 36px; padding: 0 12px; border-radius: 6px; background: rgba(255,255,255,.16); color: var(--white); font-weight: 600; }
     .rqd { position: fixed; inset: var(--status-h) 0 0 0; z-index: 22; display: grid; grid-template-rows: auto 1fr auto; background: var(--md3-background); }
@@ -141,7 +158,7 @@ REQ_SHARED_JS = '''  /* ---------------- Diet requests: shared store + detail (V
         if (s.phaseDone && n === 5) state = 'done';
         if (s.end && n >= 2) state = n === 2 ? 'rejected' : 'skipped';
         if (n === 1) { state = 'done'; sub = RQ.fmtDT(r.events[0].at) + ' by ' + r.by.name; }
-        if (n === 2) sub = s.end === 'rejected' ? 'Rejected by the Head Dietician' : s.end === 'cancelled' ? 'Cancelled by the requester' : state === 'current' ? 'Waiting for the Head Dietician' : state === 'done' ? 'Accepted' : '';
+        if (n === 2) sub = s.end === 'rejected' ? 'Rejected by the dietician' : s.end === 'cancelled' ? 'Cancelled by the requester' : state === 'current' ? 'Waiting for the dietician' : state === 'done' ? 'Accepted' : '';
         if (n === 3 && state === 'current') sub = 'Being configured';
         if (n === 4 && state === 'current') sub = s.delayed ? r.label.split(' · ').pop() : 'Stock and feasibility check';
         if (n === 5 && state === 'done') sub = 'Applied by the kitchen';
@@ -151,7 +168,7 @@ REQ_SHARED_JS = '''  /* ---------------- Diet requests: shared store + detail (V
     next: function (r) {
       var s = RQ.step(r);
       if (s.end) return s.end === 'rejected' ? 'Closed. The request was rejected.' : 'Closed. The request was cancelled.';
-      if (s.cur === 2) return 'Head Dietician to review'; if (s.cur === 3) return 'Head Dietician to configure the new diet';
+      if (s.cur === 2) return 'Dietician to review'; if (s.cur === 3) return 'Dietician to configure the new diet';
       if (s.cur === 4) return 'Kitchen to check stock and accept'; return 'Sent to prep. Later steps are not part of this phase.';
     },
   };
@@ -226,7 +243,7 @@ REQ_FORM_JS = '''    /* ======================= REQUEST DIET CHANGE (V2 dr-core.
     function reqBadge(list) { if (!list.length) return ''; return '<button type="button" class="rqb" data-rqopen="' + list[0].id + '" aria-label="' + plural(list.length, 'open request') + ', open ' + list[0].id + '">' + ic('time', 16) + plural(list.length, 'open request') + '</button>'; }
     function activeFor(s, scope, ref) {
       var at = plansOf(s).filter(function (p) { return p.active && !p.from && !p.to && p.scope === scope && (scope === 'species' || p.ref === ref); })[0];
-      return at || basePlan(s) || null;
+      return at || inherited(s, scope, ref) || null;   /* else the diet the target inherits (parent level or species base) */
     }
     function rfScope() { return RF.f.animal ? 'animal' : RF.f.enclosure ? 'enclosure' : RF.f.section ? 'section' : RF.f.site ? 'site' : 'species'; }
     function rfRef() { var sc = rfScope(); return sc === 'species' ? null : Number(RF.f[sc]); }
@@ -242,7 +259,7 @@ REQ_FORM_JS = '''    /* ======================= REQUEST DIET CHANGE (V2 dr-core.
     function openRequest(ctx, fromHash) {
       var s = BY[st.tsn]; if (!s) return;
       ctx = ctx || {};
-      var f = { site: '', section: '', enclosure: '', animal: '', type: 'temporary', priority: '', title: '', start: '', end: '', reason: '', notes: '' };
+      var f = { site: '', section: '', enclosure: '', animal: '', type: 'temporary', priority: '', title: '', start: '', end: '', reason: '', notes: '', dietician: '' };
       var scope = ctx.scope || 'species', ref = ctx.ref;
       if (scope !== 'species' && ref != null) {
         var e0;
@@ -254,7 +271,7 @@ REQ_FORM_JS = '''    /* ======================= REQUEST DIET CHANGE (V2 dr-core.
         f.type = scope === 'animal' ? 'animal' : 'site';
       }
       if (ctx.plan) f.type = PLANS[ctx.plan] && (PLANS[ctx.plan].from || PLANS[ctx.plan].to) ? 'temporary' : scope === 'species' ? 'base' : f.type;
-      if (ctx.edit) { var R0 = ctx.edit; f.type = R0.type; f.priority = R0.prio; f.title = R0.title; f.start = R0.start || ''; f.end = R0.end || ''; f.reason = R0.text; f.notes = R0.notes || ''; }
+      if (ctx.edit) { var R0 = ctx.edit; f.type = R0.type; f.priority = R0.prio; f.title = R0.title; f.start = R0.start || ''; f.end = R0.end || ''; f.reason = R0.text; f.notes = R0.notes || ''; f.dietician = R0.assignee ? R0.assignee.id : ''; }
       RF = { tsn: s.tsn, f: f, plan: ctx.plan || null, step: 'where', errs: {}, from: ctx.from || 'species', edit: ctx.edit ? ctx.edit.id : null };
       var h = rfHash('where'); if (fromHash) { try { history.replaceState(null, '', h); } catch (x) {} } else location.hash = h;
       document.getElementById('rqf').hidden = false; drawRF();
@@ -281,7 +298,7 @@ REQ_FORM_JS = '''    /* ======================= REQUEST DIET CHANGE (V2 dr-core.
         sel('section', 'Section', [['', 'All sections']].concat(uniqBy(inSite, 'sectionId', function (e) { return e.section; })), { opt: true }) +
         sel('enclosure', 'Enclosure', [['', 'All enclosures']].concat(uniqBy(inSec, 'id', function (e) { return e.name; })), { opt: true }) +
         sel('animal', 'Individual animal', [['', 'All animals']].concat((s.animalList || []).filter(function (a) { return inEnc.indexOf(a.enclosure) !== -1; }).map(function (a) { return [String(a.id), animalLabel(a) + (a.label ? ' (#' + a.id + ')' : '')]; })), { opt: true }) + '</div>' +
-        '<div class="curdiet t-body-regular"><span class="t-body-medium" style="color:var(--ink)">Current diet</span><b>' + esc(cur ? shownId(cur) + ' ' + (KIND[cur.kind] || KIND.base)[1] : 'No active diet') + '</b><small>Read only. It stays active while the request is open.</small></div></section>';
+        '<div class="curdiet t-body-regular"><span class="t-body-medium" style="color:var(--ink)">Current diet</span><b>' + esc(cur ? shownId(cur) + ' ' + (KIND[cur.kind] || KIND.base)[1] : 'No active diet') + '</b><small>Read only. It stays active while the request is open.</small></div></section>' + rfPicker();
     }
     function rfDetails() {
       var f = RF.f;
@@ -292,7 +309,7 @@ REQ_FORM_JS = '''    /* ======================= REQUEST DIET CHANGE (V2 dr-core.
         inp('title', 'Short title', 'text', { opt: true, ph: 'For example Temporary Recovery Diet' }) +
         '<div class="g2">' + inp('start', 'Start', 'date', { req: true }) + inp('end', 'End', 'date', { req: f.type === 'temporary', opt: f.type !== 'temporary', min: f.start }) + '</div>' +
         inp('reason', 'Reason', 'textarea', { req: true, ph: 'Why the diet needs to change' }) + inp('notes', 'Notes', 'textarea', { opt: true }) +
-        alertBox('The Head Dietician reviews the request next. The active diet does not change.', true) + '</section>';
+        alertBox((function () { var p = rfEligible().filter(function (x) { return x.u.id === RF.f.dietician; })[0]; return (p ? p.u.name + (p.u.online ? '' : ' (offline)') : 'The dietician you picked') + ' reviews the request next. The active diet does not change.'; })(), true) + '</section>';
     }
     function drawRF() {
       if (!RF) return;
@@ -314,14 +331,34 @@ REQ_FORM_JS = '''    /* ======================= REQUEST DIET CHANGE (V2 dr-core.
       if (f.type === 'site' && !f.site) e.type = 'Choose the site or section (in Where it applies) for a site-specific diet.';
       return e;
     }
+    /* ---------- Send to dietician (locked DEC-02 / DEC-04): dieticians in charge of the target's chain, with online status ---------- */
+    function rfChain() { var s = BY[RF.tsn], f = RF.f, c = [['taxonomy', clsOf(s)], ['species', s.tsn]];
+      ['site', 'section', 'enclosure', 'animal'].forEach(function (k) { if (f[k]) c.push([k, Number(f[k])]); }); return c; }
+    function rfEligible() { var c = rfChain(), rank = ['animal', 'enclosure', 'section', 'site', 'species', 'taxonomy'];
+      return USERS.filter(function (u) { return u.role === 'DIETICIAN'; }).map(function (u) {
+        var hits = (u.scopes || []).filter(function (sc) { return c.some(function (x) { return x[0] === sc[0] && String(x[1]) === String(sc[1]); }); }).sort(function (a, b) { return rank.indexOf(a[0]) - rank.indexOf(b[0]); });
+        return hits.length ? { u: u, why: hits[0][2] } : null; }).filter(Boolean).sort(function (a, b) { return (b.u.online - a.u.online) || a.u.name.localeCompare(b.u.name); }); }
+    function rfPicker() {
+      var L = rfEligible(), f = RF.f, err = RF.errs.dietician, nm = rfRefName() || BY[RF.tsn].name;
+      if (f.dietician && !L.some(function (x) { return x.u.id === f.dietician; })) f.dietician = '';
+      var h = '<section class="wcard"><h2 class="t-medium-medium" id="rfDL">Send to dietician <b class="req">*</b></h2><p class="sub t-body-regular">Dieticians in charge of ' + esc(nm) + '. Pick one to review and approve the request.</p>';
+      if (!L.length) return h + '<div class="dpempty t-body-regular">' + ic('alert', 22) + '<div><b class="t-body-title">No dietician is in charge of ' + esc(nm) + '</b><span>Ask an administrator to assign a dietician to this species or location. The request cannot be sent until then.</span></div></div></section>';
+      return h + '<div class="dpick" role="radiogroup" aria-labelledby="rfDL" aria-required="true"' + (err ? ' aria-invalid="true" aria-describedby="rfDE"' : '') + '>' + L.map(function (x) { var on = f.dietician === x.u.id;
+        return '<button type="button" role="radio" class="dp" data-rfdt="' + x.u.id + '" aria-checked="' + on + '"><span class="av">' + RQ.initials(x.u.name) + '</span><span class="grow"><b class="t-body-title">' + esc(x.u.name) + '</b><small class="t-body-regular">' + esc(x.why) + '</small></span>' +
+          (x.u.online ? '' : '<span class="tag orange">May reply later</span>') + '<span class="dpst ' + (x.u.online ? 'on' : 'off') + ' t-body-medium"><i aria-hidden="true"></i>' + (x.u.online ? 'Online' : 'Offline') + '</span></button>'; }).join('') + '</div>' +
+        (err ? '<span class="ferr" id="rfDE">' + esc(err) + '</span>' : '') + '</section>';
+    }
+    function dietErr() { return RF.f.dietician ? null : rfEligible().length ? 'Choose a dietician to send this request to.' : 'No dietician is in charge of this target, so the request cannot be sent.'; }
     function rfSubmit() {
-      RF.errs = rfValidate(); var n = Object.keys(RF.errs).length;
+      RF.errs = rfValidate(); var de = dietErr(); if (de) RF.errs.dietician = de; var n = Object.keys(RF.errs).length;
+      if (RF.errs.dietician) { RF.step = 'where'; try { history.replaceState(null, '', rfHash('where')); } catch (x) {} }
       if (n) { drawRF(); toast('Fix the ' + (n === 1 ? 'highlighted field' : n + ' highlighted fields') + ' to submit.'); return; }
       var s = BY[RF.tsn], f = RF.f, sc = rfScope(), ref = rfRef(), nm = rfRefName(), p0 = RF.plan ? PLANS[RF.plan] : null, cur = p0 && p0.scope === sc && (sc === 'species' || p0.ref === ref) ? p0 : activeFor(s, sc, ref), at = RQ.now();
       var where = ({ species: 'Species', site: 'Site', section: 'Section', enclosure: 'Enclosure', animal: 'Animal' })[sc] + ' · ' + (nm || 'Species-wide');
-      if (RF.edit) { var R1 = RQ.get(RF.edit); Object.assign(R1, { where: where, scope: sc, scopeRef: ref, scopeText: nm || 'Whole species', prio: f.priority, title: f.title.trim() || R1.title, text: f.reason.trim(), notes: f.notes.trim(), type: f.type, start: f.start, end: f.end });
+      if (RF.edit) { var R1 = RQ.get(RF.edit); var pk1 = rfEligible().filter(function (x) { return x.u.id === f.dietician; })[0]; if (pk1) R1.assignee = { id: pk1.u.id, name: pk1.u.name, why: pk1.why, online: !!pk1.u.online }; Object.assign(R1, { where: where, scope: sc, scopeRef: ref, scopeText: nm || 'Whole species', prio: f.priority, title: f.title.trim() || R1.title, text: f.reason.trim(), notes: f.notes.trim(), type: f.type, start: f.start, end: f.end });
         RQ.ev(R1, 'updated', 'Request updated by the requester'); RQ.changed(); var rid = R1.id; closeRF(); try { history.replaceState(null, '', '#request/' + rid); } catch (x) {} window.dispatchEvent(new HashChangeEvent('hashchange')); toast(rid + ' updated'); return; }
-      var rec = { id: RQ.nextId(), status: 'requested', sp: s.name, sci: s.sci, tsn: s.tsn, where: where, scope: sc, scopeRef: ref, scopeText: nm || 'Whole species', prio: f.priority,
+      var pick = rfEligible().filter(function (x) { return x.u.id === f.dietician; })[0], assignee = pick ? { id: pick.u.id, name: pick.u.name, why: pick.why, online: !!pick.u.online } : null;
+      var rec = { assignee: assignee, id: RQ.nextId(), status: 'requested', sp: s.name, sci: s.sci, tsn: s.tsn, where: where, scope: sc, scopeRef: ref, scopeText: nm || 'Whole species', prio: f.priority,
         title: f.title.trim() || { temporary: 'Temporary Diet Change', base: 'Base Diet Change', site: 'Site / Section Diet', animal: 'Animal-specific Diet' }[f.type],
         text: f.reason.trim(), notes: f.notes.trim(), type: f.type, start: f.start, end: f.end, date: RQ.fmt(at), iso: at.slice(0, 10), group: 'awaiting', label: 'Awaiting approval', tone: 'wait', icon: 'time',
         currentLabel: cur ? shownId(cur) + ' ' + (KIND[cur.kind] || KIND.base)[1] : 'No active diet', planId: cur ? cur.id : null, by: { id: RQ.viewer.id, name: RQ.viewer.name, role: RQ.viewer.title }, events: [{ kind: 'submitted', at: at, by: RQ.viewer.name, role: RQ.viewer.title, text: 'Request submitted' }] };
@@ -330,7 +367,7 @@ REQ_FORM_JS = '''    /* ======================= REQUEST DIET CHANGE (V2 dr-core.
       if (RF.from === 'scope' || RF.from === 'plan') { st.scope = sc === 'enclosure' || sc === 'section' || sc === 'site' || sc === 'animal' ? sc : st.scope; if (sc !== 'species') st.ref = ref; }
       closeRF(); try { history.replaceState(null, '', back); } catch (x) {}
       drawList(); if (LAND.matches) drawDetail(); else openPanel();
-      toastAct('Request ' + rec.id + ' submitted. The Head Dietician reviews it next.', 'View request', '#request/' + rec.id);
+      toastAct('Request ' + rec.id + ' sent to ' + (assignee ? assignee.name : 'the dietician') + '.', 'View request', '#request/' + rec.id);
     }
     function toastAct(msg, label, href) {
       var t = document.getElementById('toast'); t.innerHTML = esc(msg) + '<button type="button" class="tact" data-tgo="' + href + '">' + esc(label) + '</button>'; t.style.pointerEvents = 'auto'; t.classList.add('on');
@@ -342,7 +379,8 @@ REQ_FORM_JS = '''    /* ======================= REQUEST DIET CHANGE (V2 dr-core.
     rqf.addEventListener('click', function (e) {
       if (!RF) return; var t;
       if (e.target.closest('[data-rfclose]')) { var back = RF.edit ? '#request/' + RF.edit : '#species/' + st.seg + '/' + RF.tsn + (RF.plan ? '/' + RF.plan : ''); closeRF(); try { history.replaceState(null, '', back); } catch (x) {} window.dispatchEvent(new HashChangeEvent('hashchange')); return; }
-      if (e.target.closest('[data-rfnext]')) { RF.step = 'details'; location.hash = rfHash('details'); drawRF(); return; }
+      if ((t = e.target.closest('[data-rfdt]'))) { RF.f.dietician = t.getAttribute('data-rfdt'); delete RF.errs.dietician; drawRF(); return; }
+      if (e.target.closest('[data-rfnext]')) { var de0 = dietErr(); if (de0) { RF.errs.dietician = de0; drawRF(); toast(de0); var pk = document.querySelector('#rqf .dpick, #rqf .dpempty'); if (pk) pk.scrollIntoView({ block: 'center' }); return; } RF.step = 'details'; location.hash = rfHash('details'); drawRF(); return; }
       if (e.target.closest('[data-rfback]')) { history.back(); return; }
       if ((t = e.target.closest('[data-rfgo]'))) { history.back(); return; }
       if ((t = e.target.closest('[data-rfpri]'))) { RF.f.priority = t.getAttribute('data-rfpri'); delete RF.errs.priority; drawRF(); return; }

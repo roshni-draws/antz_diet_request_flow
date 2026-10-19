@@ -524,7 +524,7 @@ RQ_JS = '''  /* ---------------- Diet Request (site #/requests) ----------------
     var VIEWS = {
       office: [['all', 'All', null], ['pending', 'Pending review', ['requested', 'under_review']], ['configuring', 'Configuring', ['configuring']], ['adjustment', 'Needs adjustment', ['adjustment']], ['kitchen', 'Kitchen review', ['kitchen_review']], ['delayed', 'Delayed', ['delayed']], ['done', 'Completed', ['ready', 'applied']], ['closed', 'Rejected', ['rejected', 'cancelled']]],
       kitchen: [['attention', 'Requires attention', ['kitchen_review']], ['delayed', 'Delayed', ['delayed']], ['adjustment', 'Needs adjustment', ['adjustment']], ['done', 'Sent to prep', ['ready', 'applied']], ['all', 'All', null]],
-      mine: [['all', 'All', null], ['pending', 'Pending review', ['requested', 'under_review']], ['progress', 'In progress', ['configuring', 'adjustment', 'kitchen_review', 'delayed']], ['done', 'Completed', ['ready', 'applied']], ['closed', 'Rejected', ['rejected', 'cancelled']]],
+      mine: [['all', 'All', null], ['pending', 'Pending review', ['requested', 'under_review']], ['progress', 'In progress', ['configuring', 'adjustment', 'kitchen_review', 'delayed', 'with_kitchens']], ['done', 'Scheduled / Live', ['ready', 'applied', 'scheduled', 'live']], ['closed', 'Rejected', ['rejected', 'cancelled']]],
     };
     function mode() { return !RQ.can('seeAll') ? 'mine' : RQ.can('kitchenAct') ? 'kitchen' : 'office'; }
     var SEGS = VIEWS.office, curMode = null;
@@ -569,6 +569,59 @@ exec(open(os.path.join(HERE, 'sp3.py')).read())
 exec(open(os.path.join(HERE, 'roles.py')).read())
 exec(open(os.path.join(HERE, 'hdq.py')).read())
 
+# ---------------------------------------------------------------- Directory for diet-home.html: the diets that exist in the species data
+# diet-directory.html keeps the V2 data and module unchanged; diet-home.html gets a directory built from BS (sample.py: 5 base diets),
+# with "Used by" lists that match the species tab, and the dead controls replaced (Edit opens the species edit wizard).
+_MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+def _dmy(iso): return '%d %s %s' % (int(iso[8:10]), _MON[int(iso[5:7]) - 1], iso[:4]) if iso else ''
+def _cls(c): c = (c or '').lower(); return c if c in ('mammalia', 'aves', 'reptilia') else 'other'
+_byk = {}
+for _s in BS['species']:
+    for _pid in _s['plans']:
+        _p = BS['plans'][str(_pid)]
+        _byk.setdefault(_p.get('sharedFrom') or _p['id'], []).append((_s, _p))
+_hd = []
+for _k, _us in _byk.items():
+    _s0, _p0 = _us[0]
+    _e = {'id': 'D-%s' % _k, 'tsn': _s0['tsn'], 'planId': _p0['id'], 'verified': bool(_p0.get('verified')), 'update': _p0.get('update', 'none'), 'active': True,
+          'window': {'text': 'Year-round since ' + _dmy(_p0.get('created')), 'state': 'current'}, 'by': _p0.get('by'),
+          'dietitian': {'name': _p0['dietitian'], 'date': _dmy(_p0.get('created'))} if _p0.get('dietitian') else None,
+          'schedule': _p0.get('schedule', []), 'nutrition': _p0.get('nutrition', {}), 'columns': _p0.get('columns'),
+          'species': [{'name': x['name'], 'sci': x['sci'], 'animals': x['animals'], 'kind': 'Base', 'cls': _cls(x['cls']), 'tsn': x['tsn'], 'planId': q['id']} for x, q in _us],
+          'sites': sorted({e['site'] for x, q in _us for e in x['enclosures']})}
+    if _p0.get('notes'): _e['notes'] = _p0['notes']
+    if _p0.get('remark'): _e['remark'] = _p0['remark']
+    _hd.append({k: v for k, v in _e.items() if v is not None})
+V2DIR_HOME = {'sites': sorted({x for d in _hd for x in d['sites']}), 'selectedId': _hd[0]['id'] if _hd else None, 'diets': _hd}
+N_DIR_HOME = len(_hd)
+_dj = json.dumps(V2DIR, ensure_ascii=False).replace('</', '<\\/')
+assert DIR_JS.count(_dj) == 1
+DIR_JS_HOME = DIR_JS.replace(_dj, json.dumps(V2DIR_HOME, ensure_ascii=False).replace('</', '<\\/'))
+_a, _b = DIR_JS_HOME.index('    function species(d) {'), DIR_JS_HOME.index('    function host() {')
+DIR_JS_HOME = DIR_JS_HOME[:_a] + """    function species(d) {
+      var sp = d.species || [];
+      return '<section class="dpane"><h3 class="t-minor-title">Used by ' + plural(sp.length, 'species', 'species') + '</h3>' + (sp.length ? '<ul class="shlist">' + sp.map(function (s) {
+        return '<li><a class="shrow" href="#species/all/' + s.tsn + '/' + s.planId + '"><span class="t-body-title">' + esc(s.name) + '</span>' + (s.sci ? '<i class="t-body-regular">' + esc(s.sci) + '</i>' : '') + '</a></li>'; }).join('') + '</ul>' : '<p class="t-body-regular dp-none">No species use this diet.</p>') + '</section>';
+    }
+    function detailHtml(d) {
+      if (!d) return '<section class="dpane"><div class="empty"><b class="t-minor-title">No diets yet</b><span class="t-body-regular">Create a base diet from Diet by Species.</span></div></section>';
+      var meta = ['Base diet', d.window ? d.window.text : '', d.by ? 'Created by ' + d.by : '', d.dietitian ? 'Certified by ' + d.dietitian.name : 'Not certified'].filter(Boolean).join(' · ');
+      return '<section class="dpane"><div class="dp-head"><div class="grow"><div class="tags"><span class="tag ' + (d.verified ? 'green' : 'grey') + '">' + (d.verified ? 'Verified' : 'Unverified') + '</span>' +
+        (d.update === 'pending' ? '<span class="tag orange">Update pending</span>' : d.update === 'approved' ? '<span class="tag green">Update approved</span>' : '') + '</div>' +
+        '<p class="dp-meta t-body-regular">' + esc(meta) + '</p></div>' +
+        (d.planId ? '<button type="button" class="btn sec dp-edit" data-act="edit" aria-label="Edit ' + esc(d.id) + '">' + ic('pencil', 20) + 'Edit</button>' : '') + '</div>' +
+        '<div class="dseg" role="group" aria-label="Diet view"><button type="button" data-dtab="items" aria-pressed="' + (st.tab === 'items') + '" class="t-body-medium">Items</button><button type="button" data-dtab="nutrition" aria-pressed="' + (st.tab === 'nutrition') + '" class="t-body-medium">Nutrition</button></div>' +
+        (st.tab === 'nutrition' ? nutrition(d) : bands(d)) + extras(d) + '</section>' + species(d);
+    }
+""" + DIR_JS_HOME[_b:]
+_a, _b = DIR_JS_HOME.index('    function onDetail(e) {'), DIR_JS_HOME.index("    $('[data-detail]').addEventListener('click', onDetail);")
+DIR_JS_HOME = DIR_JS_HOME[:_a] + """    function onDetail(e) {
+      var d = find(st.sel), t; if (!d) return;
+      if ((t = e.target.closest('[data-dtab]'))) { st.tab = t.getAttribute('data-dtab'); drawDetail(); return; }
+      if (e.target.closest('[data-act="edit"]') && d.planId && HOOKS.editPlan) HOOKS.editPlan(d.tsn, d.planId);
+    }
+""" + DIR_JS_HOME[_b:]
+
 OVERLAYS = f'''  <div class="dpanel" id="dpanel" hidden role="dialog" aria-modal="true" aria-labelledby="dpT">
     <header class="bar"><button class="iconbtn" type="button" data-pback aria-label="Back to the diet list">{svg("back", 24)}</button><div class="bar__hd"><h1 class="t-medium-medium" id="dpT" data-ptitle></h1><p class="t-body-regular" data-psub></p></div></header>
     <div class="dpanel__body"></div>
@@ -580,7 +633,6 @@ SP_OVERLAYS = f'''  <div class="dpanel" id="spanel" hidden role="dialog" aria-mo
     <header class="bar"><button class="iconbtn" type="button" data-spback aria-label="Back to the species list">{svg("back", 24)}</button><div class="bar__hd"><h1 class="t-medium-medium" id="spT" data-ptitle></h1><p class="t-body-regular" data-psub style="font-style:italic"></p></div><button class="asbtn" type="button" aria-haspopup="dialog" aria-label="Viewing as, switch role"></button></header>
     <div class="dpanel__body"></div>
   </div>
-  <div class="menu" id="pmenu" hidden role="menu"></div>
 '''
 
 SP_OVERLAYS = SP_OVERLAYS + WIZ_OVERLAY + REQ_OVERLAY + ROLE_OVERLAY
@@ -590,7 +642,7 @@ SITE_BTN = (f'<button class="sitebtn" type="button" aria-label="Site: All Sites"
 
 # ---------------------------------------------------------------- diet-home.html (tabbed)
 N_REQ = len(_req_seed)
-TABS = [('directory', 'Diet Directory', N_DIR), ('species', 'Diet by Species', N_SP), ('request', 'Diet Request', N_REQ)]
+TABS = [('directory', 'Diet Directory', N_DIR_HOME), ('species', 'Diet by Species', N_SP), ('request', 'Diet Request', N_REQ)]
 tabs_html = ''.join(f'<a class="mtab t-minor-medium" role="tab" id="t-{k}" href="#{k}" aria-controls="p-{k}" aria-selected="false">{l} - {n}</a>' for k, l, n in TABS)
 panes = ''.join(f'<section class="pane" id="p-{k}" role="tabpanel" aria-labelledby="t-{k}" hidden></section>' for k, _, _ in TABS)
 
@@ -609,9 +661,9 @@ home_body = f'''  <div class="app">
   </div>
 {SP_OVERLAYS}{OVERLAYS}'''
 
-home_js = HELPERS_JS + REQ_SHARED_JS + HDQ_JS + DIR_JS + SP_JS + RQ_JS + '''  /* ---------------- tabs + hash routing (#directory, #directory/D-273, #species, #request) ---------------- */
+home_js = HELPERS_JS + REQ_SHARED_JS + HDQ_JS + DIR_JS_HOME + SP_JS + RQ_JS + '''  /* ---------------- tabs + hash routing (#directory, #directory/D-273, #species, #request) ---------------- */
   var KEYS = ['directory', 'species', 'request'];
-  (function () { var a = new URLSearchParams(location.search).get('as'); var ok = function (k) { return USERS.some(function (u) { return u.key === k; }); }, sv = savedViewer(); setViewer(ok(a) ? a : ok(sv) ? sv : 'head-dietician', true); })();
+  (function () { var a = new URLSearchParams(location.search).get('as'); var ok = function (k) { return USERS.some(function (u) { return u.key === k; }); }, sv = savedViewer(); setViewer(ok(a) ? a : ok(sv) ? sv : 'biologist', true); })();
   document.addEventListener('click', function (e) { if (e.target.closest('.asbtn')) openRoles(); });
   function parse() { var h = location.hash.replace(/^#/, ''), p = h.split('/'); return { tab: KEYS.indexOf(p[0]) !== -1 ? p[0] : 'directory', id: p[0] === 'directory' && p[1] ? decodeURIComponent(p[1]) : null, seg: p[0] === 'species' ? (p[1] || 'all') : null, tsn: p[0] === 'species' && p[2] ? Number(p[2]) : null, plan: p[0] === 'species' && p[3] && p[3] !== 'new' && p[3] !== 'request' ? Number(p[3]) : null, nk: p[0] === 'species' && p[3] === 'new' ? (p[4] || 'base') : null, nstep: p[0] === 'species' && p[3] === 'new' ? (p[5] || null) : null, rq: p[0] === 'species' && p[3] === 'request' ? (p[5] || 'where') : null, rid: p[0] === 'request' && p[1] ? decodeURIComponent(p[1]) : null }; }
   var dir = DirModule(document.getElementById('p-directory'), { prefix: 'directory/', currentId: function () { return parse().id; } });

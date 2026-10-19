@@ -1,4 +1,4 @@
-# hdq.py: exec'd by home2.py after roles.py. Head Dietician view of the Diet Request tab:
+# hdq.py: exec'd by home2.py after roles.py. Dietician view of the Diet Request tab:
 # To configure / Configured by me / All, contextual sub-chips, Filters sheet, Sort control.
 # Shared bucket helpers (RQ.hd*) are also used by the Species "Requests for this species" card.
 
@@ -59,12 +59,12 @@ HDQ_CSS = '''    /* =========================================================
     @media (orientation: portrait) { .hdq__tools .chip .lbl { display: none; } }
 '''
 
-HDQ_JS = r'''  /* ---------------- Head Dietician queue buckets (shared with the Species requests card) ---------------- */
+HDQ_JS = r'''  /* ---------------- Dietician queue buckets (shared with the Species requests card) ---------------- */
   RQ.TODO = ['requested', 'under_review', 'configuring', 'adjustment'];
-  RQ.DOWN = ['kitchen_review', 'delayed', 'ready', 'applied'];
+  RQ.DOWN = ['kitchen_review', 'delayed', 'ready', 'applied', 'with_kitchens', 'scheduled', 'live'];
   RQ.hdBucket = function (r) { if (RQ.TODO.indexOf(r.status) !== -1) return 'todo'; if (RQ.DOWN.indexOf(r.status) !== -1 && r.configuredBy && r.configuredBy.id === RQ.viewer.id) return 'mine'; return null; };
-  RQ.hdSub = function (r) { return { requested: 'review', under_review: 'review', configuring: 'configuring', adjustment: 'sentback', kitchen_review: 'kitchen', delayed: 'delayed', ready: 'done', applied: 'done' }[r.status] || 'other'; };
-  RQ.SUBL = { review: 'Needs review', configuring: 'Configuring', sentback: 'Sent back', kitchen: 'With kitchen', delayed: 'Delayed', done: 'Sent to prep / Done' };
+  RQ.hdSub = function (r) { return { requested: 'review', under_review: 'review', configuring: 'configuring', adjustment: 'sentback', kitchen_review: 'kitchen', delayed: 'delayed', ready: 'done', applied: 'done', with_kitchens: RQ.lateBy && RQ.lateBy(r) ? 'delayed' : 'kitchen', scheduled: 'done', live: 'done' }[r.status] || 'other'; };
+  RQ.SUBL = { review: 'Needs review', configuring: 'Configuring', sentback: 'Sent back', kitchen: 'With kitchen', delayed: 'Delayed', done: 'Scheduled / Live' };
   /* next step for To configure: [tone, label, detail, button, action] */
   RQ.hdNext = function (r) {
     if (r.status === 'requested' || r.status === 'under_review') {
@@ -72,7 +72,7 @@ HDQ_JS = r'''  /* ---------------- Head Dietician queue buckets (shared with the
       if (r.clarify && r.clarify.answer) return ['review', 'Reply received: review and accept', r.clarify.answer, 'Review', 'open'];
       return ['review', 'Review and accept', 'Raised ' + RQ.ago(r.events[0].at), 'Review', 'open'];
     }
-    if (r.status === 'configuring') return r.proposedId ? ['config', 'Proposal saved: send to Kitchen', RQ.propText(r), 'Send', 'send'] : ['config', 'Configure', 'Accepted' + (r.acceptedBy ? ' by ' + r.acceptedBy : '') + '. No proposed diet yet.', 'Configure', 'configure'];
+    if (r.status === 'configuring') return r.proposedId ? ['config', 'Proposal saved: certify and send to kitchens', RQ.propText(r), 'Open', 'open'] : ['config', 'Configure', 'Accepted' + (r.acceptedBy ? ' by ' + r.acceptedBy : '') + '. No proposed diet yet.', 'Configure', 'configure'];
     if (r.status === 'adjustment') return ['back', 'Adjust and resend', 'Kitchen: ' + (r.adjustReason || 'asked for an adjustment'), 'Adjust', 'configure'];
     return null;
   };
@@ -83,36 +83,36 @@ HDQ_JS = r'''  /* ---------------- Head Dietician queue buckets (shared with the
   RQ.downLabel = function (r) { return r.status === 'kitchen_review' ? 'With Kitchen' : r.status === 'delayed' ? (r.delayUntil ? 'Delayed to ' + RQ.fmt(r.delayUntil) : 'Delayed') : r.status === 'ready' ? 'Sent to prep' : r.status === 'applied' ? 'Completed · Applied' : r.label; };
   RQ.rType = function (r) { if (r.type) return r.type; var w = String(r.where || ''); return /^Animal/.test(w) ? 'animal' : /^Species/.test(w) ? 'base' : 'site'; };
 
-  /* ---------------- Diet Request tab, Head Dietician view ---------------- */
+  /* ---------------- Diet Request tab, Dietician view ---------------- */
   /* Kitchen Head / Operator view of the same queue (V2 diet/requests.js kitchenMode): kitchen-stage requests only */
   RQ.KST = ['configuring', 'kitchen_review', 'delayed', 'adjustment', 'ready', 'applied'];
   RQ.kNext = function (r) {
     if (r.status === 'kitchen_review') return ['review', 'Check stock and accept', 'Sent to Kitchen ' + RQ.ago((r.events.filter(function (e) { return e.kind === 'sent-kitchen'; }).pop() || r.events[0]).at), 'Review', 'open'];
     if (r.status === 'delayed') return ['review', 'Delayed to ' + RQ.fmt(r.delayUntil) + ': accept when ready', r.delayReason || '', 'Review', 'open'];
-    if (r.status === 'adjustment') return ['wait', 'Sent back: waiting on Head Dietician', 'You asked: ' + (r.adjustReason || 'an adjustment'), 'Open', 'open'];
-    if (r.status === 'configuring') return ['wait', 'Coming up: Head Dietician is configuring', 'Not sent to Kitchen yet', 'Open', 'open'];
+    if (r.status === 'adjustment') return ['wait', 'Sent back: waiting on the dietician', 'You asked: ' + (r.adjustReason || 'an adjustment'), 'Open', 'open'];
+    if (r.status === 'configuring') return ['wait', 'Coming up: the dietician is configuring', 'Not sent to Kitchen yet', 'Open', 'open'];
     return null;
   };
   RQ.kDate = function (r) { return r.season ? 'Every year ' + r.season.from.split('-').reverse().join('-') + ' to ' + r.season.to.split('-').reverse().join('-') : r.start ? 'Starts ' + RQ.fmt(r.start) + (r.end ? ', ends ' + RQ.fmt(r.end) : '') : ''; };
   function HdQueue(root, kitchen) {
     var K = !!kitchen;
     var PRIO = { high: ['!!!', 'High priority', 0], medium: ['!!', 'Medium priority', 1], low: ['!', 'Low priority', 2] };
-    var SEGS = K ? [['check', 'To check'], ['ready', 'Sent to prep'], ['all', 'All']] : [['todo', 'To configure'], ['mine', 'Configured by me'], ['all', 'All']];
-    var SUBS = K ? { check: [['all', 'All'], ['kreview', 'Kitchen review'], ['kdelayed', 'Delayed']], ready: [], all: [['all', 'All'], ['kadjust', 'Needs adjustment'], ['kcoming', 'Coming up']] } : { todo: [['all', 'All'], ['review', 'Needs review'], ['configuring', 'Configuring'], ['sentback', 'Sent back']],
-      mine: [['all', 'All'], ['kitchen', 'With kitchen'], ['delayed', 'Delayed'], ['done', 'Sent to prep / Done']], all: [['open', 'Open'], ['closed', 'Closed']] };
+    var SEGS = K ? [['check', 'To do'], ['ready', 'Ready'], ['all', 'All']] : [['todo', 'To configure'], ['mine', 'Configured by me'], ['all', 'All']];
+    var SUBS = K ? { check: [['all', 'All'], ['kpending', 'To prepare'], ['kdelayed', 'Delayed']], ready: [], all: [['all', 'All']] } : { todo: [['all', 'All'], ['review', 'Needs review'], ['configuring', 'Configuring'], ['sentback', 'Sent back']],
+      mine: [['all', 'All'], ['kitchen', 'With kitchen'], ['delayed', 'Delayed'], ['done', 'Scheduled / Live']], all: [['open', 'Open'], ['closed', 'Closed']] };
     var SORTS = [['priority', 'Priority'], ['newest', 'Newest'], ['oldest', 'Oldest']];
     var st = { seg: K ? 'check' : 'todo', sub: K ? { check: 'all', ready: 'all', all: 'all' } : { todo: 'all', mine: 'all', all: 'open' }, sort: 'priority', f: { status: [], prio: [], type: '', sp: '', by: '' } };
     var SHEET = null, draftF = null;
     (function () { var q = new URLSearchParams(location.search).get('kq'); if (!q) return; var p = q.split(':'); if (SUBS[p[0]]) { st.seg = p[0]; if (p[1] && SUBS[p[0]].some(function (c) { return c[0] === p[1]; })) st.sub[p[0]] = p[1]; } })();
-    root.innerHTML = '<div class="hdq"><div class="segwrap"><div class="seg3" role="tablist" aria-label="' + (K ? 'Kitchen requests' : 'Requests for the Head Dietician') + '" data-hseg></div></div>' +
+    root.innerHTML = '<div class="hdq"><div class="segwrap"><div class="seg3" role="tablist" aria-label="' + (K ? 'Kitchen requests' : 'Requests for the dietician') + '" data-hseg></div></div>' +
       '<div class="hdq__bar"><div class="hdq__chips" role="group" aria-label="Narrow this view" data-hsub></div><div class="hdq__tools">' +
       '<button type="button" class="chip t-body-medium" data-hsort aria-haspopup="dialog"></button><button type="button" class="chip t-body-medium" data-hfilt aria-haspopup="dialog"></button></div></div>' +
       '<div class="hdq__active" data-hact hidden></div><div data-kbulkbar></div><div class="list-bar"><h2 class="t-minor-medium" data-hcount aria-live="polite"></h2></div><div class="rqcards" data-hlist></div></div>';
     var $ = function (s) { return root.querySelector(s); };
     var KSEG = { check: ['kitchen_review', 'delayed'], ready: ['ready'], all: RQ.KST }, KSUB = { kreview: 'kitchen_review', kdelayed: 'delayed', kadjust: 'adjustment', kcoming: 'configuring' };
-    function inSeg(r, seg) { if (K) return KSEG[seg].indexOf(r.status) !== -1; return seg === 'all' ? true : RQ.hdBucket(r) === seg; }
+    function inSeg(r, seg) { if (K) { var l = RQ.myLine(r); if (!l) return KSEG[seg].indexOf(r.status) !== -1; return seg === 'all' || (seg === 'ready' ? l.status === 'ready' : l.status !== 'ready'); } return seg === 'all' ? true : RQ.hdBucket(r) === seg; }
     function inSub(r, seg, sub) {
-      if (K) return sub === 'all' || r.status === KSUB[sub];
+      if (K) { var l2 = RQ.myLine(r); if (!l2) return sub === 'all' || r.status === KSUB[sub]; return sub === 'all' || (sub === 'kdelayed' ? l2.status === 'delayed' : ['pending', 'accepted', 'processing'].indexOf(l2.status) !== -1); }
       if (seg === 'all') return sub === 'closed' ? (r.status === 'rejected' || r.status === 'cancelled') : !(r.status === 'rejected' || r.status === 'cancelled');
       return sub === 'all' || RQ.hdSub(r) === sub;
     }
@@ -134,12 +134,20 @@ HDQ_JS = r'''  /* ---------------- Head Dietician queue buckets (shared with the
       return (PRIO[a.prio][2] - PRIO[b.prio][2]) || a.iso.localeCompare(b.iso);
     }
     function top(r) { var p = PRIO[r.prio];
-      return '<div class="hd-top"><span class="grow"><span class="hd-id t-minor-title">' + r.id + '</span><span class="hd-cat t-body-medium">' + esc(r.sp) + '</span><span class="hd-where t-body-regular">' + esc(r.where) + '</span></span>' +
+      return '<div class="hd-top"><span class="grow"><span class="hd-id t-minor-title">' + r.id + RQ.lateTag(r, K ? RQ.viewer.kitchen : null) + '</span><span class="hd-cat t-body-medium">' + esc(r.sp) + '</span><span class="hd-where t-body-regular">' + esc(r.where) + '</span></span>' +
         '<span class="ribbon ' + r.prio + '" title="' + p[1] + '" aria-label="' + p[1] + '">' + p[0] + '</span></div>'; }
     function body(r, extra) { return '<div class="hd-body"><span class="hd-title t-medium-medium">' + esc(r.title) + '</span><span class="hd-text t-body-regular">' + esc(r.text) + '</span>' + (extra || '') +
       '<span class="hd-by t-body-regular"><b class="t-body-title">' + esc(r.by.name + (RQ.isMine(r) ? ' (You)' : '')) + '</b> • ' + r.date + '</span></div>'; }
     function propLine(r) { var t = RQ.propText(r); return t ? '<span class="hdx__prop t-body-title">' + ic('book', 18) + esc(t) + '</span>' : ''; }
     function kcard(r) {
+      var ml = RQ.myLine(r);
+      if (ml) { var S = RQ.KLS[ml.status], lab0 = esc(r.id + ': ' + r.title);
+        var ex = '<span class="hdx__prop t-body-title">' + ic('book', 18) + esc(RQ.kname(ml.k) + ': ' + ml.items.join(', ')) + '</span>' +
+          '<span class="hdx__prop t-body-regular">' + ic('calendar', 18) + esc('Diet starts ' + RQ.fmt(RQ.effStart(r)) + (r.end ? ', ends ' + RQ.fmt(r.end) : '')) + '</span>';
+        var nx = { pending: 'Accept your items', accepted: 'Start processing', processing: 'Mark ready when done', delayed: 'Delayed: ready from ' + RQ.fmt(ml.readyFrom), ready: 'Ready' }[ml.status];
+        return '<article tabindex="0" class="hdcard hdx" data-hopen="' + r.id + '" aria-label="' + lab0 + '">' + top(r) + body(r, ex) +
+          '<div class="hdx__foot ' + (ml.status === 'ready' ? 'wait' : 'review') + '"><span class="grow"><b class="t-minor-medium">' + ic(S[2], 20) + esc(nx) + '</b><small class="t-body-regular">' + esc(ml.status === 'delayed' ? (ml.reason || '') : S[0]) + '</small></span>' +
+          '<button type="button" class="btn ' + (ml.status === 'ready' ? 'sec' : 'teal') + '" data-hgo="' + r.id + '" data-hdo="open">Open</button></div></article>'; }
       var n = RQ.kNext(r), lab = esc(r.id + ': ' + r.title), dl = RQ.kDate(r), live = (r.status === 'kitchen_review' || r.status === 'delayed') && r.proposedId, fz = live ? KS.feas(r) : null;
       var extra = propLine(r) + (dl ? '<span class="hdx__prop t-body-regular">' + ic('calendar', 18) + esc(dl) + '</span>' : '') +
         (fz ? (fz.canPrep ? '<span class="kind ok t-body-medium">' + ic('just-tick-mark', 16) + 'Can prep' + (fz.alt.length ? ' · ' + fz.alt.length + ' using ' + (fz.alt.length === 1 ? 'an alternative' : 'alternatives') : '') + '</span>'
@@ -180,11 +188,11 @@ HDQ_JS = r'''  /* ---------------- Head Dietician queue buckets (shared with the
       var A = $('[data-hact]'); A.hidden = !act.length;
       A.innerHTML = act.map(function (a) { return '<span class="fchip t-body-medium">' + esc(fLabel(a[0], a[1])) + '<button type="button" data-hrm="' + a[0] + ':' + esc(a[1]) + '" aria-label="Remove filter ' + esc(fLabel(a[0], a[1])) + '">' + ic('close', 16) + '</button></span>'; }).join('') + (act.length ? '<button type="button" class="linkbtn t-body-medium" data-hclear>Clear</button>' : '');
       var list = base.filter(function (r) { return inSub(r, st.seg, sub); }).sort(cmp);
-      var BB = $('[data-kbulkbar]'); if (BB) { var rd = K && st.seg === 'check' ? readyList() : [];
+      var BB = $('[data-kbulkbar]'); if (BB && !K) { var rd = K && st.seg === 'check' ? readyList() : [];
         var tot = all.filter(function (r) { return r.status === 'kitchen_review' || r.status === 'delayed'; }).length; BB.innerHTML = K && st.seg === 'check' ? '<div class="kbulk"><span class="t-body-regular">' + (rd.length === tot ? '<b class="t-body-title">' + (tot === 1 ? 'The request' : 'All ' + tot + ' requests') + '</b> can be prepped now.' : '<b class="t-body-title">' + rd.length + ' of ' + tot + '</b> requests can be prepped now. The rest need a readjustment.') + '</span><button type="button" class="btn teal" data-kbulk' + (rd.length ? '' : ' disabled') + '>' + ic('just-tick-mark', 18) + 'Send all ready to prep (' + rd.length + ')</button></div>' : ''; }
-      var head = (K ? { check: 'To check', ready: 'Sent to prep', all: 'Kitchen requests' } : { todo: 'To configure', mine: 'Configured by me', all: 'All requests' })[st.seg];
+      var head = (K ? { check: 'To do', ready: 'Ready', all: 'Your kitchen requests' } : { todo: 'To configure', mine: 'Configured by me', all: 'All requests' })[st.seg];
       $('[data-hcount]').innerHTML = esc(head) + ' (' + list.length + ')' + (st.seg !== 'all' && sub !== 'all' ? ' <small class="t-body-regular">· ' + esc(SUBS[st.seg].filter(function (c) { return c[0] === sub; })[0][1]) + '</small>' : '');
-      var emptyTxt = K ? (st.seg === 'check' ? 'Nothing to check. Diets the Head Dietician sends to Kitchen appear here.' : st.seg === 'ready' ? 'Requests you accept and send to prep appear here.' : 'Nothing matches this view.') : st.seg === 'todo' ? 'Nothing waiting on you. New requests and anything Kitchen sends back appear here.' : st.seg === 'mine' ? 'Requests you configure and send to Kitchen appear here.' : 'Nothing matches this view.';
+      var emptyTxt = K ? (st.seg === 'check' ? 'Nothing to do. Diets that dieticians send to your kitchen appear here.' : st.seg === 'ready' ? 'Requests you mark ready appear here.' : 'Nothing matches this view.') : st.seg === 'todo' ? 'Nothing waiting on you. New requests and anything Kitchen sends back appear here.' : st.seg === 'mine' ? 'Requests you configure and send to Kitchen appear here.' : 'Nothing matches this view.';
       $('[data-hlist]').innerHTML = list.length ? list.map(card).join('') : '<div class="empty" style="grid-column:1/-1"><span class="ei">' + ic('reason-or-list', 24) + '</span><b class="t-minor-title">' + (n ? 'No requests match these filters' : 'All clear') + '</b><span class="t-body-regular">' + esc(n ? 'Remove a filter or clear them all.' : emptyTxt) + '</span></div>';
     }
     /* ---------- sheets (Sort, Filters) on the shared #rqsheet ---------- */

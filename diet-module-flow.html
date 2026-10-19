@@ -238,6 +238,7 @@
     html.ui-new .tile, html.ui-new .row { border-radius: 10px; box-shadow: none; }
     html.ui-new .head .title { color: var(--dl-head); }
   </style>
+  <style>.figbar { display: none !important; } /* toolbar hidden for now */</style>
 </head>
 <body>
   <!-- Diet icon (same shapes and gradients as diet-icon.svg), used via <use href="#diet-glyph"> -->
@@ -399,19 +400,24 @@
      Inventory for Kitchen Head and Receiving Manager; Security for Security and Security Admin. */
   (function () {
     var USERS = [
-      { key: 'dietician', name: 'Hydar Ali', title: 'Dietician', what: 'Diet module. Raises requests and sees My requests.' },
-      { key: 'head-dietician', name: 'Dr. Meera Iyer', title: 'Head Dietician', what: 'Diet module. Reviews and configures requests, edits diets.' },
-      { key: 'kitchen-head', name: 'Suresh Gowda', title: 'Kitchen Head', what: 'Diet, Kitchen and Inventory. Checks stock and sends requests to prep.' },
+      { key: 'biologist', name: 'Neha Kulkarni', title: 'Biologist', what: 'Diet module. Raises diet requests and picks the dietician.' },
+      { key: 'dietician', name: 'Hydar Ali', title: 'Dietician', what: 'Diet module. Online. Coypu; Class Aves.' },
+      { key: 'dietician-amruth', name: 'Amruth Reddy', title: 'Dietician', what: 'Diet module. Online. Coypu Marsh; Aldabra Giant Tortoise; Class Reptilia.' },
+      { key: 'dietician-priya', name: 'Priya Nair', title: 'Dietician', what: 'Diet module. Offline. Cow Land; European Polecat.' },
+      { key: 'dietician-kavya', name: 'Kavya Rao', title: 'Dietician', what: 'Diet module. Online. Elephantnose Fish; Meerkat; Geoffroy\'s Marmoset.' },
+      { key: 'kitchen-head', name: 'Suresh Gowda', title: 'Kitchen Head · K1', what: 'Central Kitchen. Diet, Kitchen and Inventory.' },
+      { key: 'kitchen-head-k2', name: 'Mohan Das', title: 'Kitchen Head · K2', what: 'RNR Kitchen. Diet, Kitchen and Inventory.' },
+      { key: 'kitchen-head-k3', name: 'Lata Pillai', title: 'Kitchen Head · K3', what: 'Fruit Store. Diet, Kitchen and Inventory.' },
       { key: 'kitchen-operator', name: 'Anil Kumar', title: 'Kitchen Operator', what: 'Kitchen only. Requests sent to prep and Meal Group Management.' },
       { key: 'receiving-manager', name: 'Farhan Shaikh', title: 'Receiving Manager', what: 'Inventory and Kitchen.' },
       { key: 'security', name: 'Ravi Naik', title: 'Security', what: 'Security module only.' },
       { key: 'security-admin', name: 'Priya Desai', title: 'Security Admin', what: 'Security module only.' } ];
-    var MODS = { diet: ['dietician', 'head-dietician', 'kitchen-head'], kitchen: ['kitchen-head', 'kitchen-operator', 'receiving-manager'],
-      inventory: ['kitchen-head', 'receiving-manager'], security: ['security', 'security-admin'] };
+    var MODS = { diet: ['biologist', 'dietician', 'dietician-amruth', 'dietician-priya', 'dietician-kavya', 'kitchen-head', 'kitchen-head-k2', 'kitchen-head-k3'], kitchen: ['kitchen-head', 'kitchen-head-k2', 'kitchen-head-k3', 'kitchen-operator', 'receiving-manager'],
+      inventory: ['kitchen-head', 'kitchen-head-k2', 'kitchen-head-k3', 'receiving-manager'], security: ['security', 'security-admin'] };
     var ok = function (k) { return USERS.some(function (u) { return u.key === k; }); };
     var a = new URLSearchParams(location.search).get('as'), v = null;
     try { v = JSON.parse(localStorage.getItem('antz.viewer') || 'null'); } catch (x) {}
-    var key = ok(a) ? a : ok(v) ? v : 'kitchen-head';
+    var key = ok(a) ? a : ok(v) ? v : 'biologist';
     var DROP = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>';
     var USER = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 20c1.5-3.5 4.4-5 8-5s6.5 1.5 8 5"/></svg>';
     var TICK = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg>';

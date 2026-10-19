@@ -1,0 +1,16 @@
+{
+  "_note": "SAMPLE DATA masters: one kitchen per diet item (DEC-07). K1 and K2 are the two kitchens in the kitchen dev local copy (masters/kitchens.data.js: 'central kitchen', 'RNR Kitchen'). K3 'Fruit Store' is added here; the replica has no item-to-kitchen field (diet items only carry per-kitchen verification), so this mapping is ours.",
+  "kitchens": {
+    "K1": { "name": "Central Kitchen", "master": "central kitchen" },
+    "K2": { "name": "RNR Kitchen", "master": "RNR Kitchen" },
+    "K3": { "name": "Fruit Store", "master": null }
+  },
+  "items": {
+    "Carrot": "K1", "Beans": "K1", "Maize": "K1", "Rice": "K1", "Ragi": "K1", "Sweet Potato": "K1", "Spinach": "K1", "Cucumber": "K1", "Sunflower Seeds": "K1",
+    "Cooked Veg Mix": "K1", "Morning Grain Mix": "K1",
+    "Fish": "K2", "Chicken": "K2", "Mutton": "K2", "Egg": "K2", "Curd": "K2", "MilK": "K2", "Mealworm": "K2",
+    "Apple": "K3", "Bannana": "K3", "Papaya": "K3", "Guava": "K3", "Watermelon": "K3", "Grapes": "K3", "Pomegranate": "K3", "Pipeapple": "K3",
+    "Orange": "K3", "Lime": "K3", "Lemon": "K3", "Grapefruit": "K3"
+  },
+  "fallback": "K1"
+}

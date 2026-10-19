@@ -1,14 +1,6 @@
 # modules.py: exec'd by build.py after kitchen.py. Security and Inventory module homes (blank for now, content to come).
 # Same shell, Viewing as sheet and No access guard as kitchen-home.html. Roles and module access live in roles.py (MODS).
-MOD_USERS_JS = '''  var USERS = [
-    { key: 'dietician', name: 'Hydar Ali', title: 'Dietician', what: 'Diet module. Raises requests and sees My requests.' },
-    { key: 'head-dietician', name: 'Dr. Meera Iyer', title: 'Head Dietician', what: 'Diet module. Reviews and configures requests, edits diets.' },
-    { key: 'kitchen-head', name: 'Suresh Gowda', title: 'Kitchen Head', what: 'Diet, Kitchen and Inventory.' },
-    { key: 'kitchen-operator', name: 'Anil Kumar', title: 'Kitchen Operator', what: 'Kitchen only.' },
-    { key: 'receiving-manager', name: 'Farhan Shaikh', title: 'Receiving Manager', what: 'Inventory and Kitchen.' },
-    { key: 'security', name: 'Ravi Naik', title: 'Security', what: 'Security module only.' },
-    { key: 'security-admin', name: 'Priya Desai', title: 'Security Admin', what: 'Security module only.' } ];
-'''
+MOD_USERS_JS = '  var USERS = ' + ROLE_USERS_JS + ';   /* roles.py ROLE_DEFS */\n'
 
 def mod_page(slug, title, default_role, tabs='', css='', js_extra='', extra_html=''):
     body = f'''  <div class="app">

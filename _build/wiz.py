@@ -251,7 +251,7 @@ WIZ_JS = '''    /* ======================= ADD A DIET (Dev system diet-editor.js
     }
     function overlap() {
       if (!W || W.kind === 'year-round' || !W.from || !W.to) return null;
-      var ex = scopePlansFor(BY[W.tsn], W.scope, W.ref).filter(function (p) { return p.active && p.from && p.to && !!p.recurring === (W.kind === 'seasonal'); });
+      var ex = scopePlansFor(BY[W.tsn], W.scope, W.ref).filter(function (p) { return p.active && p.id !== W.edit && p.from && p.to && !!p.recurring === (W.kind === 'seasonal'); });
       for (var i = 0; i < ex.length; i++) { var p = ex[i];
         if (W.kind === 'seasonal') { var a = md(W.from), b = md(W.to), c = md(p.from), d = md(p.to); if (mdOverlap(a.m, a.d, b.m, b.d, c.m, c.d, d.m, d.d)) return p; }
         else if (!(W.to < p.from || W.from > p.to)) return p; }
@@ -260,7 +260,7 @@ WIZ_JS = '''    /* ======================= ADD A DIET (Dev system diet-editor.js
     function dateErr() {
       if (!W.from) return 'Valid from is required'; if (!W.to) return 'Valid to is required';
       if (W.kind === 'seasonal') return W.from.slice(5) === W.to.slice(5) ? 'Season start and end cannot be the same day' : null;
-      var t = todayIso(); if (W.from < t) return 'Valid from cannot be in the past'; if (W.to < t) return 'Valid to cannot be in the past'; if (W.from > W.to) return 'Valid from cannot be after Valid to'; return null;
+      var t = todayIso(); if (W.from < t && !(W.edit && PLANS[W.edit] && W.from === PLANS[W.edit].from)) return 'Valid from cannot be in the past'; if (W.to < t) return 'Valid to cannot be in the past'; if (W.from > W.to) return 'Valid from cannot be after Valid to'; return null;
     }
     function F() {
       var s = BY[W.tsn], base = basePlan(s), firstBase = W.scope === 'species' && !base && (W.base || !W.req);
@@ -279,6 +279,7 @@ WIZ_JS = '''    /* ======================= ADD A DIET (Dev system diet-editor.js
     function titleText() {
       var sc = W.scope === 'species' ? (W.kind === 'year-round' ? 'base ' : '') : W.scope === 'site' ? 'site-wide ' : W.scope === 'section' ? 'section-wide ' : W.scope === 'enclosure' ? 'enclosure-wide ' : 'animal ';
       var k = W.kind === 'seasonal' ? 'seasonal ' : W.kind === 'time-bound' ? 'time-bound ' : '';
+      if (W.edit) return 'Edit ' + shownId(PLANS[W.edit]);
       if (W.req && W.editOf) return 'Proposed change to ' + eoL() + ' for ' + W.req;
       if (W.req) return 'Proposed ' + ({ base: 'base ', 'year-round': 'year-round ', seasonal: 'seasonal ', 'time-bound': 'time-bound ' }[W.cfgKind] || k) + 'diet for ' + W.req;
       return ('New ' + sc + k + 'diet').replace(/\\s+/g, ' ');
@@ -296,7 +297,7 @@ WIZ_JS = '''    /* ======================= ADD A DIET (Dev system diet-editor.js
     function openWizard(kind, isBase, fromHash, req, cfgKind, opt) {
       var s = BY[st.tsn]; if (!s) return;
       if (!req && !basePlan(s)) { kind = 'year-round'; isBase = true; st.scope = 'species'; st.ref = null; }
-      if (!req && kind === 'year-round' && scopePlansFor(s, st.scope, st.ref).some(isDefault)) { toast('A year-round diet already exists here. Edit the current diet to change its items.'); return; }
+      if (!req && !(opt && opt.edit) && kind === 'year-round' && scopePlansFor(s, st.scope, st.ref).some(isDefault)) { toast('A year-round diet already exists here. Edit the current diet to change its items.'); return; }
       W = { tsn: s.tsn, kind: kind, base: !!isBase, scope: st.scope, ref: st.scope === 'species' ? null : st.ref, step: null, path: null, qPick: null, from: '', to: '', error: null, reached: 0, sq: '', ssx: '',
         d: { quantityMode: 'standard', qBands: [], ageUnit: 'years', bands: [emptyBand()], notes: '', siteNotes: '', remark: '', dietitian: '', reason: '', remarks: '' } };
       if (req) { W.cfgKind = cfgKind || (isBase ? 'base' : kind); W.req = req.id; W.d.remarks = req.text; W.d.reason = 'Other'; W.d.notes = req.notes || ''; if (req.proposedId && PLANS[req.proposedId]) W.prevProposed = req.proposedId; }
@@ -315,10 +316,19 @@ WIZ_JS = '''    /* ======================= ADD A DIET (Dev system diet-editor.js
           if (src.notes && src.notes.kitchen) W.d.notes = src.notes.kitchen; if (src.notes && src.notes.site) W.d.siteNotes = src.notes.site;
           if (W.reopen) { if (src.from) W.from = src.from; if (src.to) W.to = src.to; if (src.reasonDetail) W.d.remarks = src.reasonDetail; if (src.reason) W.d.reason = src.reason; } }
       }
+      if (!req && opt && opt.edit && PLANS[opt.edit]) {   /* Edit an active diet: prefilled editor, saved as a new version that replaces it */
+        var ep = PLANS[opt.edit], eb = bandsFrom(ep); W.edit = ep.id; W.src = ep.id; W.path = 'configure'; if (eb.length) W.d.bands = eb;
+        W.d.quantityMode = ep.quantityMode === 'sex' ? 'sex' : 'standard'; W.qPick = W.d.quantityMode; W.d.dietitian = ep.dietitian || ''; W.d.remark = ep.remark || '';
+        if (ep.notes && ep.notes.kitchen) W.d.notes = ep.notes.kitchen; if (ep.notes && ep.notes.site) W.d.siteNotes = ep.notes.site; if (ep.from) W.from = ep.from; if (ep.to) W.to = ep.to;
+      }
       W.step = stepList()[0][0];
       var h = wizHash(W.step);
       if (fromHash) { try { history.replaceState(null, '', h); } catch (x) {} } else location.hash = h;
       document.getElementById('wiz').hidden = false; drawWiz();
+    }
+    function openEdit(p) {
+      st.scope = p.scope; st.ref = p.scope === 'species' ? null : p.ref; st.plan = p.id;
+      openWizard(p.kind === 'seasonal' || p.kind === 'combined' ? 'seasonal' : p.kind === 'time-bound' ? 'time-bound' : 'year-round', false, false, null, null, { edit: p.id });
     }
     function closeWizard(silent) { W = null; document.getElementById('wiz').hidden = true; document.getElementById('wsheet').hidden = true; }
     function goStep(step, push) {
@@ -431,6 +441,7 @@ WIZ_JS = '''    /* ======================= ADD A DIET (Dev system diet-editor.js
     }
     function eoL() { return PLANS[W.editOf] ? shownId(PLANS[W.editOf]) : 'D-' + W.editOf; }
     function editNote() {
+      if (W.edit) return '<div class="cfgedit">' + alertBox('Saving creates a new version of ' + shownId(PLANS[W.edit]) + '. The current version becomes inactive and stays in Diet history.', true) + '</div>';
       if (W.req && !W.src && !W.base && !basePlan(BY[W.tsn])) return '<div class="cfgedit">' + alertBox('No base diet yet. This proposal will also need a base diet before it can go live.', true) + '</div>';
       if (!W.req || !W.src) return '';
       if (W.reopen) return '<div class="cfgedit">' + alertBox('Editing the proposal ' + shownId(PLANS[W.src]) + '. Saving replaces it on ' + W.req + '.' + (W.editOf ? ' It is still a proposed change to ' + eoL() + '.' : ''), true) + '</div>';
@@ -552,7 +563,7 @@ WIZ_JS = '''    /* ======================= ADD A DIET (Dev system diet-editor.js
       var foot = '<button type="button" class="btn ghost" data-wcancel>Cancel</button><span class="sp"></span>';
       if (idx > 0) foot += '<button type="button" class="btn sec" data-wback>Back</button>';
       var last = idx === l.length - 1;
-      var saveL = W.req ? 'Save proposed diet' : 'Create plan';
+      var saveL = W.req ? 'Save proposed diet' : W.edit ? 'Save changes' : 'Create plan';
       if (W.step === 'editor' && !f.includeReason) foot += '<button type="button" class="btn pri" data-wsave>' + saveL + '</button>';
       else if (last && W.step === 'reason') foot += '<button type="button" class="btn pri" data-wsave' + (W.d.reason ? '' : ' disabled') + '>' + saveL + '</button>';
       else if (W.step === 'editor') foot += '<button type="button" class="btn pri" data-wnext>Next</button>';
@@ -710,12 +721,14 @@ WIZ_JS = '''    /* ======================= ADD A DIET (Dev system diet-editor.js
     }
     function addPlan(p) {
       if (W.req) { addProposed(p); return; }
-      var s = BY[W.tsn]; PLANS[p.id] = p; s.plans = [p.id].concat(s.plans || []); s.diet = true;
+      var s = BY[W.tsn], old = W.edit && PLANS[W.edit];
+      if (old) { old.active = false; p.replaces = old.id; if (old.override) p.override = true; if (old.name) p.name = old.name; }
+      PLANS[p.id] = p; s.plans = [p.id].concat(s.plans || []); s.diet = true;
       var key = p.sharedFrom || p.id; Object.keys(PLANS).forEach(function (k) { var x = PLANS[k]; if ((x.sharedFrom || x.id) === key && x.active) { x.sharers = x.sharers || []; if (!x.sharers.some(function (y) { return y[1] === p.id; })) x.sharers.push([p.species, p.id]); } });
       p.sharers = Object.keys(PLANS).map(function (k) { return PLANS[k]; }).filter(function (x) { return (x.sharedFrom || x.id) === key && x.active; }).map(function (x) { return [x.species, x.id]; });
       var isFirst = W.base, kindTxt = p.kind === 'seasonal' ? 'Seasonal diet' : p.kind === 'time-bound' ? 'Time-bound diet' : isFirst ? 'Base diet' : 'Year-round diet';
       st.scope = p.scope; st.ref = p.scope === 'species' ? null : p.ref; st.plan = p.id; st.tab = 'items'; st.showInactive = false;
-      var msg = kindTxt + ' ' + shownId(p) + ' created for ' + s.name + (p.scope !== 'species' ? ' (' + scopeLabel() + ')' : '') + '.';
+      var msg = old ? shownId(p) + ' saved. It replaces ' + shownId(old) + ', which is now inactive.' : kindTxt + ' ' + shownId(p) + ' created for ' + s.name + (p.scope !== 'species' ? ' (' + scopeLabel() + ')' : '') + '.';
       closeWizard();
       if (st.seg === 'without') st.seg = 'with';
       try { history.replaceState(null, '', '#species/' + st.seg + '/' + s.tsn + '/' + p.id); } catch (x) {}

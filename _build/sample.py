@@ -222,3 +222,24 @@ BS['plans']['405']['schedule'] = _sched([_citrus('1.5'), {'name': 'Papaya', 'amo
 BS['plans']['407']['schedule'] = _sched([_citrus('2.5'), {'name': 'Sweet Potato', 'amount': '3 kg', 'prep': 'Steamed', 'alts': [{'name': 'Carrot', 'amount': '3 kg'}]}])   # Lime (alternative 1)
 BS['plans']['403']['schedule'] = _sched([_citrus('5'), {'name': 'Carrot', 'amount': '4 kg', 'prep': 'Chopped'}])   # Lemon (alternative 2)
 BS['plans']['411']['schedule'] = _sched([{'name': 'Spinach', 'amount': '1 kg', 'prep': 'Washed'}, {'name': 'Watermelon', 'amount': '3 kg', 'prep': 'Chopped'}])
+
+
+# ---- 10-species sample, clean slate (SAMPLE DATA) ----
+# Only 10 species: 5 with one year-round base diet at species level and 5 with no diet at all. Every site,
+# section, enclosure and animal of a base-diet species inherits that base diet: no overrides, no seasonal,
+# time-bound or sex-based plans, and no proposed plans. No requests are seeded either; the user raises them.
+SP_WITH = [135332, 134467, 360599, 195064, 127302]      # Coypu, Fischer's Lovebird, Aldabra Giant Tortoise, European Polecat, Elephantnose Fish
+SP_WITHOUT = [150254, 161818, 195022, 132735, 235859]   # Southern Cassowary, Geoffroy's Marmoset, Meerkat, Green Iguana, Koi Fish
+for _t in SP_WITH + SP_WITHOUT:
+    if _t != 135332: _holdings(_t, [])   # one animal row per animal held, so the Animal-wide list matches the count
+    _s = _sp(_t)
+    _b = next((BS['plans'][str(i)] for i in _s['plans'] if BS['plans'][str(i)]['scope'] == 'species' and BS['plans'][str(i)]['kind'] == 'base' and BS['plans'][str(i)]['active']), None) if _t in SP_WITH else None
+    _s['plans'] = [_b['id']] if _b else []
+    if _b: _b['update'] = 'none'   # nothing pending: no requests are seeded
+    _s['diet'] = bool(_b)
+BS['species'] = [_sp(t) for t in SP_WITH + SP_WITHOUT]
+_keep_t = set(SP_WITH + SP_WITHOUT)
+_keep_p = {i for x in BS['species'] for i in x['plans']}
+BS['plans'] = {k: v for k, v in BS['plans'].items() if v['id'] in _keep_p}
+for _p in BS['plans'].values(): _p['sharers'] = [x for x in _p.get('sharers', []) if x[0] in _keep_t and x[1] in _keep_p]
+SAMPLE_REQS = []

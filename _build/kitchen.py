@@ -246,14 +246,7 @@ KITCHEN_CSS = '''    /* ========================================================
 KITCHEN_JS = r'''  var DD = __KDASH__;
   var REQ_SEED = __REQSEED__;
   /* ---------------- viewing as (same 7 roles as diet-home.html, shared through localStorage) ---------------- */
-  var USERS = [
-    { key: 'dietician', name: 'Hydar Ali', title: 'Dietician', role: 'DIETICIAN', what: 'Raises requests. Sees My requests only.' },
-    { key: 'head-dietician', name: 'Dr. Meera Iyer', title: 'Head Dietician', role: 'DIET_MANAGER', prd: 'Diet Manager', what: 'Raises, reviews and configures requests. Edits diets.' },
-    { key: 'kitchen-head', name: 'Suresh Gowda', title: 'Kitchen Head', role: 'KITCHEN_HEAD', what: 'Diet, Kitchen and Inventory. Kitchen review: delay, ask for adjustment, send to prep.' },
-    { key: 'kitchen-operator', name: 'Anil Kumar', title: 'Kitchen Operator', role: 'KITCHEN_OPERATOR', what: 'Requests sent to prep and Meal Group Management. No Kitchen Dashboard, no Diet module.' },
-    { key: 'receiving-manager', name: 'Farhan Shaikh', title: 'Receiving Manager', role: 'RECEIVING_MANAGER', what: 'Inventory and Kitchen. No Diet module.' },
-    { key: 'security', name: 'Ravi Naik', title: 'Security', role: 'SECURITY', what: 'Security module only.' },
-    { key: 'security-admin', name: 'Priya Desai', title: 'Security Admin', role: 'SECURITY_ADMIN', what: 'Security module only.' } ];
+  var USERS = __ROLEUSERS__, KITCHENS = __KITCHENS__;   /* roles.py ROLE_DEFS, kitchens.json */
   var VIEWER = (function () { var a = new URLSearchParams(location.search).get('as'), sv = savedViewer(), ok = function (k) { return USERS.some(function (u) { return u.key === k; }); }; return USERS.filter(function (u) { return u.key === (ok(a) ? a : ok(sv) ? sv : 'kitchen-head'); })[0]; })();
   function isKitchen() { return VIEWER.role === 'KITCHEN_HEAD' || VIEWER.role === 'KITCHEN_OPERATOR'; }
   function initials(n) { return String(n).replace(/^Dr\.?\s+/i, '').split(/\s+/).slice(0, 2).map(function (w) { return w[0].toUpperCase(); }).join(''); }
@@ -392,9 +385,12 @@ KITCHEN_JS = r'''  var DD = __KDASH__;
   function plural2(n, w) { return n + ' ' + w + (n === 1 ? '' : 's'); }
   function model() {
     var all = reqs(), c = function (s) { return all.filter(function (r) { return r.status === s; }).length; };
+    /* routed requests: this Kitchen Head's own lines (one per kitchen per request) */
+    var myL = all.filter(function (r) { return r.klines; }).map(function (r) { return { r: r, l: r.klines.filter(function (x) { return !VIEWER.kitchen || x.k === VIEWER.kitchen; })[0] }; }).filter(function (x) { return x.l; });
+    var lc = function (st) { return myL.filter(function (x) { return st.indexOf(x.l.status) !== -1; }).length; };
     var k = per().kpis || DD.kpis, q = pd('quantities'), su = pd('suppliers').slice().sort(function (a, b) { return b.receipts - a.receipts || a.name.localeCompare(b.name); });
     var acc = su.length ? su.reduce(function (n, x) { return n + x.acc; }, 0) / su.length : 0;
-    return { kr: c('kitchen_review'), dl: c('delayed'), ad: c('adjustment'), rd: c('ready'), all: all, k: k, q: q, su: su, acc: Math.round(acc * 10) / 10,
+    return { kr: c('kitchen_review') + lc(['pending', 'accepted', 'processing']), dl: c('delayed') + lc(['delayed']), ad: c('adjustment'), rd: c('ready') + lc(['ready']), all: all, myL: myL, k: k, q: q, su: su, acc: Math.round(acc * 10) / 10,
       pendList: pending(), missAll: DD.receipts.filter(function (r) { return !r.signedDc && (!DS.wh || r.warehouse === DS.wh); }).length, stk: stockNow(),
       pend: DD.pending.filter(function (r) { return !DS.wh || r.warehouse === DS.wh; }).length, rate: k.receipts ? Math.round(k.returns / k.receipts * 1000) / 10 : 0 };
   }
@@ -408,10 +404,11 @@ KITCHEN_JS = r'''  var DD = __KDASH__;
       '<div class="scard"><span class="lab">' + ic('user', 20) + 'Vendor performance</span><b>' + fmtN(m.su.length) + '<small>active suppliers</small></b><span class="sup">' + m.acc + '% average acceptance</span></div></section>';
   }
   function dietRow(m) {
-    var top = m.all.filter(function (r) { return r.status === 'kitchen_review' || r.status === 'delayed'; }).sort(function (a, b) { return PRI[a.prio][2] - PRI[b.prio][2] || String(a.iso).localeCompare(String(b.iso)); }).slice(0, 3);
-    return '<section class="drow">' + rowH('Diet requests', 'Proposed diets at the kitchen stage, from the Diet Request flow.') + '<div class="drow__b"><div class="kfs">' +
-      kfr('Kitchen review', m.kr, { href: dietLink('check:kreview') }) + kfr('Delayed', m.dl, { href: dietLink('check:kdelayed'), alert: m.dl > 0 }) + kfr('Needs adjustment', m.ad, { href: dietLink('all:kadjust') }) + kfr('Sent to prep', m.rd, { href: dietLink('ready') }) + '</div>' +
-      '<div class="kpanel"><h4>Top requests by priority</h4>' + (top.length ? top.map(function (r) { var dl = r.status === 'delayed'; return '<a class="kitem" href="' + dietLink('', r.id) + '"><span class="ribbon ' + r.prio + '" aria-label="' + PRI[r.prio][1] + '">' + PRI[r.prio][0] + '</span><span class="grow"><b class="t-body-title">' + esc(r.id + ' · ' + r.title) + '</b><small class="t-body-regular">' + esc(r.sp + ', ' + (r.scopeText || 'Whole species')) + '</small></span><span class="st' + (dl ? ' alertx' : '') + '">' + (dl && r.delayUntil ? 'Delayed to ' + fmtD(r.delayUntil).replace(/ \d{4}$/, '') : 'Kitchen review') + '</span></a>'; }).join('') : '<p class="kempty t-body-regular">Nothing waiting on the kitchen.</p>') + '</div></div></section>';
+    var KLAB = { pending: 'Waiting', accepted: 'Accepted', processing: 'Processing', delayed: 'Delayed', ready: 'Ready' };
+    var top = m.myL.filter(function (x) { return x.l.status !== 'ready'; }).sort(function (a, b) { return PRI[a.r.prio][2] - PRI[b.r.prio][2] || String(a.r.iso).localeCompare(String(b.r.iso)); }).slice(0, 3);
+    return '<section class="drow">' + rowH('Diet requests', VIEWER.kitchen ? 'Your kitchen\'s lines (' + VIEWER.kitchen + ' · ' + KITCHENS.kitchens[VIEWER.kitchen].name + ') on diets that dieticians sent.' : 'Kitchen lines on diets that dieticians sent.') + '<div class="drow__b"><div class="kfs">' +
+      kfr('To prepare', m.kr, { href: dietLink('check:kpending') }) + kfr('Delayed', m.dl, { href: dietLink('check:kdelayed'), alert: m.dl > 0 }) + kfr('Ready', m.rd, { href: dietLink('ready') }) + '</div>' +
+      '<div class="kpanel"><h4>Top requests by priority</h4>' + (top.length ? top.map(function (x) { var r = x.r, dl = x.l.status === 'delayed'; return '<a class="kitem" href="' + dietLink('', r.id) + '"><span class="ribbon ' + r.prio + '" aria-label="' + PRI[r.prio][1] + '">' + PRI[r.prio][0] + '</span><span class="grow"><b class="t-body-title">' + esc(r.id + ' · ' + r.sp) + '</b><small class="t-body-regular">' + esc(x.l.k + ': ' + x.l.items.join(', ')) + '</small></span><span class="st' + (dl ? ' alertx' : '') + '">' + (dl && x.l.readyFrom ? 'Ready from ' + fmtD(x.l.readyFrom).replace(/ \d{4}$/, '') : KLAB[x.l.status]) + '</span></a>'; }).join('') : '<p class="kempty t-body-regular">Nothing waiting on the kitchen.</p>') + '</div></div></section>';
   }
   function recvRow(m) {
     var tr = pd('trend'), mx = Math.max.apply(null, tr.map(function (t) { return t.receipts; }).concat([1])), miss = pd('receipts').filter(function (r) { return !r.signedDc; });
@@ -700,7 +697,7 @@ _kbody = f'''  <div class="app">
   <div class="toast t-body-medium" id="toast" role="status" aria-live="polite"></div>'''
 
 _khelp = icon_js(K_ICONS) + "  function esc(s) { return String(s == null ? '' : s).replace(/[&<>\"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '\"': '&quot;' }[c]; }); }\n" + STORE_JS
-_kjs = KITCHEN_JS.replace('/*__MG_MODULES__*/', ''.join('  /* ---- page module: ' + m['slug'] + ' (_build/mg_' + m['slug'].replace('-', '_') + '.py) ---- */\n' + m['js'] + '\n' for m in MG_MODS)).replace('__MGSEED__', json.dumps(MGSEED, ensure_ascii=False, separators=(',', ':')).replace('</', '<\\/')).replace('__MG_HTML__', json.dumps(MG_HTML)).replace('__KDASH__', json.dumps(KDASH, ensure_ascii=False, separators=(',', ':')).replace('</', '<\\/')).replace('__KSTK__', json.dumps(KSTK, ensure_ascii=False, separators=(',', ':'))).replace('__PSDATA__', json.dumps(PSDATA, ensure_ascii=False, separators=(',', ':'))).replace('__PSCHED__', json.dumps(PSCHED, ensure_ascii=False, separators=(',', ':'))).replace('__REQSEED__', json.dumps(_req_seed, ensure_ascii=False, separators=(',', ':')).replace('</', '<\\/'))
+_kjs = KITCHEN_JS.replace('/*__MG_MODULES__*/', ''.join('  /* ---- page module: ' + m['slug'] + ' (_build/mg_' + m['slug'].replace('-', '_') + '.py) ---- */\n' + m['js'] + '\n' for m in MG_MODS)).replace('__ROLEUSERS__', ROLE_USERS_JS).replace('__KITCHENS__', KITCHENS_JS).replace('__MGSEED__', json.dumps(MGSEED, ensure_ascii=False, separators=(',', ':')).replace('</', '<\\/')).replace('__MG_HTML__', json.dumps(MG_HTML)).replace('__KDASH__', json.dumps(KDASH, ensure_ascii=False, separators=(',', ':')).replace('</', '<\\/')).replace('__KSTK__', json.dumps(KSTK, ensure_ascii=False, separators=(',', ':'))).replace('__PSDATA__', json.dumps(PSDATA, ensure_ascii=False, separators=(',', ':'))).replace('__PSCHED__', json.dumps(PSCHED, ensure_ascii=False, separators=(',', ':'))).replace('__REQSEED__', json.dumps(_req_seed, ensure_ascii=False, separators=(',', ':')).replace('</', '<\\/'))
 page(os.environ.get('KH_OUT', 'kitchen-home.html'), 'Kitchen',
      'Kitchen home: Kitchen Dashboard (#dashboard) and Meal Group Management (#meal-groups). Target of the Kitchen tile on diet-module-flow.html. '
      'Generated by _build/kitchen.py, do not hand-edit. Earlier full build kept in _build/kitchen_full_backup.py.',

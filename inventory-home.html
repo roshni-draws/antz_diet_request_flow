@@ -474,9 +474,26 @@
     .rqd__foot .acts .btn { flex: none; min-width: 0; padding: 0 var(--sp-16); white-space: nowrap; }
     .btn.teal { background: var(--md3-on-primary-container); color: var(--white); }
     .btn.danger { border: 1px solid var(--md3-error); color: var(--md3-error); }
-    .rnote { display: flex; gap: 10px; padding: var(--sp-12) var(--sp-16); border-radius: var(--radius); background: var(--white); color: var(--ink); box-shadow: inset 4px 0 0 var(--md3-on-primary-container); }
-    .rnote.bad { box-shadow: inset 4px 0 0 var(--md3-error); }
-    .rnote.warn { box-shadow: inset 4px 0 0 var(--md3-moderate-secondary); }
+    .rnote { display: flex; gap: 10px; padding: var(--sp-12) var(--sp-16); border-radius: var(--radius); background: var(--white); color: var(--ink); box-shadow: none; border: 1px solid var(--md3-outline-variant); --x: var(--md3-on-primary-container); }
+    .rnote.bad { background: var(--error-a5); border-color: transparent; }
+    .rnote.bad > svg { color: var(--md3-error); }
+    .rnote.warn { background: #FFF6DB; border-color: transparent; }
+    .rnote.warn > svg { color: #8A5A00; }
+    .rnote small { color: var(--ink) !important; }
+    /* kitchen lines on a routed request */
+    .klist { display: grid; gap: var(--sp-12); }
+    .klist h3 small { color: var(--ink); font-weight: 400; margin-left: 6px; }
+    .klist ul { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--sp-8); }
+    .kl { display: grid; gap: 4px; padding: var(--sp-12) var(--sp-16); border-radius: var(--radius); background: var(--white); border: 1px solid var(--md3-outline-variant); }
+    .kl__h { display: flex; align-items: center; gap: var(--sp-8); flex-wrap: wrap; }
+    .kl__h b { color: var(--head); margin-right: auto; }
+    .kl__items { color: var(--head); }
+    .kl__note, .kl small { color: var(--ink); }
+    .tag.late { gap: 4px; }
+    .kprev { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--sp-8); }
+    .kprev li { display: grid; gap: 2px; padding: var(--sp-12) var(--sp-16); border-radius: var(--radius); background: var(--md3-background); }
+    .kprev li b { color: var(--head); }
+    .kprev li span { color: var(--ink); }
     .rnote b { color: var(--head); }
     .rnote small { color: var(--md3-neutral-secondary); display: block; }
     .propline { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
@@ -492,7 +509,7 @@
     .noacc__i { width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center; background: #FFF6DB; color: #8A5A00; font-size: 28px; font-weight: 700; }
     .noacc__f { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-top: 8px; }
     .noacc__f .btn { flex: none; min-width: 180px; height: 48px; padding: 0 20px; text-decoration: none; }
-    /* role gating: write = diet-plans.write (Head Dietician), raise = Dietician / Head Dietician */
+    /* role gating: write = diet-plans.write (Dieticians), raise = Biologist */
     body:not([data-write]) [data-createbase], body:not([data-write]) .addchip, body:not([data-write]) [data-newplan],
     body:not([data-write]) [data-cert], body:not([data-write]) [data-certify], body:not([data-write]) [data-certchange],
     body:not([data-write]) [data-act="edit"], body:not([data-write]) [data-move], body:not([data-write]) [data-addsp] { display: none !important; }
@@ -601,7 +618,7 @@
   const IC = {"back": "<path d=\"M10.3257 18.7717L4.21608 12.5309C4.1366 12.4497 4.08071 12.366 4.04844 12.2797C4.01615 12.1935 4 12.0996 4 11.9981C4 11.8966 4.01615 11.8028 4.04844 11.7165C4.08071 11.6303 4.1366 11.5466 4.21608 11.4654L10.3406 5.20936C10.4747 5.07237 10.6424 5.0026 10.8435 5.00006C11.0447 4.99752 11.2198 5.07236 11.3688 5.22457C11.5178 5.37172 11.5936 5.54803 11.5961 5.75352C11.5985 5.95901 11.5253 6.13787 11.3763 6.29008L6.53326 11.2371H17.2549C17.4685 11.2371 17.6461 11.3094 17.7877 11.454C17.9292 11.5986 18 11.78 18 11.9981C18 12.2163 17.9292 12.3977 17.7877 12.5423C17.6461 12.6869 17.4685 12.7592 17.2549 12.7592H6.53326L11.3912 17.7214C11.5253 17.8584 11.5936 18.0309 11.5961 18.2389C11.5985 18.447 11.5253 18.6245 11.3763 18.7717C11.2322 18.9239 11.0584 19 10.8547 19C10.6511 19 10.4747 18.9239 10.3257 18.7717Z\" fill=\"currentColor\"/>", "user": "<path d=\"M11.8666 11.6704C13.0577 11.6704 14.089 11.2432 14.9319 10.4003C15.7746 9.55752 16.2019 8.52635 16.2019 7.33506C16.2019 6.14418 15.7747 5.11288 14.9318 4.26984C14.0889 3.42722 13.0576 3 11.8666 3C10.6753 3 9.64413 3.42722 8.80136 4.26998C7.9586 5.11274 7.53125 6.14405 7.53125 7.33506C7.53125 8.52635 7.9586 9.55766 8.80136 10.4004C9.6444 11.243 10.6757 11.6704 11.8666 11.6704ZM9.54731 5.01579C10.194 4.36913 10.9526 4.05479 11.8666 4.05479C12.7805 4.05479 13.5392 4.36913 14.186 5.01579C14.8327 5.66259 15.1471 6.4213 15.1471 7.33506C15.1471 8.24909 14.8327 9.00767 14.186 9.65447C13.5392 10.3013 12.7805 10.6156 11.8666 10.6156C10.9528 10.6156 10.1942 10.3011 9.54731 9.65447C8.90051 9.00781 8.58604 8.24909 8.58604 7.33506C8.58604 6.4213 8.90051 5.66259 9.54731 5.01579Z\" fill=\"currentColor\"/><path d=\"M19.4533 16.8416C19.4289 16.4908 19.3798 16.1082 19.3074 15.7042C19.2344 15.2972 19.1403 14.9124 19.0277 14.5607C18.9112 14.1972 18.7532 13.8383 18.5575 13.4943C18.3547 13.1372 18.1163 12.8263 17.8488 12.5705C17.569 12.3028 17.2265 12.0876 16.8305 11.9307C16.4358 11.7745 15.9984 11.6954 15.5306 11.6954C15.3468 11.6954 15.1691 11.7708 14.826 11.9943C14.6148 12.132 14.3677 12.2913 14.092 12.4675C13.8562 12.6177 13.5368 12.7585 13.1422 12.8859C12.7573 13.0105 12.3665 13.0736 11.9806 13.0736C11.595 13.0736 11.2042 13.0105 10.819 12.8859C10.4249 12.7586 10.1053 12.6179 9.86992 12.4676C9.59679 12.2931 9.3496 12.1338 9.13524 11.9941C8.79234 11.7707 8.61464 11.6953 8.4309 11.6953C7.9629 11.6953 7.52566 11.7745 7.13112 11.9308C6.73535 12.0875 6.39273 12.3027 6.11272 12.5706C5.84522 12.8266 5.60682 13.1374 5.40413 13.4943C5.20872 13.8383 5.05052 14.1971 4.93407 14.5609C4.8216 14.9126 4.72753 15.2972 4.65447 15.7042C4.58197 16.1077 4.53294 16.4904 4.50864 16.842C4.48474 17.1857 4.47266 17.5434 4.47266 17.9049C4.47266 18.8444 4.77134 19.6051 5.36032 20.166C5.94203 20.7196 6.7116 21.0003 7.64774 21.0003H16.3146C17.2504 21.0003 18.02 20.7196 18.6018 20.166C19.191 19.6055 19.4896 18.8446 19.4896 17.9047C19.4895 17.542 19.4773 17.1843 19.4533 16.8416ZM17.8746 19.4018C17.4902 19.7677 16.9799 19.9455 16.3144 19.9455H7.64774C6.98213 19.9455 6.47183 19.7677 6.08759 19.402C5.71064 19.0431 5.52745 18.5533 5.52745 17.9049C5.52745 17.5676 5.53857 17.2346 5.56082 16.9149C5.58251 16.6012 5.62687 16.2567 5.69265 15.8906C5.7576 15.529 5.84027 15.1897 5.9386 14.8825C6.03294 14.5879 6.16161 14.2962 6.32118 14.0153C6.47347 13.7475 6.6487 13.5177 6.84205 13.3326C7.02291 13.1595 7.25087 13.0177 7.51948 12.9115C7.7679 12.8131 8.04708 12.7593 8.35015 12.7512C8.38709 12.7708 8.45287 12.8083 8.55944 12.8778C8.77627 13.0191 9.0262 13.1803 9.3025 13.3568C9.61395 13.5554 10.0152 13.7347 10.4946 13.8895C10.9847 14.048 11.4846 14.1284 11.9807 14.1284C12.4769 14.1284 12.9769 14.048 13.4667 13.8896C13.9465 13.7346 14.3477 13.5554 14.6595 13.3565C14.9423 13.1758 15.1852 13.0193 15.402 12.8778C15.5086 12.8085 15.5744 12.7708 15.6113 12.7512C15.9145 12.7593 16.1937 12.8131 16.4423 12.9115C16.7107 13.0177 16.9387 13.1596 17.1196 13.3326C17.3129 13.5176 17.4881 13.7474 17.6404 14.0154C17.8001 14.2962 17.929 14.5881 18.0232 14.8823C18.1216 15.1899 18.2044 15.5291 18.2692 15.8904C18.3349 16.2572 18.3794 16.6019 18.4011 16.915V16.9153C18.4235 17.2337 18.4347 17.5666 18.4349 17.9049C18.4347 18.5534 18.2515 19.0431 17.8746 19.4018Z\" fill=\"currentColor\"/>", "dropdown": "<path d=\"M12 15.9999L4.99995 9.51341L6.63329 7.9999L12 12.9729L17.3666 7.9999L19 9.51341L12 15.9999Z\" fill=\"currentColor\"/>", "close": "<path d=\"M12 13.2484L6.507 18.7414C6.33461 18.9138 6.12654 19 5.8828 19C5.63908 19 5.43101 18.9138 5.25861 18.7414C5.0862 18.569 5 18.3609 5 18.1172C5 17.8735 5.0862 17.6654 5.25861 17.493L10.7516 12L5.25861 6.507C5.0862 6.33461 5 6.12654 5 5.8828C5 5.63908 5.0862 5.43101 5.25861 5.25861C5.43101 5.0862 5.63908 5 5.8828 5C6.12654 5 6.33461 5.0862 6.507 5.25861L12 10.7516L17.493 5.25861C17.6654 5.0862 17.8735 5 18.1172 5C18.3609 5 18.569 5.0862 18.7414 5.25861C18.9138 5.43101 19 5.63908 19 5.8828C19 6.12654 18.9138 6.33461 18.7414 6.507L13.2484 12L18.7414 17.493C18.9138 17.6654 19 17.8735 19 18.1172C19 18.3609 18.9138 18.569 18.7414 18.7414C18.569 18.9138 18.3609 19 18.1172 19C17.8735 19 17.6654 18.9138 17.493 18.7414L12 13.2484Z\" fill=\"currentColor\"/>", "just-tick-mark": "<path d=\"M19.9697 7.8125L9.93652 17.8467L4.02734 11.9375L5.7373 10.2285L9.93652 14.4277L10.1133 14.251L18.2607 6.10254L19.9697 7.8125Z\" fill=\"currentColor\" stroke=\"currentColor\" stroke-width=\"0.5\"/>", "location-icon": "<path d=\"M12 11.9297C13.5702 11.9297 14.8477 10.6523 14.8477 9.08203C14.8477 7.51181 13.5702 6.23438 12 6.23438C10.4298 6.23438 9.15234 7.51181 9.15234 9.08203C9.15234 10.6523 10.4298 11.9297 12 11.9297ZM12 7.64062C12.7947 7.64062 13.4414 8.28731 13.4414 9.08203C13.4414 9.87675 12.7947 10.5234 12 10.5234C11.2053 10.5234 10.5586 9.87675 10.5586 9.08203C10.5586 8.28731 11.2053 7.64062 12 7.64062ZM11.5562 18.0054L12 18.3667L12.4438 18.0054C12.5007 17.9591 13.8517 16.8539 15.2209 15.2737C17.1194 13.0823 18.082 11.1134 18.082 9.42165V9.08244C18.082 5.72859 15.3537 3 12 3C8.64629 3 5.91797 5.72859 5.91797 9.08244V9.42165C5.91797 11.1134 6.88065 13.0823 8.77908 15.2737C10.1481 16.8539 11.4993 17.9591 11.5562 18.0054ZM7.32422 9.08244C7.32422 6.50395 9.42178 4.40625 12 4.40625C14.5782 4.40625 16.6758 6.50395 16.6758 9.08244V9.42165C16.6758 10.7426 15.8098 12.4423 14.1716 14.3372C13.3385 15.3007 12.4958 16.0906 11.9999 16.532C11.5075 16.0941 10.6727 15.3118 9.84201 14.3529C8.19489 12.4517 7.32422 10.7465 7.32422 9.42165V9.08244ZM21 18.4336C21 18.9656 20.655 19.4187 19.9746 19.7798C19.5013 20.0311 18.8441 20.2522 18.0209 20.4371C16.4047 20.8 14.2665 21 12 21C9.73352 21 7.59531 20.8 5.97908 20.4372C5.15593 20.2524 4.49867 20.0311 4.02544 19.78C3.34497 19.4187 3 18.9656 3 18.4336C3 17.9016 3.34497 17.4485 4.02544 17.0874C4.49867 16.836 5.15593 16.6149 5.97908 16.4301C6.49255 16.3147 7.05917 16.2161 7.66534 16.135C7.68251 16.1549 7.69899 16.1747 7.71629 16.1946C8.10287 16.6408 8.48918 17.0519 8.84885 17.416C8.07005 17.4896 7.34276 17.5904 6.69704 17.7163C5.39337 17.9705 4.75919 18.2617 4.50732 18.4336C4.75919 18.6055 5.39323 18.8967 6.69704 19.1509C8.16151 19.4365 10.0448 19.5938 12 19.5938C13.9552 19.5938 15.8385 19.4365 17.303 19.1509C18.6066 18.8967 19.2408 18.6055 19.4927 18.4336C19.2408 18.2617 18.6068 17.9705 17.303 17.7163C16.6572 17.5904 15.9301 17.4895 15.1513 17.416C15.5108 17.0519 15.8971 16.6408 16.2837 16.1946C16.301 16.1747 16.3176 16.1548 16.3347 16.1348C16.9408 16.2161 17.5074 16.3147 18.0209 16.43C18.8441 16.6148 19.5013 16.836 19.9746 17.0872C20.655 17.4485 21 17.9016 21 18.4336Z\" fill=\"currentColor\"/>", "search": "<path d=\"M20.7263 19.3951L16.289 14.9395C17.4299 13.6301 18.055 11.9826 18.055 10.2675C18.055 6.26026 14.6781 3 10.5275 3C6.37691 3 3 6.26026 3 10.2675C3 14.2747 6.37691 17.535 10.5275 17.535C12.0857 17.535 13.5706 17.0812 14.8401 16.2199L19.3111 20.7093C19.498 20.8967 19.7494 21 20.0187 21C20.2737 21 20.5156 20.9062 20.6992 20.7355C21.0893 20.3731 21.1017 19.7721 20.7263 19.3951ZM10.5275 4.89587C13.5955 4.89587 16.0913 7.30552 16.0913 10.2675C16.0913 13.2295 13.5955 15.6391 10.5275 15.6391C7.45956 15.6391 4.9637 13.2295 4.9637 10.2675C4.9637 7.30552 7.45956 4.89587 10.5275 4.89587Z\" fill=\"currentColor\"/>", "calendar": "<path d=\"M18.8906 4.40625H18.0469V3H16.6406V4.40625H7.35938V3H5.95312V4.40625H5.10938C3.94627 4.40625 3 5.35252 3 6.51562V18.8906C3 20.0537 3.94627 21 5.10938 21H15.1115L21 14.8851V6.51562C21 5.35252 20.0537 4.40625 18.8906 4.40625ZM15.5156 18.553V16.0078C15.5156 15.6201 15.831 15.3047 16.2188 15.3047H18.6437L15.5156 18.553ZM19.5938 13.8984H16.2188C15.0556 13.8984 14.1094 14.8447 14.1094 16.0078V19.5938H5.10938C4.72167 19.5938 4.40625 19.2783 4.40625 18.8906V9.60938H19.5938V13.8984ZM19.5938 8.20312H4.40625V6.51562C4.40625 6.12792 4.72167 5.8125 5.10938 5.8125H5.95312V7.21875H7.35938V5.8125H16.6406V7.21875H18.0469V5.8125H18.8906C19.2783 5.8125 19.5938 6.12792 19.5938 6.51562V8.20312Z\" fill=\"currentColor\"/>"};
   function ic(n, s) { s = s || 24; return '<svg width="' + s + '" height="' + s + '" viewBox="0 0 24 24" aria-hidden="true" focusable="false">' + IC[n] + '</svg>'; }
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
-  var RQS_KEY = 'antz.diet.requests', VIEW_KEY = 'antz.viewer', SEED_V = 'a363c0bc32';
+  var RQS_KEY = 'antz.diet.requests', VIEW_KEY = 'antz.viewer', SEED_V = 'bfd08cb635';
   function lsGet(k) { try { var v = localStorage.getItem(k); return v ? JSON.parse(v) : null; } catch (x) { return null; } }
   function lsSet(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (x) {} }
   function storedReqs() { var s = lsGet(RQS_KEY); return s && s.v === SEED_V && Array.isArray(s.reqs) ? s : null; }
@@ -612,8 +629,7 @@
      Kitchen for Kitchen Head, Kitchen Operator, Receiving Manager; Inventory for Kitchen Head and Receiving Manager;
      Security for Security and Security Admin. guardModule shows a full-screen No access state (with Viewing as)
      over a module the role cannot use, and returns false. */
-  var MODS = { diet: ['dietician', 'head-dietician', 'kitchen-head'], kitchen: ['kitchen-head', 'kitchen-operator', 'receiving-manager'],
-    inventory: ['kitchen-head', 'receiving-manager'], security: ['security', 'security-admin'] };
+  var MODS = {"diet": ["biologist", "dietician", "dietician-amruth", "dietician-priya", "dietician-kavya", "kitchen-head", "kitchen-head-k2", "kitchen-head-k3"], "kitchen": ["kitchen-head", "kitchen-head-k2", "kitchen-head-k3", "kitchen-operator", "receiving-manager"], "inventory": ["kitchen-head", "kitchen-head-k2", "kitchen-head-k3", "receiving-manager"], "security": ["security", "security-admin"]};
   var MODFILE = { diet: ['Diet', 'diet-home.html'], kitchen: ['Kitchen', 'kitchen-home.html'], inventory: ['Inventory', 'inventory-home.html'], security: ['Security', 'security-home.html'] };
   function canModule(mod, key) { return MODS[mod].indexOf(key) !== -1; }
   function guardModule(mod, u) {
@@ -627,14 +643,7 @@
       '<div class="noacc__f"><a class="btn sec" href="' + home + '">Back to Modules</a>' + (other ? '<a class="btn pri" href="' + MODFILE[other][1] + '?as=' + u.key + '">Open ' + MODFILE[other][0] + '</a>' : '') + '</div></div></div>';
     el.hidden = false; return false;
   }
-  var USERS = [
-    { key: 'dietician', name: 'Hydar Ali', title: 'Dietician', what: 'Diet module. Raises requests and sees My requests.' },
-    { key: 'head-dietician', name: 'Dr. Meera Iyer', title: 'Head Dietician', what: 'Diet module. Reviews and configures requests, edits diets.' },
-    { key: 'kitchen-head', name: 'Suresh Gowda', title: 'Kitchen Head', what: 'Diet, Kitchen and Inventory.' },
-    { key: 'kitchen-operator', name: 'Anil Kumar', title: 'Kitchen Operator', what: 'Kitchen only.' },
-    { key: 'receiving-manager', name: 'Farhan Shaikh', title: 'Receiving Manager', what: 'Inventory and Kitchen.' },
-    { key: 'security', name: 'Ravi Naik', title: 'Security', what: 'Security module only.' },
-    { key: 'security-admin', name: 'Priya Desai', title: 'Security Admin', what: 'Security module only.' } ];
+  var USERS = [{"key": "biologist", "id": "u-bio", "name": "Neha Kulkarni", "role": "BIOLOGIST", "title": "Biologist", "perms": ["diet-plans.read"], "what": "Raises diet requests and picks the dietician to send them to."}, {"key": "dietician", "id": "u-dt", "name": "Hydar Ali", "role": "DIETICIAN", "title": "Dietician", "perms": ["diet-plans.read", "diet-plans.write"], "online": true, "scopes": [["species", 135332, "Species: Coypu"], ["taxonomy", "aves", "Class: Aves"]], "what": "Reviews requests sent to them, configures, certifies and sends to kitchens. Online. In charge of Species: Coypu; Class: Aves."}, {"key": "dietician-amruth", "id": "u-ar", "name": "Amruth Reddy", "role": "DIETICIAN", "title": "Dietician", "perms": ["diet-plans.read", "diet-plans.write"], "online": true, "scopes": [["section", 196, "Section: Coypu Marsh"], ["species", 360599, "Species: Aldabra Giant Tortoise"], ["taxonomy", "reptilia", "Class: Reptilia"]], "what": "Reviews requests sent to them, configures, certifies and sends to kitchens. Online. In charge of Section: Coypu Marsh; Species: Aldabra Giant Tortoise; Class: Reptilia."}, {"key": "dietician-priya", "id": "u-pn", "name": "Priya Nair", "role": "DIETICIAN", "title": "Dietician", "perms": ["diet-plans.read", "diet-plans.write"], "online": false, "scopes": [["site", 57, "Site: Cow Land"], ["species", 195064, "Species: European Polecat"]], "what": "Reviews requests sent to them, configures, certifies and sends to kitchens. Offline. In charge of Site: Cow Land; Species: European Polecat."}, {"key": "dietician-kavya", "id": "u-kr", "name": "Kavya Rao", "role": "DIETICIAN", "title": "Dietician", "perms": ["diet-plans.read", "diet-plans.write"], "online": true, "scopes": [["species", 127302, "Species: Elephantnose Fish"], ["species", 195022, "Species: Meerkat"], ["species", 161818, "Species: Geoffroy's Marmoset"]], "what": "Reviews requests sent to them, configures, certifies and sends to kitchens. Online. In charge of Species: Elephantnose Fish; Species: Meerkat; Species: Geoffroy's Marmoset."}, {"key": "kitchen-head", "id": "u-kh", "name": "Suresh Gowda", "role": "KITCHEN_HEAD", "title": "Kitchen Head · K1", "kitchen": "K1", "perms": ["diet-plans.read", "packing.read"], "proto": ["packing.write", "inventory.read"], "what": "Central Kitchen (K1) only: accept, mark processing, mark ready, report a delay."}, {"key": "kitchen-head-k2", "id": "u-kh2", "name": "Mohan Das", "role": "KITCHEN_HEAD", "title": "Kitchen Head · K2", "kitchen": "K2", "perms": ["diet-plans.read", "packing.read"], "proto": ["packing.write", "inventory.read"], "what": "RNR Kitchen (K2) only: accept, mark processing, mark ready, report a delay."}, {"key": "kitchen-head-k3", "id": "u-kh3", "name": "Lata Pillai", "role": "KITCHEN_HEAD", "title": "Kitchen Head · K3", "kitchen": "K3", "perms": ["diet-plans.read", "packing.read"], "proto": ["packing.write", "inventory.read"], "what": "Fruit Store (K3) only: accept, mark processing, mark ready, report a delay."}, {"key": "kitchen-operator", "id": "u-ko", "name": "Anil Kumar", "role": "KITCHEN_OPERATOR", "title": "Kitchen Operator", "perms": ["diet-plans.read", "packing.read", "packing.write", "inventory.read"], "what": "Kitchen only: requests sent to prep and Meal Group Management. No Diet module."}, {"key": "receiving-manager", "id": "u-rm", "name": "Farhan Shaikh", "role": "RECEIVING_MANAGER", "title": "Receiving Manager", "perms": [], "what": "Inventory and Kitchen. No Diet module."}, {"key": "security", "id": "u-sg", "name": "Ravi Naik", "role": "SECURITY", "title": "Security", "perms": [], "what": "Security module only."}, {"key": "security-admin", "id": "u-sa", "name": "Priya Desai", "role": "SECURITY_ADMIN", "title": "Security Admin", "perms": [], "what": "Security module only."}];   /* roles.py ROLE_DEFS */
   var MOD = 'inventory';
   var VIEWER = (function () { var a = new URLSearchParams(location.search).get('as'), sv = savedViewer(), ok = function (k) { return USERS.some(function (u) { return u.key === k; }); }; return USERS.filter(function (u) { return u.key === (ok(a) ? a : ok(sv) ? sv : 'receiving-manager'); })[0]; })();
   function initials(n) { return String(n).replace(/^Dr\.?\s+/i, '').split(/\s+/).slice(0, 2).map(function (w) { return w[0].toUpperCase(); }).join(''); }
@@ -655,105 +664,6 @@
   document.addEventListener('click', function (e) { if (e.target.closest('.asbtn')) openRoles(); });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') RS.hidden = true; });
   applyViewer();
-  })();
-  </script>
-  <!-- Figma capture toolbar (prototype only, not part of the app) -->
-  <style>
-    .figbar { position: fixed; left: 12px; bottom: 12px; z-index: 90; display: flex; align-items: center; gap: 6px; padding: 4px; border-radius: 22px; background: rgba(20, 24, 28, .88); color: #fff; font: 500 13px/1 Inter, system-ui, sans-serif; box-shadow: 0 6px 20px rgba(0,0,0,.25); }
-    .figbar button { min-height: 36px; padding: 0 12px; border: 0; border-radius: 18px; background: transparent; color: #fff; font: inherit; cursor: pointer; white-space: nowrap; }
-    .figbar button:hover:not([disabled]) { background: rgba(255,255,255,.14); }
-    .figbar button[disabled] { opacity: .4; cursor: not-allowed; }
-    .figbar button[aria-pressed="true"] { background: #fff; color: #14181C; }
-    .figbar .figbar__tog { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; }
-    .figbar .figbar__tog svg { width: 14px; height: 14px; }
-    .figbar .figbar__ipad { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; }
-    .figbar .figbar__ipad svg { width: 16px; height: 16px; }
-    .figbar .figbar__ui { font-weight: 600; }
-    .figbar .figbar__ui[aria-pressed="true"] { background: #37BD69; color: #fff; }
-    .figbar__sep { width: 1px; height: 20px; background: rgba(255,255,255,.25); }
-    .figbar__acts { display: none; align-items: center; gap: 2px; }
-    .figbar.open .figbar__acts { display: flex; }
-    .figbar__st { max-width: 260px; padding: 0 10px 0 4px; color: rgba(255,255,255,.75); font-weight: 400; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .figbar__st[data-tone="ok"] { color: #8EF0B4; } .figbar__st[data-tone="error"] { color: #FFB4C0; }
-    .figbar__outline { position: absolute; z-index: 89; pointer-events: none; border: 2px solid #0D99FF; background: rgba(13,153,255,.08); border-radius: 4px; }
-    body.is-figma-picking, body.is-figma-picking * { cursor: crosshair !important; }
-    @media print { .figbar { display: none; } }
-  </style>
-  <div class="figbar" id="figbar" role="toolbar" aria-label="Copy to Figma, prototype only"></div>
-  <script>
-  (function () {
-    var bar = document.getElementById('figbar'); if (!bar) return;
-    var PICK = 'data-figma-pick', open = false, picking = false, busy = false, msg = '', tone = '';
-    var LOGO = '<svg viewBox="0 0 38 57" aria-hidden="true"><path fill="#1ABCFE" d="M19 28.5a9.5 9.5 0 1 1 19 0 9.5 9.5 0 0 1-19 0z"/><path fill="#0ACF83" d="M0 47.5A9.5 9.5 0 0 1 9.5 38H19v9.5a9.5 9.5 0 1 1-19 0z"/><path fill="#FF7262" d="M19 0v19h9.5a9.5 9.5 0 1 0 0-19H19z"/><path fill="#F24E1E" d="M0 9.5A9.5 9.5 0 0 0 9.5 19H19V0H9.5A9.5 9.5 0 0 0 0 9.5z"/><path fill="#A259FF" d="M0 28.5A9.5 9.5 0 0 0 9.5 38H19V19H9.5A9.5 9.5 0 0 0 0 28.5z"/></svg>';
-    var IPAD = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="5" y="2.5" width="14" height="19" rx="2.5"/><path d="M11 18.5h2"/></svg>';
-    function ready() { return !!(window.figma && window.figma.captureForDesign); }
-    /* the sheet or panel on top right now: a visible bottom sheet, else an open full-screen panel */
-    function topSheet() { var s = [].slice.call(document.querySelectorAll('.scrim:not([hidden]) .sheet, .rscrim:not([hidden]) .rsheet, .ddrawer:not([hidden]) .ddrawer__p')).filter(function (e) { return e.offsetParent !== null; }); return s[s.length - 1] || null; }
-    function draw() {
-      var sh = !!topSheet();
-      var cls = 'figbar' + (open ? ' open' : ''); if (bar.className !== cls) bar.className = cls;
-      bar.innerHTML = '<button type="button" class="figbar__ui" data-fig="ui" aria-pressed="' + document.documentElement.classList.contains('ui-new') + '" title="Switch between the current UI and the Antz Design Library UI">' + (document.documentElement.classList.contains('ui-new') ? 'New UI on' : 'New UI') + '</button><span class="figbar__sep" aria-hidden="true"></span>' + (window.self === window.top ? '<button type="button" class="figbar__ipad" data-fig="ipad" title="See this screen in an iPad mini frame">' + IPAD + 'iPad view</button><span class="figbar__sep" aria-hidden="true"></span>' : '') + '<button type="button" class="figbar__tog" data-fig="tog" aria-expanded="' + open + '" title="Copy to Figma">' + LOGO + 'Figma</button>' +
-        '<span class="figbar__acts"><button type="button" data-fig="screen">Copy screen</button><button type="button" data-fig="sheet"' + (sh ? '' : ' disabled title="Open a sheet or panel first"') + '>Copy sheet</button>' +
-        '<button type="button" data-fig="pick" aria-pressed="' + picking + '">' + (picking ? 'Cancel pick' : 'Pick element') + '</button>' +
-        '<span class="figbar__st" role="status" data-tone="' + tone + '">' + (msg || (ready() ? (picking ? 'Tap anything to copy it, Esc cancels' : 'Copies to the clipboard, paste into Figma') : 'Loading the Figma script')) + '</span></span>';
-    }
-    function say(t, k) { msg = t; tone = k || ''; draw(); }
-    /* Figma reads each SVG on its own: inline <use> symbols and copy any gradient / mask / clip an SVG points to into that SVG */
-    function flatten(root) {
-      [].forEach.call((root || document).querySelectorAll('svg'), function (svg, n) {
-        if (svg.closest('#figbar') || svg.classList.contains('icon-defs')) return;
-        [].forEach.call(svg.querySelectorAll('use'), function (u) {
-          var ref = (u.getAttribute('href') || u.getAttribute('xlink:href') || '').replace(/^#/, ''), sym = ref && document.getElementById(ref); if (!sym) return;
-          var g = document.createElementNS('http://www.w3.org/2000/svg', 'g'); [].forEach.call(sym.childNodes, function (c) { g.appendChild(c.cloneNode(true)); }); u.parentNode.replaceChild(g, u);
-        });
-        var defs = svg.querySelector(':scope > defs'), map = {};
-        [].forEach.call(svg.querySelectorAll('*'), function (el) {
-          ['fill', 'stroke', 'mask', 'clip-path', 'filter'].forEach(function (at) {
-            var v = el.getAttribute(at), m = v && v.match(/url\(#([^)]+)\)/); if (!m) return; var id = m[1];
-            if (svg.querySelector('[id="' + id + '"]')) return;
-            if (!map[id]) { var src = document.getElementById(id); if (!src) return; if (!defs) { defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs'); svg.insertBefore(defs, svg.firstChild); } var c = src.cloneNode(true); map[id] = id + '-f' + n; c.id = map[id]; defs.appendChild(c); }
-            el.setAttribute(at, 'url(#' + map[id] + ')');
-          });
-        });
-      });
-    }
-    function capture(selector, label) {
-      if (!ready()) return say('The Figma script has not loaded (it needs internet).', 'error');
-      if (busy) return; busy = true; say('Copying ' + label);
-      bar.style.visibility = 'hidden'; outline.hidden = true; try { flatten(document); } catch (e) {}
-      Promise.resolve().then(function () { return window.figma.captureForDesign({ selector: selector, delayMs: 0 }); })
-        .then(function (r) { if (r && r.success === false) say('Could not copy: ' + r.error, 'error'); else say(label.charAt(0).toUpperCase() + label.slice(1) + ' copied. Paste into Figma.', 'ok'); })
-        .catch(function (e) { say('Could not copy: ' + (e && e.message || e), 'error'); })
-        .then(function () { busy = false; bar.style.visibility = ''; [].forEach.call(document.querySelectorAll('[' + PICK + ']'), function (x) { x.removeAttribute(PICK); }); setTimeout(function () { if (!busy) { msg = ''; tone = ''; draw(); } }, 4000); });
-    }
-    var outline = document.createElement('div'); outline.className = 'figbar__outline'; outline.hidden = true; document.body.appendChild(outline);
-    function inPage(el) { return el && el.closest && !el.closest('#figbar') && el !== outline && el !== document.body && el !== document.documentElement; }
-    function show(el) { var r = el.getBoundingClientRect(); outline.style.top = (r.top + scrollY) + 'px'; outline.style.left = (r.left + scrollX) + 'px'; outline.style.width = r.width + 'px'; outline.style.height = r.height + 'px'; outline.hidden = false; }
-    function target(el) { return el.closest('.tile, .row, .gvc, .txc, .stcard, .spk, .cfgrow, .gacc__i, .glines, .dkpi, .dsum, .dpan, .dcard, .scard, .kpanel, .card, .sheet, .txdh, .txfoot, .txsec, section, button, a') || el; }
-    function stopPick() { picking = false; outline.hidden = true; document.body.classList.remove('is-figma-picking'); draw(); }
-    document.addEventListener('mouseover', function (e) { if (picking && inPage(e.target)) show(target(e.target)); }, true);
-    document.addEventListener('click', function (e) {
-      if (!picking || !inPage(e.target)) return;
-      e.preventDefault(); e.stopImmediatePropagation();
-      var el = target(e.target), name = (el.className && typeof el.className === 'string' && el.className.split(' ')[0]) || el.tagName.toLowerCase();
-      el.setAttribute(PICK, '1'); stopPick(); capture('[' + PICK + '="1"]', 'the ' + name);
-    }, true);
-    document.addEventListener('keydown', function (e) { if (picking && e.key === 'Escape') { e.stopImmediatePropagation(); stopPick(); } }, true);
-    bar.addEventListener('click', function (e) {
-      var b = e.target.closest('[data-fig]'); if (!b || b.disabled) return; var a = b.getAttribute('data-fig');
-      if (a === 'ui') { var on = !document.documentElement.classList.contains('ui-new'); document.documentElement.classList.toggle('ui-new', on); try { localStorage.setItem('antz.ui', on ? 'new' : 'old'); } catch (e) {} try { if (window.self !== window.top) parent.postMessage({ antzUi: on }, '*'); } catch (e) {} draw(); return; }
-      if (a === 'ipad') { var here = location.pathname.split('/').pop() + location.search + location.hash; location.href = 'preview.html?src=' + encodeURIComponent(here); return; }
-      if (a === 'tog') { open = !open; if (!open && picking) stopPick(); else draw(); return; }
-      if (a === 'screen') return capture('body', 'the screen');
-      if (a === 'sheet') { var s = topSheet(); if (!s) return; s.setAttribute(PICK, '1'); return capture('[' + PICK + '="1"]', 'the sheet'); }
-      if (a === 'pick') { if (picking) return stopPick(); picking = true; document.body.classList.add('is-figma-picking'); draw(); }
-    });
-    /* keep Copy sheet in step with sheets opening and closing */
-    var lastSh = null; new MutationObserver(function (ms) { if (busy || !open) return; if (ms.every(function (m) { return bar.contains(m.target) || m.target === outline; })) return; var sh = !!topSheet(); if (sh !== lastSh) { lastSh = sh; draw(); } }).observe(document.body, { subtree: true, attributes: true, attributeFilter: ['hidden', 'class'] });
-    var wait = setInterval(function () { if (ready()) { clearInterval(wait); draw(); } }, 400); setTimeout(function () { clearInterval(wait); }, 20000);
-    draw();
-    /* inside the iPad preview frame: tell the preview which screen is showing, so Exit iPad view returns to it */
-    if (window.self !== window.top) { var tell = function () { try { parent.postMessage({ antzLoc: location.pathname.split('/').pop() + location.search + location.hash }, '*'); } catch (e) {} }; tell(); addEventListener('hashchange', tell); }
   })();
   </script>
 </body>

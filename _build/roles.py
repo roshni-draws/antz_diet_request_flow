@@ -3,6 +3,36 @@
 
 # SAMPLE DATA only: every request is on a species with real data, so each one configures end to end.
 _req_seed = [dict(x) for x in SAMPLE_REQS]
+# Roles for the routing flow (locked 19 Oct 2026, QA/routing-kitchen-scenarios.md): Biologist raises requests and picks
+# the dietician; Dieticians (each with scopes and an online flag) review, configure, certify and send; one Kitchen Head
+# per kitchen (K1, K2, K3). There is no Head Dietician. SAMPLE DATA names and assignments.
+KITCHENS = json.load(open(os.path.join(HERE, 'kitchens.json')))
+ROLE_DEFS = [
+    {'key': 'biologist', 'id': 'u-bio', 'name': 'Neha Kulkarni', 'role': 'BIOLOGIST', 'title': 'Biologist', 'perms': ['diet-plans.read'], 'what': 'Raises diet requests and picks the dietician to send them to.'},
+    {'key': 'dietician', 'id': 'u-dt', 'name': 'Hydar Ali', 'role': 'DIETICIAN', 'title': 'Dietician', 'perms': ['diet-plans.read', 'diet-plans.write'], 'online': True,
+     'scopes': [['species', 135332, 'Species: Coypu'], ['taxonomy', 'aves', 'Class: Aves']]},
+    {'key': 'dietician-amruth', 'id': 'u-ar', 'name': 'Amruth Reddy', 'role': 'DIETICIAN', 'title': 'Dietician', 'perms': ['diet-plans.read', 'diet-plans.write'], 'online': True,
+     'scopes': [['section', 196, 'Section: Coypu Marsh'], ['species', 360599, 'Species: Aldabra Giant Tortoise'], ['taxonomy', 'reptilia', 'Class: Reptilia']]},
+    {'key': 'dietician-priya', 'id': 'u-pn', 'name': 'Priya Nair', 'role': 'DIETICIAN', 'title': 'Dietician', 'perms': ['diet-plans.read', 'diet-plans.write'], 'online': False,
+     'scopes': [['site', 57, 'Site: Cow Land'], ['species', 195064, 'Species: European Polecat']]},
+    {'key': 'dietician-kavya', 'id': 'u-kr', 'name': 'Kavya Rao', 'role': 'DIETICIAN', 'title': 'Dietician', 'perms': ['diet-plans.read', 'diet-plans.write'], 'online': True,
+     'scopes': [['species', 127302, 'Species: Elephantnose Fish'], ['species', 195022, 'Species: Meerkat'], ['species', 161818, "Species: Geoffroy's Marmoset"]]},
+    {'key': 'kitchen-head', 'id': 'u-kh', 'name': 'Suresh Gowda', 'role': 'KITCHEN_HEAD', 'title': 'Kitchen Head · K1', 'kitchen': 'K1', 'perms': ['diet-plans.read', 'packing.read'], 'proto': ['packing.write', 'inventory.read']},
+    {'key': 'kitchen-head-k2', 'id': 'u-kh2', 'name': 'Mohan Das', 'role': 'KITCHEN_HEAD', 'title': 'Kitchen Head · K2', 'kitchen': 'K2', 'perms': ['diet-plans.read', 'packing.read'], 'proto': ['packing.write', 'inventory.read']},
+    {'key': 'kitchen-head-k3', 'id': 'u-kh3', 'name': 'Lata Pillai', 'role': 'KITCHEN_HEAD', 'title': 'Kitchen Head · K3', 'kitchen': 'K3', 'perms': ['diet-plans.read', 'packing.read'], 'proto': ['packing.write', 'inventory.read']},
+    {'key': 'kitchen-operator', 'id': 'u-ko', 'name': 'Anil Kumar', 'role': 'KITCHEN_OPERATOR', 'title': 'Kitchen Operator', 'perms': ['diet-plans.read', 'packing.read', 'packing.write', 'inventory.read'], 'what': 'Kitchen only: requests sent to prep and Meal Group Management. No Diet module.'},
+    {'key': 'receiving-manager', 'id': 'u-rm', 'name': 'Farhan Shaikh', 'role': 'RECEIVING_MANAGER', 'title': 'Receiving Manager', 'perms': [], 'what': 'Inventory and Kitchen. No Diet module.'},
+    {'key': 'security', 'id': 'u-sg', 'name': 'Ravi Naik', 'role': 'SECURITY', 'title': 'Security', 'perms': [], 'what': 'Security module only.'},
+    {'key': 'security-admin', 'id': 'u-sa', 'name': 'Priya Desai', 'role': 'SECURITY_ADMIN', 'title': 'Security Admin', 'perms': [], 'what': 'Security module only.'},
+]
+for _u in ROLE_DEFS:
+    if _u['role'] == 'DIETICIAN': _u['what'] = 'Reviews requests sent to them, configures, certifies and sends to kitchens. ' + ('Online.' if _u['online'] else 'Offline.') + ' In charge of ' + '; '.join(x[2] for x in _u['scopes']) + '.'
+    if _u['role'] == 'KITCHEN_HEAD': _u['what'] = KITCHENS['kitchens'][_u['kitchen']]['name'] + ' (' + _u['kitchen'] + ') only: accept, mark processing, mark ready, report a delay.'
+_DIET_KEYS = [u['key'] for u in ROLE_DEFS if u['role'] in ('BIOLOGIST', 'DIETICIAN', 'KITCHEN_HEAD')]
+_KH_KEYS = [u['key'] for u in ROLE_DEFS if u['role'] == 'KITCHEN_HEAD']
+MODS_JS = json.dumps({'diet': _DIET_KEYS, 'kitchen': _KH_KEYS + ['kitchen-operator', 'receiving-manager'], 'inventory': _KH_KEYS + ['receiving-manager'], 'security': ['security', 'security-admin']})
+ROLE_USERS_JS = json.dumps(ROLE_DEFS, ensure_ascii=False).replace('</', '<\\/')
+KITCHENS_JS = json.dumps(KITCHENS, ensure_ascii=False)
 import hashlib as _hl
 SEED_V = _hl.md5((json.dumps(_req_seed, sort_keys=True) + open(os.path.join(HERE, 'kitchen-sample.json'), encoding='utf-8').read()).encode()).hexdigest()[:10]   # bumps when requests or kitchen SAMPLE DATA change
 # Shared demo state (diet-home.html and kitchen-home.html): requests, proposed plans and the viewer live in
@@ -18,8 +48,7 @@ STORE_JS = '''  var RQS_KEY = 'antz.diet.requests', VIEW_KEY = 'antz.viewer', SE
      Kitchen for Kitchen Head, Kitchen Operator, Receiving Manager; Inventory for Kitchen Head and Receiving Manager;
      Security for Security and Security Admin. guardModule shows a full-screen No access state (with Viewing as)
      over a module the role cannot use, and returns false. */
-  var MODS = { diet: ['dietician', 'head-dietician', 'kitchen-head'], kitchen: ['kitchen-head', 'kitchen-operator', 'receiving-manager'],
-    inventory: ['kitchen-head', 'receiving-manager'], security: ['security', 'security-admin'] };
+  var MODS = ''' + MODS_JS + ''';
   var MODFILE = { diet: ['Diet', 'diet-home.html'], kitchen: ['Kitchen', 'kitchen-home.html'], inventory: ['Inventory', 'inventory-home.html'], security: ['Security', 'security-home.html'] };
   function canModule(mod, key) { return MODS[mod].indexOf(key) !== -1; }
   function guardModule(mod, u) {
@@ -140,9 +169,26 @@ ROLE_CSS = '''    /* =========================================================
     .rqd__foot .acts .btn { flex: none; min-width: 0; padding: 0 var(--sp-16); white-space: nowrap; }
     .btn.teal { background: var(--md3-on-primary-container); color: var(--white); }
     .btn.danger { border: 1px solid var(--md3-error); color: var(--md3-error); }
-    .rnote { display: flex; gap: 10px; padding: var(--sp-12) var(--sp-16); border-radius: var(--radius); background: var(--white); color: var(--ink); box-shadow: inset 4px 0 0 var(--md3-on-primary-container); }
-    .rnote.bad { box-shadow: inset 4px 0 0 var(--md3-error); }
-    .rnote.warn { box-shadow: inset 4px 0 0 var(--md3-moderate-secondary); }
+    .rnote { display: flex; gap: 10px; padding: var(--sp-12) var(--sp-16); border-radius: var(--radius); background: var(--white); color: var(--ink); box-shadow: none; border: 1px solid var(--md3-outline-variant); --x: var(--md3-on-primary-container); }
+    .rnote.bad { background: var(--error-a5); border-color: transparent; }
+    .rnote.bad > svg { color: var(--md3-error); }
+    .rnote.warn { background: #FFF6DB; border-color: transparent; }
+    .rnote.warn > svg { color: #8A5A00; }
+    .rnote small { color: var(--ink) !important; }
+    /* kitchen lines on a routed request */
+    .klist { display: grid; gap: var(--sp-12); }
+    .klist h3 small { color: var(--ink); font-weight: 400; margin-left: 6px; }
+    .klist ul { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--sp-8); }
+    .kl { display: grid; gap: 4px; padding: var(--sp-12) var(--sp-16); border-radius: var(--radius); background: var(--white); border: 1px solid var(--md3-outline-variant); }
+    .kl__h { display: flex; align-items: center; gap: var(--sp-8); flex-wrap: wrap; }
+    .kl__h b { color: var(--head); margin-right: auto; }
+    .kl__items { color: var(--head); }
+    .kl__note, .kl small { color: var(--ink); }
+    .tag.late { gap: 4px; }
+    .kprev { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--sp-8); }
+    .kprev li { display: grid; gap: 2px; padding: var(--sp-12) var(--sp-16); border-radius: var(--radius); background: var(--md3-background); }
+    .kprev li b { color: var(--head); }
+    .kprev li span { color: var(--ink); }
     .rnote b { color: var(--head); }
     .rnote small { color: var(--md3-neutral-secondary); display: block; }
     .propline { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
@@ -158,7 +204,7 @@ ROLE_CSS = '''    /* =========================================================
     .noacc__i { width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center; background: #FFF6DB; color: #8A5A00; font-size: 28px; font-weight: 700; }
     .noacc__f { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-top: 8px; }
     .noacc__f .btn { flex: none; min-width: 180px; height: 48px; padding: 0 20px; text-decoration: none; }
-    /* role gating: write = diet-plans.write (Head Dietician), raise = Dietician / Head Dietician */
+    /* role gating: write = diet-plans.write (Dieticians), raise = Biologist */
     body:not([data-write]) [data-createbase], body:not([data-write]) .addchip, body:not([data-write]) [data-newplan],
     body:not([data-write]) [data-cert], body:not([data-write]) [data-certify], body:not([data-write]) [data-certchange],
     body:not([data-write]) [data-act="edit"], body:not([data-write]) [data-move], body:not([data-write]) [data-addsp] { display: none !important; }
@@ -171,14 +217,7 @@ ROLE_CSS = '''    /* =========================================================
 ROLE_OVERLAY = '''  <div class="scrim" id="rqsheet" hidden><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="rsT"></div></div>'''
 
 REQ_SHARED_JS = '''  /* ---------------- Diet requests: roles, store, state machine, detail (V2 dr-core.js / request.js) ---------------- */
-  var USERS = [
-    { key: 'dietician', id: 'u-dt', name: 'Hydar Ali', role: 'DIETICIAN', title: 'Dietician', perms: ['diet-plans.read'] },
-    { key: 'head-dietician', id: 'u-dm', name: 'Dr. Meera Iyer', role: 'DIET_MANAGER', title: 'Head Dietician', prd: 'Diet Manager', perms: ['diet-plans.read', 'diet-plans.write', 'diet-plans.verify'] },
-    { key: 'kitchen-head', id: 'u-kh', name: 'Suresh Gowda', role: 'KITCHEN_HEAD', title: 'Kitchen Head', perms: ['diet-plans.read', 'packing.read'], proto: ['packing.write', 'inventory.read'] },
-    { key: 'kitchen-operator', id: 'u-ko', name: 'Anil Kumar', role: 'KITCHEN_OPERATOR', title: 'Kitchen Operator', perms: ['diet-plans.read', 'packing.read', 'packing.write', 'inventory.read'] },    { key: 'receiving-manager', id: 'u-rm', name: 'Farhan Shaikh', role: 'RECEIVING_MANAGER', title: 'Receiving Manager', perms: [] },
-    { key: 'security', id: 'u-sg', name: 'Ravi Naik', role: 'SECURITY', title: 'Security', perms: [] },
-    { key: 'security-admin', id: 'u-sa', name: 'Priya Desai', role: 'SECURITY_ADMIN', title: 'Security Admin', perms: [] },
-  ];
+  var USERS = ''' + ROLE_USERS_JS + ''', KITCHENS = ''' + KITCHENS_JS + ''';
   var REQS_ALL = ''' + json.dumps(_req_seed, ensure_ascii=False).replace('</', '<\\/') + ''';
 ''' + STORE_JS + '''  var RQ_STORE = storedReqs(); if (RQ_STORE) REQS_ALL = RQ_STORE.reqs;
   var RQ_PLANS = (RQ_STORE && RQ_STORE.plans) || {}, RQ_GONE = (RQ_STORE && RQ_STORE.gone) || [];
@@ -186,13 +225,14 @@ REQ_SHARED_JS = '''  /* ---------------- Diet requests: roles, store, state mach
   var RQ = {
     PRI: { high: ['!!!', 'High', 'Clinical or urgent. Needs action today.'], medium: ['!!', 'Medium', 'Needed within the next few days.'], low: ['!', 'Low', 'Routine change with no deadline.'] },
     TYPES: [['temporary', 'Temporary / Time-bound'], ['base', 'Base diet change'], ['site', 'Site / Section-specific'], ['animal', 'Animal-specific']],
-    STEPS: ['Request submitted', 'Dietician reviewing', 'New diet configured', 'Kitchen processing', 'Sent to prep', 'Preparing diet', 'Dispatched', 'Approved'],
+    STEPS: ['Request submitted', 'Dietician reviewing', 'Configured and certified', 'Kitchens preparing', 'Scheduled', 'Live'],
     ST: {
       requested: ['Requested', 'wait', 'time', 2], under_review: ['Under Dietician Review', 'wait', 'time', 2], configuring: ['Configuring', 'wait', 'pencil', 3], adjustment: ['Needs Adjustment', 'bad', 'close', 3],
       kitchen_review: ['Kitchen Review', 'wait', 'time', 4], delayed: ['Delayed', 'wait', 'timer', 4], ready: ['Sent to prep', 'ok', 'just-tick-mark', 5], rejected: ['Rejected', 'bad', 'close', 2],
       applied: ['Completed · Applied', 'ok', 'just-tick-mark', 6], cancelled: ['Cancelled', 'bad', 'close', 2],
+      with_kitchens: ['With kitchens', 'wait', 'time', 4], scheduled: ['Scheduled', 'ok', 'calendar', 5], live: ['Live', 'ok', 'just-tick-mark', 6],
     },
-    OPEN: ['requested', 'under_review', 'configuring', 'adjustment', 'kitchen_review', 'delayed'],
+    OPEN: ['requested', 'under_review', 'configuring', 'adjustment', 'kitchen_review', 'delayed', 'with_kitchens', 'scheduled'],
     viewer: USERS[1],
     MON: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
     fmt: function (iso) { if (!iso) return ''; var p = iso.slice(0, 10).split('-'); return Number(p[2]) + ' ' + RQ.MON[Number(p[1]) - 1] + ' ' + p[0]; },
@@ -204,18 +244,52 @@ REQ_SHARED_JS = '''  /* ---------------- Diet requests: roles, store, state mach
     has: function (perm, u) { u = u || RQ.viewer; return u.perms.indexOf(perm) !== -1 || (u.proto || []).indexOf(perm) !== -1; },
     can: function (key, u) { u = u || RQ.viewer;
       switch (key) {
-        case 'seeAll': return RQ.has('diet-plans.write', u) || RQ.has('packing.read', u);
-        case 'raise': return RQ.has('diet-plans.read', u) && (u.role === 'DIETICIAN' || u.role === 'DIET_MANAGER');
+        case 'seeAll': return u.role === 'KITCHEN_OPERATOR' || u.role === 'RECEIVING_MANAGER';
+        case 'raise': return u.role === 'BIOLOGIST';
         case 'review': case 'configure': case 'write': return RQ.has('diet-plans.write', u);
-        case 'kitchenAct': return RQ.has('packing.write', u) && RQ.has('inventory.read', u) && !RQ.has('diet-plans.write', u);
+        case 'kitchenAct': return u.role === 'KITCHEN_HEAD';
         default: return RQ.has(key, u);
       } },
     isMine: function (r, u) { u = u || RQ.viewer; return !!(r.by && r.by.id === u.id); },
-    visible: function () { return RQ.can('seeAll') ? REQS_ALL : REQS_ALL.filter(function (r) { return RQ.isMine(r); }); },
-    canEdit: function (r) { return RQ.isMine(r) && (r.status === 'requested' || r.status === 'under_review'); },
-    decorate: function (r) { var s = RQ.ST[r.status] || RQ.ST.requested; r.label = r.status === 'delayed' && r.delayUntil ? 'Delayed to ' + RQ.fmt(r.delayUntil).replace(/ \\d{4}$/, '') : s[0]; r.tone = s[1]; r.icon = s[2]; return r; },
+    /* who sees a request: the Biologist who raised it, the dietician it was sent to, a Kitchen Head with a line on it */
+    canSee: function (r, u) { u = u || RQ.viewer; if (RQ.can('seeAll', u)) return true; if (u.role === 'DIETICIAN') return !!(r.assignee && r.assignee.id === u.id);
+      if (u.role === 'KITCHEN_HEAD') return !!RQ.lineFor(r, u.kitchen); return RQ.isMine(r, u); },
+    visible: function () { return REQS_ALL.filter(function (r) { return RQ.canSee(r); }); },
+    isAssignee: function (r, u) { u = u || RQ.viewer; return !!(r.assignee && r.assignee.id === u.id); },
+    lineFor: function (r, k) { return (r.klines || []).filter(function (l) { return l.k === k; })[0] || null; },
+    myLine: function (r) { return RQ.viewer.kitchen ? RQ.lineFor(r, RQ.viewer.kitchen) : null; },
+    kname: function (k) { return k + ' · ' + ((KITCHENS.kitchens[k] || {}).name || 'Kitchen'); },
+    /* masters: one kitchen per item; items without one fall back to K1 and are flagged */
+    kitchenOf: function (name) { return KITCHENS.items[name] || null; },
+    split: function (plan) { var by = {}, order = [];
+      ((plan && plan.schedule) || []).forEach(function (b) { (b.days || []).forEach(function (g) { (g.items || []).forEach(function (x) {
+        var k = RQ.kitchenOf(x.name), miss = !k; k = k || KITCHENS.fallback;
+        if (!by[k]) { by[k] = { k: k, items: [], unset: [], status: 'pending' }; order.push(k); }
+        if (by[k].items.indexOf(x.name) === -1) by[k].items.push(x.name); if (miss && by[k].unset.indexOf(x.name) === -1) by[k].unset.push(x.name); }); }); });
+      return order.sort().map(function (k) { return by[k]; }); },
+    /* effective start = latest of the requested start and every line's ready-from date (DEC-10) */
+    effStart: function (r) { var d = r.start || ''; (r.klines || []).forEach(function (l) { if (l.readyFrom && l.readyFrom > d) d = l.readyFrom; }); return d; },
+    lateBy: function (r) { var ls = (r.klines || []).filter(function (l) { return l.status === 'delayed' && l.readyFrom && l.readyFrom > (r.start || ''); }).sort(function (a, b) { return b.readyFrom.localeCompare(a.readyFrom); }); return ls[0] || null; },
+    today: function () { return RQ.now().slice(0, 10); },
+    days: function (iso) { var q = String(iso).slice(0, 10).split('-').map(Number), d = new Date(q[0], q[1] - 1, q[2]); return Math.floor((Date.now() - d.getTime()) / 86400000); },
+    /* SLA (DEC-12): dietician 1 / 3 / 7 days by priority until sent; kitchen 1 day per line until ready or delayed */
+    SLA: { high: 1, medium: 3, low: 7 },
+    late: function (r, k) {
+      if (['requested', 'under_review', 'configuring'].indexOf(r.status) !== -1 && !k) { var d = RQ.days(r.events[0].at) - RQ.SLA[r.prio]; return d > 0 ? d : 0; }
+      if (r.status === 'with_kitchens' && r.sentAt) { var ls = (r.klines || []).filter(function (l) { return (!k || l.k === k) && ['pending', 'accepted', 'processing'].indexOf(l.status) !== -1; });
+        var d2 = ls.length ? RQ.days(r.sentAt) - 1 : 0; return d2 > 0 ? d2 : 0; }
+      return 0; },
+    lateTag: function (r, k) { var n = RQ.late(r, k); return n ? '<span class="tag red late">' + ic('timer', 14) + 'Late · ' + n + (n === 1 ? ' day' : ' days') + '</span>' : ''; },
+    canEdit: function (r) { return RQ.isMine(r) && RQ.can('raise') && (r.status === 'requested' || r.status === 'under_review'); },
+    decorate: function (r) {
+      if (r.status === 'scheduled' && RQ.effStart(r) && RQ.effStart(r) <= RQ.today()) { r.status = 'live'; if (typeof HOOKS !== 'undefined' && HOOKS && HOOKS.golive) HOOKS.golive(r); }
+      var s = RQ.ST[r.status] || RQ.ST.requested, short = function (iso) { return RQ.fmt(iso).replace(/ \\d{4}$/, ''); };
+      r.label = r.status === 'delayed' && r.delayUntil ? 'Delayed to ' + short(r.delayUntil) : r.status === 'scheduled' ? 'Starts ' + short(RQ.effStart(r))
+        : r.status === 'with_kitchens' ? (RQ.lateBy(r) ? 'With kitchens · starts ' + short(RQ.effStart(r)) : 'With kitchens · ' + (r.klines || []).filter(function (l) { return l.status === 'ready'; }).length + ' of ' + (r.klines || []).length + ' ready')
+        : r.status === 'live' ? 'Live since ' + short(RQ.effStart(r)) : s[0];
+      r.tone = s[1]; r.icon = s[2]; return r; },
     isOpen: function (r) { return RQ.OPEN.indexOf(r.status) !== -1; },
-    nextId: function () { var n = Math.max.apply(null, REQS_ALL.map(function (r) { return Number(r.id.replace(/\\D/g, '')); })) + 1; return 'DR-' + ('0000' + n).slice(-5); },
+    nextId: function () { var n = Math.max.apply(null, [0].concat(REQS_ALL.map(function (r) { return Number(r.id.replace(/\\D/g, '')); }))) + 1; return 'DR-' + ('0000' + n).slice(-5); },
     ev: function (r, kind, text) { r.events.push({ kind: kind, at: RQ.now(), by: RQ.viewer.name, role: RQ.viewer.title, text: text }); },
     listeners: [],
     save: function () { lsSet(RQS_KEY, { v: SEED_V, reqs: REQS_ALL, plans: RQ_PLANS, gone: RQ_GONE }); },
@@ -225,29 +299,33 @@ REQ_SHARED_JS = '''  /* ---------------- Diet requests: roles, store, state mach
       RQ_GONE.forEach(function (id) { var p = PL[id]; if (!p) return; delete PL[id]; var s = BY[p.species]; if (s) s.plans = (s.plans || []).filter(function (x) { return x !== id; }); });
       Object.keys(RQ_PLANS).forEach(function (k) { var p = RQ_PLANS[k]; PL[p.id] = p; var s = BY[p.species]; if (s && (s.plans || []).indexOf(p.id) === -1) s.plans = [p.id].concat(s.plans || []); });
     },
-    changed: function () { RQ.save(); REQS_ALL.forEach(RQ.decorate); RQ.listeners.forEach(function (f) { f(); }); var t = document.getElementById('t-request'); if (t) t.textContent = (RQ.can('seeAll') ? 'Diet Request - ' : 'My Requests - ') + RQ.visible().length; },
+    changed: function () { RQ.save(); REQS_ALL.forEach(RQ.decorate); RQ.listeners.forEach(function (f) { f(); }); var t = document.getElementById('t-request'); if (t) t.textContent = (RQ.can('raise') ? 'My Requests - ' : 'Diet Request - ') + RQ.visible().length; },
     timeline: function (r) {
-      var cur = (RQ.ST[r.status] || RQ.ST.requested)[3], end = r.status === 'rejected' || r.status === 'cancelled';
+      var cur = { requested: 2, under_review: 2, configuring: 3, with_kitchens: 4, scheduled: 5, live: 6, rejected: 2, cancelled: 2 }[r.status] || 2, end = r.status === 'rejected' || r.status === 'cancelled';
       return RQ.STEPS.map(function (label, i) {
-        var n = i + 1, state = n < cur ? 'done' : n === cur ? 'current' : 'pending', sub = '';
-        if (r.status === 'applied' && n >= 6) state = 'pending';
-        if (r.status === 'applied' && n === 5) state = 'done';
+        var n = i + 1, state = n < cur ? 'done' : n === cur ? (r.status === 'live' ? 'done' : 'current') : 'pending', sub = '';
         if (end && n >= 2) state = n === 2 ? 'rejected' : 'skipped';
         if (n === 1) { state = 'done'; sub = RQ.fmtDT(r.events[0].at) + ' by ' + r.by.name; }
         if (n === 2) sub = r.status === 'rejected' ? 'Rejected' + (r.rejectBy ? ' by ' + r.rejectBy : '') + (r.rejectReason ? ': ' + r.rejectReason : '') : r.status === 'cancelled' ? 'Cancelled by the requester' :
-          state === 'done' ? 'Accepted' + (r.acceptedBy ? ' by ' + r.acceptedBy : '') : r.clarify && !r.clarify.answer ? 'Clarification requested' : r.status === 'requested' ? 'Waiting for the Head Dietician' : 'In review';
-        if (n === 3) sub = state === 'done' ? (r.proposedId ? (r.cfgLabel ? r.cfgLabel + ' ' : '') + 'D-' + r.proposedId + ' (Proposed) sent to Kitchen' : 'Configured') : r.status === 'adjustment' ? 'Needs adjustment' + (r.adjustReason ? ': ' + r.adjustReason : '') : state === 'current' ? (r.proposedId ? 'Configured as ' + (r.cfgLabel || 'proposed diet') + ' D-' + r.proposedId + (r.editOf ? ' (Proposed change to ' + r.editOfLabel + ')' : ' (Proposed)') : 'Waiting for configuration') : '';
-        if (n === 4) sub = state === 'done' ? 'Accepted by Kitchen' : r.status === 'delayed' ? 'Delayed to ' + RQ.fmt(r.delayUntil) + (r.delayReason ? ': ' + r.delayReason : '') : state === 'current' ? 'Stock and feasibility check' : '';
-        if (n === 5 && state !== 'pending') sub = r.status === 'applied' ? 'Applied by the kitchen' : r.readyAt ? 'Since ' + RQ.fmtDT(r.readyAt) : '';
+          state === 'done' ? 'Accepted' + (r.acceptedBy ? ' by ' + r.acceptedBy : '') : r.clarify && !r.clarify.answer ? 'Clarification requested' : 'With ' + (r.assignee ? r.assignee.name : 'the dietician');
+        if (n === 3) sub = state === 'done' ? (r.proposedId ? 'D-' + r.proposedId + ' certified by ' + (r.certifiedBy || r.acceptedBy || 'the dietician') : 'Configured') : state === 'current' ? (r.proposedId ? 'D-' + r.proposedId + ' saved. Certify and send next.' : 'Configuring the new diet') : '';
+        if (n === 4 && r.klines) sub = r.klines.map(function (l) { return l.k + ' ' + RQ.KLS[l.status][0].toLowerCase() + (l.status === 'delayed' && l.readyFrom ? ' to ' + RQ.fmt(l.readyFrom) : ''); }).join(', ');
+        if (n === 5 && r.klines && state !== 'pending') sub = 'Diet starts ' + RQ.fmt(RQ.effStart(r));
+        if (n === 6 && r.status === 'live') sub = 'Since ' + RQ.fmt(RQ.effStart(r));
         return { n: n, label: label, state: state, sub: sub };
       });
     },
+    KLS: { pending: ['Waiting', 'grey', 'time'], accepted: ['Accepted', 'teal', 'just-tick-mark'], processing: ['Processing', 'teal', 'timer'], ready: ['Ready', 'green', 'just-tick-mark'], delayed: ['Delayed', 'orange', 'timer'] },
     next: function (r) {
       var me = function (ok, who) { return ok ? 'You' : who; };
       switch (r.status) {
-        case 'requested': case 'under_review': if (r.clarify && !r.clarify.answer) return me(RQ.isMine(r), r.by.name) + ' to reply to the question'; return me(RQ.can('review'), 'Head Dietician') + ' to review';
-        case 'configuring': return me(RQ.can('configure'), 'Head Dietician') + ' to configure the new diet';
-        case 'adjustment': return me(RQ.can('configure'), 'Head Dietician') + ' to adjust and send again';
+        case 'requested': case 'under_review': if (r.clarify && !r.clarify.answer) return me(RQ.isMine(r), r.by.name) + ' to reply to the question'; return me(RQ.isAssignee(r), r.assignee ? r.assignee.name : 'Dietician') + ' to review';
+        case 'configuring': return me(RQ.isAssignee(r), r.assignee ? r.assignee.name : 'Dietician') + (r.proposedId ? ' to certify and send to kitchens' : ' to configure the new diet');
+        case 'adjustment': return me(RQ.isAssignee(r), r.assignee ? r.assignee.name : 'Dietician') + ' to adjust and send again';
+        case 'with_kitchens': var wait = (r.klines || []).filter(function (l) { return l.status !== 'ready'; }).map(function (l) { return l.k; }); var mine = RQ.myLine(r);
+          return mine && mine.status !== 'ready' ? 'You to ' + (mine.status === 'delayed' ? 'mark ready when the items arrive' : 'prepare your items') : 'Waiting on ' + wait.join(', ');
+        case 'scheduled': return 'Diet starts ' + RQ.fmt(RQ.effStart(r)) + '. Nothing else to do.';
+        case 'live': return 'Live. ' + (r.end ? 'Returns to the base diet automatically after ' + RQ.fmt(r.end) + '.' : 'The new diet is active.');
         case 'kitchen_review': return me(RQ.can('kitchenAct'), 'Kitchen') + ' to check stock and accept';
         case 'delayed': return me(RQ.can('kitchenAct'), 'Kitchen') + ' to accept by ' + RQ.fmt(r.delayUntil);
         case 'ready': return 'Kitchen to prepare. Phase 1 ends here.';
@@ -275,14 +353,14 @@ REQ_SHARED_JS = '''  /* ---------------- Diet requests: roles, store, state mach
   function openRoles() {
     sheet('<div class="sheet__h"><div><h2 class="t-major-title" id="rsT">Viewing as</h2><p class="t-body-regular" style="color:var(--ink)">Demo only. Switch role to see what each one can do.</p></div><button type="button" class="iconbtn" data-rsclose aria-label="Close">' + ic('close', 24) + '</button></div>' +
       '<div class="roles" role="radiogroup" aria-label="Role">' + USERS.map(function (u) {
-        var what = { DIETICIAN: 'Raises requests. Sees My requests only.', DIET_MANAGER: 'Raises, reviews and configures requests. Edits diets.', KITCHEN_HEAD: 'Diet, Kitchen and Inventory. Kitchen review: delay, ask for adjustment, send to prep.', KITCHEN_OPERATOR: 'Kitchen only: requests sent to prep and Meal Group Management. No Diet module.', RECEIVING_MANAGER: 'Inventory and Kitchen. No Diet module.', SECURITY: 'Security module only.', SECURITY_ADMIN: 'Security module only.' }[u.role];
+        var what = u.what || '';
         return '<button type="button" class="role" role="radio" data-as="' + u.key + '" aria-checked="' + (u === RQ.viewer) + '"><span class="av">' + RQ.initials(u.name) + '</span><span class="grow"><b class="t-minor-title">' + esc(u.title) + '</b><span class="t-body-regular">' + esc(u.name) + (u.prd ? ' · PRD role name: ' + u.prd : '') + '</span><small class="t-body-regular">' + esc(what) + '</small></span>' + (u === RQ.viewer ? ic('just-tick-mark', 22) : '') + '</button>';
       }).join('') + '</div><button type="button" class="linkbtn t-body-medium rqreset" data-rqreset>' + ic('history', 18) + 'Reset demo data</button>');
   }
 
   /* ---------- kitchen stock check (V2 dr-core.js DR.needs / DR.stock / DR.feasibility), SAMPLE DATA stock ---------- */
   var KSTOCK = ''' + KSTOCK_JSON + ''';
-  /* Auto-resolution (kitchen): per diet line the candidates are the main item, then the Head Dietician's
+  /* Auto-resolution (kitchen): per diet line the candidates are the main item, then the dietician's
      alternatives on that line, in order. The first candidate whose usable stock fully covers its own required
      quantity is the one prepped. If none covers it, the line is unresolved and the request needs a readjustment. */
   var KS = {
@@ -326,8 +404,8 @@ REQ_SHARED_JS = '''  /* ---------------- Diet requests: roles, store, state mach
 
   /* ---------- request transitions (dr-core.js) ---------- */
   var ACT = {
-    openForReview: function (r) { if (r.status === 'requested' && RQ.can('review')) { r.status = 'under_review'; RQ.ev(r, 'review', 'Opened for review'); RQ.changed(); } },
-    accept: function (r) { r.status = 'configuring'; r.acceptedBy = RQ.viewer.name; RQ.ev(r, 'accepted', 'Request accepted. Editing is locked for the requester.'); },
+    openForReview: function (r) { if (r.status === 'requested' && RQ.can('review') && RQ.isAssignee(r)) { r.status = 'under_review'; RQ.ev(r, 'review', 'Opened for review'); RQ.changed(); } },
+    accept: function (r) { r.status = 'configuring'; r.acceptedBy = RQ.viewer.name; r.acceptedAt = RQ.now(); RQ.ev(r, 'accepted', 'Request accepted. Editing is locked for the requester.'); },
     reject: function (r, f) { r.status = 'rejected'; r.rejectReason = f.reason; r.rejectBy = RQ.viewer.name; RQ.ev(r, 'rejected', 'Rejected: ' + f.reason); },
     clarify: function (r, f) { r.status = 'under_review'; r.clarify = { question: f.question, by: RQ.viewer.name, at: RQ.now(), answer: null }; RQ.ev(r, 'clarify', 'Clarification requested: ' + f.question); },
     reply: function (r, f) { r.clarify.answer = f.answer; r.clarify.answeredAt = RQ.now(); RQ.ev(r, 'answered', 'Clarification answered: ' + f.answer); },
@@ -335,27 +413,46 @@ REQ_SHARED_JS = '''  /* ---------------- Diet requests: roles, store, state mach
     delay: function (r, f) { r.status = 'delayed'; r.delayUntil = f.until; r.delayReason = f.reason; RQ.ev(r, 'delayed', 'Delayed to ' + RQ.fmt(f.until) + ': ' + f.reason + (f.notes ? ' (' + f.notes + ')' : '')); },
     adjust: function (r, f) { r.status = 'adjustment'; r.adjustReason = f.reason; r.delayUntil = null; RQ.ev(r, 'adjustment', 'Adjustment requested: ' + f.reason); },
     readjust: function (r, f) { ACT.adjust(r, f); },
+    /* routing flow: the assigned dietician certifies and sends; the masters split it into one line per kitchen */
+    certify: function (r) { var p = HOOKS.planOf ? HOOKS.planOf(r.proposedId) : null; if (p) { p.dietitian = RQ.viewer.name; RQ.keepPlan(p); }
+      r.certifiedBy = RQ.viewer.name; r.klines = RQ.split(p); r.sentAt = RQ.now(); r.status = 'with_kitchens';
+      RQ.ev(r, 'sent-kitchen', 'Certified by ' + RQ.viewer.name + ' and sent to ' + r.klines.map(function (l) { return l.k; }).join(', ')); },
+    kline: function (r, to, f) { var l = RQ.myLine(r); if (!l) return; l.status = to; l.at = RQ.now(); l.by = RQ.viewer.name;
+      if (to === 'delayed') { l.readyFrom = f.until; l.reason = f.reason; }
+      RQ.ev(r, 'kline', RQ.kname(l.k) + ': ' + (to === 'delayed' ? 'delayed, ready from ' + RQ.fmt(f.until) + ' (' + f.reason + ')' : RQ.KLS[to][0].toLowerCase()) + ' · ' + l.items.join(', '));
+      if (r.klines.every(function (x) { return x.status === 'ready'; })) { r.status = 'scheduled'; RQ.ev(r, 'scheduled', 'All kitchens ready. Diet starts ' + RQ.fmt(RQ.effStart(r))); } },
+    kaccept: function (r) { ACT.kline(r, 'accepted'); }, kprocess: function (r) { ACT.kline(r, 'processing'); }, kready: function (r) { ACT.kline(r, 'ready'); },
+    kdelay: function (r, f) { ACT.kline(r, 'delayed', f); },
     prep: function (r, f) { var L0 = KS.lines(r); r.kitchen = r.kitchen || {}; r.kitchen.accepted = { by: RQ.viewer.name, role: RQ.viewer.title, at: RQ.now(), lines: L0, prepped: L0.map(function (l) { return { line: l.name, prep: l.chosen ? l.chosen.name : null, qty: l.chosen ? l.chosen.need : null, unit: l.chosen ? l.chosen.unit : null }; }) }; r.status = 'ready'; r.readyAt = RQ.now(); r.delayUntil = null; RQ.ev(r, 'sent-prep', 'Sent to prep.' + (function () { var alt = L0.filter(function (l) { return l.status === 'alt'; }); return alt.length ? ' Prepping ' + alt.map(function (l) { return l.chosen.name + ' for ' + l.name; }).join(', ') + '.' : ''; })() + (f && f.notes ? ' Notes: ' + f.notes : '')); },
   };
   var FORMS = {
     accept: { title: 'Accept request', text: 'Accepting locks editing for the requester. Nothing becomes active. You choose how to configure it next.', ok: 'Accept and configure', fields: [], toast: 'Request accepted. Status Configuring.' },
     reject: { title: 'Reject request', text: 'The request ends. The requester sees your reason, the date and your name.', ok: 'Reject request', cls: 'danger', fields: [['reason', 'Reason for rejecting', 'textarea', 'Enter the reason for rejecting.']], toast: 'Request rejected' },
     clarify: { title: 'Ask for clarification', text: 'The requester can edit the request and reply until you accept it.', ok: 'Send question', fields: [['question', 'Question for the requester', 'textarea', 'Enter your question.']], toast: 'Question sent to the requester' },
-    reply: { title: 'Reply to the Head Dietician', text: '', ok: 'Send reply', fields: [['answer', 'Your reply', 'textarea', 'Reply to the question to save.']], toast: 'Reply sent' },
+    reply: { title: 'Reply to the dietician', text: '', ok: 'Send reply', fields: [['answer', 'Your reply', 'textarea', 'Reply to the question to save.']], toast: 'Reply sent' },
     send: { title: 'Send to Kitchen', text: 'Kitchen checks stock and feasibility next. The active diet does not change.', ok: 'Send to Kitchen', fields: [], toast: 'Sent to Kitchen. Status Kitchen Review.' },
     delay: { title: 'Delay this request', text: 'The request stays with Kitchen as Delayed until the expected date.', ok: 'Delay request', fields: [['reason', 'Reason', 'textarea', 'Enter the reason for the delay.'], ['until', 'Expected date', 'date', 'Pick the date you expect to accept by.'], ['notes', 'Notes', 'textarea-opt', '']], toast: 'Request delayed' },
-    readjust: { title: 'Request readjustment', text: 'The request goes back to the Head Dietician to change the diet. Say which line cannot be fulfilled and what would work.', ok: 'Request readjustment', fields: [['reason', 'Reason', 'textarea', 'Enter the reason for the readjustment.']], toast: 'Sent back to the Head Dietician. Status Needs Adjustment.' },
-    adjust: { title: 'Request adjustment', text: 'The request goes back to the Head Dietician to configure again. The active diet does not change.', ok: 'Request adjustment', fields: [['reason', 'Reason', 'textarea', 'Enter the reason for the adjustment.']], toast: 'Returned to the Head Dietician. Status Needs Adjustment.' },
+    readjust: { title: 'Request readjustment', text: 'The request goes back to the dietician to change the diet. Say which line cannot be fulfilled and what would work.', ok: 'Request readjustment', fields: [['reason', 'Reason', 'textarea', 'Enter the reason for the readjustment.']], toast: 'Sent back to the dietician. Status Needs Adjustment.' },
+    adjust: { title: 'Request adjustment', text: 'The request goes back to the dietician to configure again. The active diet does not change.', ok: 'Request adjustment', fields: [['reason', 'Reason', 'textarea', 'Enter the reason for the adjustment.']], toast: 'Returned to the dietician. Status Needs Adjustment.' },
+    certify: { title: 'Certify and send to kitchens', text: 'You certify the proposed diet. Each kitchen gets the items set for it in masters. The current diet stays active until the new one starts.', ok: 'Certify and send', fields: [], toast: 'Certified and sent to the kitchens.' },
+    kdelay: { title: 'Report a delay', text: 'The whole diet starts on the latest ready date across kitchens. Everyone on the request sees the date and your reason.', ok: 'Report delay', fields: [['until', 'Ready from', 'date', 'Pick the date your items will be ready.'], ['reason', 'Reason', 'textarea', 'Enter the reason, for example Need to procure item.']], toast: 'Delay reported.' },
     prep: { title: 'Accept and send to Prep', text: 'Every item is treated as available in this prototype. The request is marked Sent to prep.', ok: 'Accept / Send to Prep', fields: [['notes', 'Notes for the prep team', 'textarea-opt', '']], toast: 'Sent to prep.' },
   };
   function actionsFor(r) {
     var a = [];
     if (RQ.canEdit(r)) { if (r.clarify && !r.clarify.answer) a.push(['reply', 'Reply to question', 'teal']); a.push(['edit', 'Edit request', r.clarify && !r.clarify.answer ? 'sec' : 'teal']); }
-    if (RQ.can('review') && (r.status === 'requested' || r.status === 'under_review')) a.push(['reject', 'Reject', 'danger'], ['clarify', 'Ask for clarification', 'sec'], ['accept', 'Accept request', 'teal']);
-    if (RQ.can('configure') && (r.status === 'configuring' || r.status === 'adjustment')) {
-      a.push(['configure', r.proposedId ? 'Change configuration' : 'Apply to configuration', r.proposedId ? 'sec' : 'teal']);
-      if (r.proposedId) a.push(['send', r.status === 'adjustment' ? 'Send to Kitchen again' : 'Send to Kitchen', 'teal']);
+    var mineD = RQ.can('review') && RQ.isAssignee(r);
+    if (mineD && (r.status === 'requested' || r.status === 'under_review')) a.push(['reject', 'Reject', 'danger'], ['clarify', 'Ask for clarification', 'sec'], ['accept', 'Accept request', 'teal']);
+    if (mineD && (r.status === 'configuring' || r.status === 'adjustment')) {
+      a.push(['configure', r.proposedId ? 'Change configuration' : 'Configure diet', r.proposedId ? 'sec' : 'teal']);
+      if (r.proposedId) a.push(['certify', 'Certify and send to kitchens', 'teal']);
     }
+    var ml = r.status === 'with_kitchens' && RQ.myLine(r);
+    if (ml) { if (ml.status === 'pending') a.push(['kdelay', 'Report delay', 'sec'], ['kaccept', 'Accept', 'teal']);
+      else if (ml.status === 'accepted') a.push(['kdelay', 'Report delay', 'sec'], ['kprocess', 'Mark processing', 'teal']);
+      else if (ml.status === 'processing') a.push(['kdelay', 'Report delay', 'sec'], ['kready', 'Mark ready', 'teal']);
+      else if (ml.status === 'delayed') a.push(['kdelay', 'Change delay', 'sec'], ['kready', 'Mark ready', 'teal']); }
+    if (r.klines) return a;
     if (RQ.can('kitchenAct') && (r.status === 'kitchen_review' || r.status === 'delayed')) { var okp = !r.proposedId || KS.feas(r).canPrep; if (okp) a.push(['delay', 'Delay', 'sec'], ['adjust', 'Request adjustment', 'sec'], ['prep', 'Send to Prep', 'pri']); else a.push(['delay', 'Delay', 'sec'], ['prep', 'Send to Prep', 'sec', true], ['readjust', 'Request readjustment', 'teal']); }
     return a;
   }
@@ -365,12 +462,27 @@ REQ_SHARED_JS = '''  /* ---------------- Diet requests: roles, store, state mach
     var el = document.getElementById('rqd'), cur = null, files = [], showEv = false, pushed = false, pend = null;
     function row(icn, title, body) { return '<div class="srow"><span class="ic2">' + ic(icn, 22) + '</span><div><h3 class="t-minor-title">' + esc(title) + '</h3>' + body + '</div></div>'; }
     function pb(p) { return '<span class="pribadge ' + p + '">' + RQ.PRI[p][0] + ' ' + RQ.PRI[p][1] + '</span>'; }
+    function klinesHtml(r) {
+      if (!r.klines) return '';
+      var mine = RQ.viewer.kitchen, list = mine ? r.klines.filter(function (l) { return l.k === mine; }) : r.klines;
+      return '<section class="klist" aria-labelledby="klT"><h3 class="t-minor-title" id="klT">' + (mine ? 'Your kitchen' : 'Kitchens') + ' <small class="t-body-regular">' + (mine ? esc(RQ.kname(mine)) : r.klines.filter(function (l) { return l.status === 'ready'; }).length + ' of ' + r.klines.length + ' ready') + '</small></h3><ul>' +
+        list.map(function (l) { var S = RQ.KLS[l.status];
+          return '<li class="kl"><div class="kl__h"><b class="t-body-title">' + esc(RQ.kname(l.k)) + '</b><span class="tag ' + S[1] + '">' + ic(S[2], 14) + esc(S[0] + (l.status === 'delayed' && l.readyFrom ? ' · ready from ' + RQ.fmt(l.readyFrom) : '')) + '</span>' + RQ.lateTag(r, l.k) + '</div>' +
+            '<p class="t-body-regular kl__items">' + esc(l.items.join(', ')) + '</p>' + (l.unset && l.unset.length ? '<p class="t-body-regular kl__note">' + esc('Kitchen not set in masters for ' + l.unset.join(', ') + '. Sent to ' + l.k + '.') + '</p>' : '') +
+            (l.status === 'delayed' && l.reason ? '<p class="t-body-regular kl__note">' + esc(l.reason) + '</p>' : '') +
+            (l.at ? '<small class="t-body-regular">' + esc((l.by || '') + ' · ' + RQ.fmtDT(l.at)) + '</small>' : '') + '</li>'; }).join('') + '</ul></section>';
+    }
     function notes(r) {
       var h = '';
+      if (r.klines && (r.status === 'with_kitchens' || r.status === 'scheduled' || r.status === 'live')) { var lb = RQ.lateBy(r), eff = RQ.effStart(r);
+        h += '<div class="rnote ' + (lb && r.status === 'with_kitchens' ? 'warn' : '') + ' t-body-regular">' + ic('calendar', 20) + '<div><b>' + (r.status === 'live' ? 'Live since ' : 'Diet starts ') + esc(RQ.fmt(eff)) + '</b><br>' +
+          esc(lb ? 'Delayed by ' + RQ.kname(lb.k) + ': ' + lb.items.join(', ') + '. ' + (lb.reason || '') + (/[.!?]$/.test(lb.reason || '') ? '' : '.') + ' Ready from ' + RQ.fmt(lb.readyFrom) + '.' : r.status === 'with_kitchens' ? 'Requested start. It moves if a kitchen reports a delay.' : 'Every kitchen is ready.') +
+          '<small>' + (r.status === 'live' ? 'The new diet is active.' : 'The whole diet starts on one date: the latest ready date across kitchens. The current diet stays until then.') + '</small></div></div>'; }
+      if (r.end && (r.type === 'temporary' || r.season)) h += '<div class="rnote t-body-regular">' + ic('history', 20) + '<div><b>Ends ' + esc(RQ.fmt(r.end)) + '</b><br>' + esc('Automatically returns to ' + (r.currentLabel && r.currentLabel !== 'No active diet' ? 'base diet ' + r.currentLabel.split(' ')[0] : 'the base diet') + ' after ' + RQ.fmt(r.end) + '.') + '</div></div>';
       if (r.status === 'rejected' && r.rejectReason) h += '<div class="rnote bad t-body-regular">' + ic('close', 20) + '<div><b>Rejected</b><br>' + esc(r.rejectReason) + '<small>' + esc((r.rejectBy ? 'By ' + r.rejectBy + '. ' : '') + 'The request has ended.') + '</small></div></div>';
       if (r.clarify && !r.clarify.answer) h += '<div class="rnote warn t-body-regular">' + ic('info', 20) + '<div><b>Clarification requested</b><br>' + esc(r.clarify.question) + '<small>' + esc(r.clarify.by + ', ' + RQ.fmtDT(r.clarify.at) + (RQ.isMine(r) ? '. Reply to continue.' : '. Waiting for the requester.')) + '</small></div></div>';
       if (r.clarify && r.clarify.answer) h += '<div class="rnote t-body-regular">' + ic('info', 20) + '<div><b>Clarification answered</b><br>' + esc(r.clarify.answer) + '<small>' + esc('Question: ' + r.clarify.question) + '</small></div></div>';
-      if (RQ.isMine(r) && r.acceptedBy && RQ.isOpen(r) && r.status !== 'requested' && r.status !== 'under_review') h += '<div class="rnote t-body-regular">' + ic('alert', 20) + '<div><b>Locked</b><small>Accepted by ' + esc(r.acceptedBy) + '. The request can no longer be edited.</small></div></div>';
+      if (RQ.isMine(r) && RQ.can('raise') && r.acceptedBy && RQ.isOpen(r) && r.status !== 'requested' && r.status !== 'under_review') h += '<div class="rnote t-body-regular">' + ic('alert', 20) + '<div><b>Locked</b><small>Accepted by ' + esc(r.acceptedBy) + '. The request can no longer be edited.</small></div></div>';
       if (r.status === 'adjustment' && r.adjustReason) h += '<div class="rnote bad t-body-regular">' + ic('close', 20) + '<div><b>Kitchen asked for an adjustment</b><br>' + esc(r.adjustReason) + (RQ.can('configure') ? '<small>Change the proposed diet and send it again.</small>' : '') + '</div></div>';
       if (r.status === 'delayed' && r.delayUntil) h += '<div class="rnote warn t-body-regular">' + ic('timer', 20) + '<div><b>Delayed to ' + esc(RQ.fmt(r.delayUntil)) + '</b><br>' + esc(r.delayReason || '') + '</div></div>';
       if (r.status === 'ready') h += '<div class="rnote t-body-regular">' + ic('just-tick-mark', 20) + '<div><b>Sent to prep</b><br>Kitchen accepted ' + (r.proposedId ? 'D-' + r.proposedId + ' (Proposed)' : 'the diet') + '. Phase 1 stops here. The active diet does not change.</div></div>';
@@ -398,7 +510,7 @@ REQ_SHARED_JS = '''  /* ---------------- Diet requests: roles, store, state mach
       var head = !stockable ? knote('info', 'info', '<b>Stock is checked once the diet is with Kitchen.</b>')
         : !live ? knote('info', 'history', '<b>Prepped as recorded at acceptance</b><br><small>' + esc(acc ? acc.by + ', ' + RQ.fmtDT(acc.at) : 'Accepted ' + (r.readyAt ? RQ.fmtDT(r.readyAt) : 'earlier')) + '</small>')
         : !bad.length ? knote('ok', 'just-tick-mark', '<b>' + (lines.length === 1 ? 'The item can' : 'All ' + lines.length + ' items can') + ' be prepped</b>' + (nAlt ? ' · ' + nAlt + ' using ' + (nAlt === 1 ? 'an alternative' : 'alternatives') : ' · all main items'))
-        : knote('bad', 'alert', '<b>' + plural(bad.length, 'item') + ' cannot be fulfilled:</b> ' + bad.map(function (l) { var alts = l.cands.slice(1).map(function (c) { return c.name; }); return esc(l.name) + (alts.length ? ' (and ' + esc(alts.join(', ')) + ')' : ''); }).join('; ') + '. Request a readjustment from the Head Dietician.');
+        : knote('bad', 'alert', '<b>' + plural(bad.length, 'item') + ' cannot be fulfilled:</b> ' + bad.map(function (l) { var alts = l.cands.slice(1).map(function (c) { return c.name; }); return esc(l.name) + (alts.length ? ' (and ' + esc(alts.join(', ')) + ')' : ''); }).join('; ') + '. Request a readjustment from the dietician.');
       var TAG = { changed: ['orange', 'Changed'], added: ['teal', 'New'], removed: ['red', 'Removed'] };
       h += '<section class="kstock"><div class="kstock__h"><span class="grow"><b class="t-minor-title">Diet &amp; stock</b><small class="t-body-regular">' + esc('D-' + r.proposedId + ' (Proposed, not active) vs ' + (C.c ? KS.plabel(C.c) : 'no current diet') + '. Per day, ' + KSTOCK.wh + '.') + '</small></span>' +
         (live ? '<button type="button" class="btn sec ksm" data-krecheck>' + ic('history', 18) + 'Recheck stock</button>' : '') + '</div>' + head +
@@ -427,7 +539,7 @@ REQ_SHARED_JS = '''  /* ---------------- Diet requests: roles, store, state mach
     }
     function draw() {
       var r = cur; if (!r) return; RQ.decorate(r);
-      var KV = RQ.kitchenView(), TB = KV ? ktabs(r) : null, nav = el.querySelector('[data-rdtabs]');
+      var KV = RQ.kitchenView() && !r.klines, TB = KV ? ktabs(r) : null, nav = el.querySelector('[data-rdtabs]');
       if (KV) { if (KTAB0) { ktab = { overview: 'overview', diet: 'diet', stock: 'diet', impact: 'diet', activity: 'overview' }[KTAB0] || null; KTAB0 = null; }
         if (!ktab || !TB.some(function (t) { return t[0] === ktab; })) ktab = KLIVE.indexOf(r.status) !== -1 && r.proposedId ? 'diet' : 'overview';
         nav.innerHTML = TB.map(function (t) { var n = 0; return '<button type="button" role="tab" class="rdtab t-minor-medium" data-ktab="' + t[0] + '" aria-selected="' + (ktab === t[0]) + '">' + t[1] + (n ? '<span class="n">' + n + '</span>' : '') + '</button>'; }).join(''); nav.hidden = false; }
@@ -450,11 +562,12 @@ REQ_SHARED_JS = '''  /* ---------------- Diet requests: roles, store, state mach
         (r.notes ? row('notes-new', 'Notes', '<p class="t-body-regular">' + esc(r.notes) + '</p>') : '') +
         (r.proposedId ? row('book', 'Proposed diet', '<div class="propline"><b class="t-body-title" style="color:var(--head)">D-' + r.proposedId + ' (Proposed)</b><span class="tag grey">Proposed · not active</span>' + (r.editOf ? '<span class="tag teal">Change to ' + esc(r.editOfLabel || '') + '</span>' : '') + (r.tsn ? '<a class="linkbtn t-body-medium" href="#species/all/' + r.tsn + '/' + r.proposedId + '">Open in species</a>' : '') + '</div>') : '') +
         row('user', 'Requested by', '<div style="display:flex;gap:10px;align-items:center"><span class="av">' + RQ.initials(r.by.name) + '</span><span><b class="t-body-title" style="color:var(--head)">' + esc(r.by.name + (RQ.isMine(r) ? ' (You)' : '')) + '</b><small class="t-body-regular">' + esc(r.by.role + ' · ' + RQ.fmtDT(r.events[0].at)) + '</small></span></div>') +
-        (r.acceptedBy ? row('just-tick-mark', 'Accepted by', '<p class="t-body-regular"><b>' + esc(r.acceptedBy) + '</b>Head Dietician</p>') : '') + '</section>';
+        (r.assignee ? row('user', 'Sent to', '<p class="t-body-regular"><b>' + esc(r.assignee.name + (RQ.isAssignee(r) ? ' (You)' : '')) + '</b>' + esc('Dietician · ' + (r.assignee.why || '')) + '</p>') : '') +
+        (r.acceptedBy ? row('just-tick-mark', 'Accepted by', '<p class="t-body-regular"><b>' + esc(r.acceptedBy) + '</b>Dietician' + (r.certifiedBy ? ' · certified the diet' : '') + '</p>') : '') + '</section>' + klinesHtml(r);
       var tl = RQ.timeline(r), curS = tl.filter(function (x) { return x.state === 'current'; })[0];
-      var prog = '<section class="tl" aria-label="Progress"><h3 class="t-minor-title">Progress <small class="t-body-regular">' + (r.status === 'rejected' || r.status === 'cancelled' ? r.label : curS ? 'Step ' + curS.n + ' of 8: ' + curS.label : 'Phase 1 done') + '</small></h3><ol>' +
+      var prog = '<section class="tl" aria-label="Progress"><h3 class="t-minor-title">Progress <small class="t-body-regular">' + (r.status === 'rejected' || r.status === 'cancelled' ? r.label : curS ? 'Step ' + curS.n + ' of ' + RQ.STEPS.length + ': ' + curS.label : 'Phase 1 done') + '</small></h3><ol>' +
         tl.map(function (t) { return '<li class="' + t.state + '"><span class="mk" aria-hidden="true">' + (t.state === 'done' ? ic('just-tick-mark', 16) : t.state === 'rejected' ? ic('close', 16) : t.state === 'current' ? '<i style="width:10px;height:10px;border-radius:50%;background:currentColor;display:block"></i>' : '') + '</span><div><b class="t-body-title">' + esc(t.label) + '</b>' + (t.state === 'current' ? ' <span class="tag teal">Now</span>' : '') + (t.sub ? '<small class="t-body-regular">' + esc(t.sub) + '</small>' : '') + '</div></li>'; }).join('') + '</ol></section>';
-      var canChat = RQ.can('seeAll') || RQ.isMine(r), msgs = r.events.filter(function (e) { return showEv || e.kind === 'comment'; });
+      var canChat = RQ.canSee(r), msgs = r.events.filter(function (e) { return showEv || e.kind === 'comment'; });
       var chat = '<section class="chat" aria-label="Chat"><div class="chat__h"><h3 class="t-minor-title">' + ic('reason-or-list', 20) + (RQ.kitchenView() ? 'Chat and activity' : 'Chat') + ' <small class="t-body-regular">' + plural(r.events.filter(function (e) { return e.kind === 'comment'; }).length, 'message') + '</small></h3><button type="button" class="chip t-body-medium" data-rdev aria-pressed="' + showEv + '">' + ic('history', 18) + (showEv ? 'Hide updates' : 'Show updates') + '</button></div>' +
         (msgs.length ? '<ol class="thread" data-thread>' + msgs.map(function (m) {
           if (m.kind !== 'comment') return '<li class="msg ev"><span></span><div class="bub t-body-regular"><div class="meta">' + esc(RQ.fmtDT(m.at) + ' · ' + m.by + (m.role ? ', ' + m.role : '')) + '</div>' + esc(m.text) + '</div></li>';
@@ -478,8 +591,9 @@ REQ_SHARED_JS = '''  /* ---------------- Diet requests: roles, store, state mach
       var F = FORMS[kind], r = cur; pend = { kind: kind, errs: {}, vals: {} };
       function body() {
         return '<div class="sheet__h"><div><h2 class="t-major-title" id="rsT">' + esc(F.title) + '</h2><p class="t-body-regular" style="color:var(--ink)">' + esc(r.id + ' · ' + r.sp) + '</p></div><button type="button" class="iconbtn" data-rsclose aria-label="Close">' + ic('close', 24) + '</button></div>' +
-          (kind === 'reply' && r.clarify ? '<div class="rnote warn t-body-regular">' + ic('info', 20) + '<div><b>The Head Dietician asked</b><br>' + esc(r.clarify.question) + '</div></div>' : '') +
+          (kind === 'reply' && r.clarify ? '<div class="rnote warn t-body-regular">' + ic('info', 20) + '<div><b>The dietician asked</b><br>' + esc(r.clarify.question) + '</div></div>' : '') +
           (F.text ? '<p class="t-body-regular" style="color:var(--ink)">' + esc(F.text) + '</p>' : '') +
+          (kind === 'certify' ? '<ul class="kprev">' + RQ.split(HOOKS.planOf ? HOOKS.planOf(r.proposedId) : null).map(function (l) { return '<li><b class="t-body-title">' + esc(RQ.kname(l.k)) + '</b><span class="t-body-regular">' + esc(l.items.join(', ')) + '</span></li>'; }).join('') + '</ul>' : '') +
           F.fields.map(function (f) { var opt = /opt/.test(f[2]), err = pend.errs[f[0]], v = pend.vals[f[0]] || '';
             var tag = f[2] === 'date' ? '<input type="date" data-rsf="' + f[0] + '" value="' + esc(v) + '" min="' + RQ.now().slice(0, 10) + '">' : '<textarea data-rsf="' + f[0] + '">' + esc(v) + '</textarea>';
             return '<label class="fld' + (err ? ' err' : '') + '"><span>' + esc(f[1]) + (opt ? ' <span style="color:var(--md3-neutral-secondary);font-weight:400">(optional)</span>' : ' <b class="req">*</b>') + '</span>' + tag + (err ? '<span class="ferr">' + esc(err) + '</span>' : '') + '</label>'; }).join('') +
@@ -511,6 +625,7 @@ REQ_SHARED_JS = '''  /* ---------------- Diet requests: roles, store, state mach
         if (k === 'configure') { if (HOOKS.configure) HOOKS.configure(cur); return; }
         if (k === 'prep' && RQ.kitchenView() && !KS.feas(cur).canPrep) { toast(plural(KS.feas(cur).bad.length, 'item') + ' cannot be fulfilled. Request a readjustment.'); return; }
         if (k === 'readjust') { openForm(k); var fb = KS.feas(cur); pend.vals.reason = fb.bad.map(function (l) { return l.name + ' cannot be fulfilled: ' + KS.pctList(l) + '.'; }).join(' '); RS.querySelector('.sheet').innerHTML = '<div class="grab"></div>' + pend.body(); return; }
+        if (k === 'kaccept' || k === 'kprocess' || k === 'kready') { ACT[k](cur); RQ.changed(); draw(); toast({ kaccept: 'Accepted', kprocess: 'Marked processing', kready: 'Marked ready' }[k] + ' for ' + RQ.kname(RQ.viewer.kitchen) + '.' + (cur.status === 'scheduled' ? ' All kitchens ready: diet starts ' + RQ.fmt(RQ.effStart(cur)) + '.' : '')); return; }
         if (k === 'accept') { var ar = cur; ACT.accept(ar); RQ.changed(); draw(); if (RQ.can('configure') && HOOKS.configure) HOOKS.configure(ar); else toast(FORMS.accept.toast); return; }
         if (k === 'edit') { if (HOOKS.edit) HOOKS.edit(cur); return; }
         openForm(k); return; }
@@ -529,10 +644,10 @@ REQ_SHARED_JS = '''  /* ---------------- Diet requests: roles, store, state mach
     el.addEventListener('keydown', function (e) { if (e.target.matches('[data-rdmsg]') && e.key === 'Enter') { e.preventDefault(); send(); } });
     function send() { var inp = el.querySelector('[data-rdmsg]'), txt = inp.value.trim(); if (!txt && !files.length) { toast('Type a message or attach a file.'); return; }
       cur.events.push({ kind: 'comment', at: RQ.now(), by: RQ.viewer.name, role: RQ.viewer.title, text: txt, files: files.slice() }); files = []; RQ.save(); draw(); }
-    RQ.listeners.push(function () { if (cur) { if (cur.status === 'requested' && RQ.can('review')) { ACT.openForReview(cur); return; } draw(); } });
+    RQ.listeners.push(function () { if (cur) { if (cur.status === 'requested' && RQ.can('review') && RQ.isAssignee(cur)) { ACT.openForReview(cur); return; } draw(); } });
     return {
       open: function (id, wasPushed) { var r = RQ.get(id); if (!r) { toast('Request ' + id + ' was not found.'); return false; }
-        if (!RQ.can('seeAll') && !RQ.isMine(r)) { toast('Viewing as ' + RQ.viewer.title + ': only your own requests are visible.'); return false; }
+        if (!RQ.canSee(r)) { toast('Viewing as ' + RQ.viewer.title + ': this request is not yours to see.'); return false; }
         if (cur !== r) { files = []; showEv = false; ktab = null; kpick = {}; } cur = r; pushed = !!wasPushed; ACT.openForReview(r); el.hidden = false; draw(); el.querySelector('.rqd__body').scrollTop = 0; return true; },
       close: function () { cur = null; el.hidden = true; },
       isOpen: function () { return !!cur; },
