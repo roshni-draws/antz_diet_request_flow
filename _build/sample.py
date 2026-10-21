@@ -227,7 +227,7 @@ BS['plans']['411']['schedule'] = _sched([{'name': 'Spinach', 'amount': '1 kg', '
 # ---- 10-species sample, clean slate (SAMPLE DATA) ----
 # Only 10 species: 5 with one year-round base diet at species level and 5 with no diet at all. Every site,
 # section, enclosure and animal of a base-diet species inherits that base diet: no overrides, no seasonal,
-# time-bound or sex-based plans, and no proposed plans. No requests are seeded either; the user raises them.
+# time-bound or sex-based plans. Five requests (DR-00501..00505) and two proposed plans (D-501, D-502) are seeded below.
 SP_WITH = [135332, 134467, 360599, 195064, 127302]      # Coypu, Fischer's Lovebird, Aldabra Giant Tortoise, European Polecat, Elephantnose Fish
 SP_WITHOUT = [150254, 161818, 195022, 132735, 235859]   # Southern Cassowary, Geoffroy's Marmoset, Meerkat, Green Iguana, Koi Fish
 for _t in SP_WITH + SP_WITHOUT:
@@ -235,7 +235,7 @@ for _t in SP_WITH + SP_WITHOUT:
     _s = _sp(_t)
     _b = next((BS['plans'][str(i)] for i in _s['plans'] if BS['plans'][str(i)]['scope'] == 'species' and BS['plans'][str(i)]['kind'] == 'base' and BS['plans'][str(i)]['active']), None) if _t in SP_WITH else None
     _s['plans'] = [_b['id']] if _b else []
-    if _b: _b['update'] = 'none'   # nothing pending: no requests are seeded
+    if _b: _b['update'] = 'none'   # nothing pending on the base diets themselves
     _s['diet'] = bool(_b)
 BS['species'] = [_sp(t) for t in SP_WITH + SP_WITHOUT]
 _keep_t = set(SP_WITH + SP_WITHOUT)
@@ -243,3 +243,61 @@ _keep_p = {i for x in BS['species'] for i in x['plans']}
 BS['plans'] = {k: v for k, v in BS['plans'].items() if v['id'] in _keep_p}
 for _p in BS['plans'].values(): _p['sharers'] = [x for x in _p.get('sharers', []) if x[0] in _keep_t and x[1] in _keep_p]
 SAMPLE_REQS = []
+
+# ---- Five request scenarios in Hydar Ali's queue (SAMPLE DATA) ----
+# Neha Kulkarni (Biologist) raised all five. Requested -> Under review (open question) -> Configuring ->
+# With kitchens (K1 line delayed) -> With kitchens (K2 line waiting). Proposed plans carry an alternative per item.
+for _e in _sp(360599)['enclosures']:
+    if _e['id'] == 19981: _e['site'] = 'Antz Site'
+_prop(502, 135332, 'animal', 215920, '#215920', [
+        {'name': 'Sweet Potato', 'amount': '1 kg', 'prep': 'Steamed', 'alts': [{'name': 'Carrot', 'amount': '1 kg', 'prep': 'Chopped'}]},
+        {'name': 'Carrot', 'amount': '0.5 kg', 'prep': 'Chopped', 'alts': [{'name': 'Beans', 'amount': '0.5 kg'}]}],
+      'time-bound', 'DR-00504', {'by': 'Hydar Ali', 'from': '2026-10-24', 'to': '2026-11-07'})
+_prop(501, 195064, 'species', None, None, [
+        {'name': 'Chicken', 'amount': '0.8 kg', 'prep': 'Chopped', 'alts': [{'name': 'Mutton', 'amount': '0.8 kg'}]},
+        {'name': 'Egg', 'amount': '2 nos', 'alts': [{'name': 'Fish', 'amount': '0.2 kg'}]}],
+      'base', 'DR-00505', {'by': 'Hydar Ali', 'editOf': 286, 'editOfLabel': 'D-286'})
+_NK = {'id': 'u-bio', 'name': 'Neha Kulkarni', 'role': 'Biologist'}
+_HY = {'id': 'u-dt', 'name': 'Hydar Ali'}
+def _ev(kind, at, by, role, text): return {'kind': kind, 'at': at, 'by': by, 'role': role, 'text': text}
+def _sub(at): return _ev('submitted', at, 'Neha Kulkarni', 'Biologist', 'Request submitted')
+def _rq(rid, status, sp, sci, tsn, where, scope, ref, txt, prio, typ, title, text, notes, start, end, date, iso, cur, plan, why, events, more=None):
+    r = {'id': rid, 'status': status, 'sp': sp, 'sci': sci, 'tsn': tsn, 'where': where, 'scope': scope, 'scopeRef': ref, 'scopeText': txt, 'prio': prio, 'type': typ,
+         'title': title, 'text': text, 'notes': notes, 'start': start, 'end': end}
+    if more and 'season' in more: r['season'] = more.pop('season')
+    r.update({'date': date, 'iso': iso, 'currentLabel': cur, 'planId': plan, 'by': dict(_NK), 'assignee': dict(_HY, why=why)})
+    r.update(more or {}); r['events'] = events
+    return r
+SAMPLE_REQS += [
+    _rq('DR-00501', 'requested', 'Coypu', 'Myocastor coypus', 135332, 'Enclosure · Coypu 1', 'enclosure', 15224, 'Coypu 1', 'high', 'temporary',
+        'Temporary soft diet after dental treatment', 'Two coypu need steamed, chopped roots for fourteen days while their teeth recover.', 'Vet review is booked for 16 Oct.',
+        '2026-10-02', '2026-10-16', '30 Sep 2026', '2026-09-30', 'D-273 Year-round', 220, 'Species: Coypu', [_sub('2026-09-30T09:10')]),
+    _rq('DR-00502', 'under_review', 'Southern Cassowary', 'Casuarius casuarius', 150254, 'Species · Species-wide', 'species', None, 'Whole species', 'medium', 'base',
+        'Create the first Cassowary base diet', 'Create a year-round fruit, greens and pellet diet for all Southern Cassowary.', '',
+        '2026-10-15', '', '29 Sep 2026', '2026-09-29', 'No active diet', None, 'Class: Aves',
+        [_sub('2026-09-29T14:20'), _ev('clarify', '2026-09-30T10:15', 'Hydar Ali', 'Dietician', 'Clarification requested: Should the morning fruit be weighed per bird or per enclosure?')],
+        {'clarify': {'question': 'Should the morning fruit be weighed per bird or per enclosure?', 'by': 'Hydar Ali', 'at': '2026-09-30T10:15', 'answer': None}}),
+    _rq('DR-00503', 'configuring', 'Coypu', 'Myocastor coypus', 135332, 'Section · Coypu Marsh', 'section', 196, 'Coypu Marsh', 'low', 'site',
+        'Seasonal greens for Coypu Marsh', 'Add extra chopped greens for the marsh section during the monsoon feeding period.', 'Repeat this window every year.',
+        '2026-10-01', '2026-11-30', '28 Sep 2026', '2026-09-28', 'D-273 Year-round', 220, 'Species: Coypu',
+        [_sub('2026-09-28T11:40'), _ev('accepted', '2026-09-29T09:05', 'Hydar Ali', 'Dietician', 'Request accepted. Editing is locked for the requester.')],
+        {'season': {'from': '10-01', 'to': '11-30'}, 'acceptedBy': 'Hydar Ali', 'acceptedAt': '2026-09-29T09:05'}),
+    _rq('DR-00504', 'with_kitchens', 'Coypu', 'Myocastor coypus', 135332, 'Animal · #215920', 'animal', 215920, '#215920', 'high', 'animal',
+        'Recovery diet for animal #215920', 'Give a softer individual ration while this animal recovers from treatment.', '',
+        '2026-10-24', '2026-11-07', '27 Sep 2026', '2026-09-27', 'D-273 Year-round', 220, 'Species: Coypu',
+        [_sub('2026-09-27T08:30'), _ev('accepted', '2026-09-27T10:00', 'Hydar Ali', 'Dietician', 'Request accepted'),
+         _ev('draft', '2026-09-28T09:15', 'Hydar Ali', 'Dietician', 'Configured as Time-bound diet D-502 (Proposed)'),
+         _ev('sent-kitchen', '2026-09-28T09:30', 'Hydar Ali', 'Dietician', 'Certified by Hydar Ali and sent to K1'),
+         _ev('kline', '2026-09-29T07:50', 'Suresh Gowda', 'Kitchen Head · K1', 'K1 · Central Kitchen: delayed, ready from 24 Oct 2026 (Sweet potato stock short) · Sweet Potato, Carrot')],
+        {'acceptedBy': 'Hydar Ali', 'proposedId': 502, 'cfgLabel': 'Time-bound diet', 'configuredBy': dict(_HY), 'certifiedBy': 'Hydar Ali', 'sentAt': '2026-09-28T09:30',
+         'klines': [{'k': 'K1', 'items': ['Sweet Potato', 'Carrot'], 'unset': [], 'status': 'delayed', 'at': '2026-09-29T07:50', 'by': 'Suresh Gowda',
+                     'readyFrom': '2026-10-24', 'reason': 'Sweet potato stock short'}]}),
+    _rq('DR-00505', 'with_kitchens', 'European Polecat', 'Mustela putorius', 195064, 'Species · Species-wide', 'species', None, 'Whole species', 'medium', 'base',
+        'Increase protein in the Polecat base diet', 'Replace part of the current ration with chopped chicken and egg for the breeding season.', '',
+        '2026-10-05', '', '26 Sep 2026', '2026-09-26', 'D-286 Year-round', 286, 'Assigned directly',
+        [_sub('2026-09-26T09:00'), _ev('accepted', '2026-09-26T11:00', 'Hydar Ali', 'Dietician', 'Request accepted'),
+         _ev('draft', '2026-09-27T09:30', 'Hydar Ali', 'Dietician', 'Configured as Base diet D-501 (Proposed change to D-286)'),
+         _ev('sent-kitchen', '2026-09-27T10:00', 'Hydar Ali', 'Dietician', 'Certified by Hydar Ali and sent to K2')],
+        {'acceptedBy': 'Hydar Ali', 'proposedId': 501, 'cfgLabel': 'Base diet', 'configuredBy': dict(_HY), 'editOf': 286, 'editOfLabel': 'D-286',
+         'certifiedBy': 'Hydar Ali', 'sentAt': '2026-09-27T10:00', 'klines': [{'k': 'K2', 'items': ['Chicken', 'Egg'], 'unset': [], 'status': 'pending'}]}),
+]

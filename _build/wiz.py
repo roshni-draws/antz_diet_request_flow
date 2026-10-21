@@ -113,7 +113,9 @@ WIZ_CSS = '''    /* =========================================================
     .pick button .grow b { color: var(--head); }
     .pick button .grow span { color: var(--md3-neutral-secondary); }
     .kmenu button { flex-direction: column; align-items: flex-start; justify-content: center; gap: 0; min-height: 56px; }
-    .kmenu button small { color: var(--md3-neutral-secondary); font-size: 12px; }
+    .kmenu button small { color: var(--ink); font-size: 13px; }
+    .kmnote { display: flex; gap: 6px; align-items: flex-start; margin: 4px 0 0; padding: var(--sp-8) var(--sp-12); border-top: 1px solid var(--line); color: var(--ink); max-width: 260px; }
+    .kmnote svg { flex: none; margin-top: 2px; }
     .kmenu button[disabled] { opacity: .5; cursor: not-allowed; }
     .sheet.wide { width: min(760px, 100%); }
     .sheet__f.end { justify-content: flex-end; }
@@ -297,9 +299,10 @@ WIZ_JS = '''    /* ======================= ADD A DIET (Dev system diet-editor.js
     function openWizard(kind, isBase, fromHash, req, cfgKind, opt) {
       var s = BY[st.tsn]; if (!s) return;
       if (!req && !basePlan(s)) { kind = 'year-round'; isBase = true; st.scope = 'species'; st.ref = null; }
-      if (!req && !(opt && opt.edit) && kind === 'year-round' && scopePlansFor(s, st.scope, st.ref).some(isDefault)) { toast('A year-round diet already exists here. Edit the current diet to change its items.'); return; }
+      if (!req && !(opt && opt.edit) && kind === 'year-round' && !isBase) { toast('Year-round is the base diet. Edit the current base diet instead.'); return; }
+      if (!req && !(opt && opt.edit) && kind === 'year-round' && scopePlansFor(s, st.scope, st.ref).some(isDefault)) { toast('A base diet already exists here. Edit the current diet to change its items.'); return; }
       W = { tsn: s.tsn, kind: kind, base: !!isBase, scope: st.scope, ref: st.scope === 'species' ? null : st.ref, step: null, path: null, qPick: null, from: '', to: '', error: null, reached: 0, sq: '', ssx: '',
-        d: { quantityMode: 'standard', qBands: [], ageUnit: 'years', bands: [emptyBand()], notes: '', siteNotes: '', remark: '', dietitian: '', reason: '', remarks: '' } };
+        d: { quantityMode: 'standard', qBands: [], ageUnit: 'years', bands: [emptyBand()], notes: '', siteNotes: '', remark: '', dietitian: '', verified: false, reason: '', remarks: '' } };
       if (req) { W.cfgKind = cfgKind || (isBase ? 'base' : kind); W.req = req.id; W.d.remarks = req.text; W.d.reason = 'Other'; W.d.notes = req.notes || ''; if (req.proposedId && PLANS[req.proposedId]) W.prevProposed = req.proposedId; }
       var ex = scopePlansFor(s, W.scope, W.ref);
       if (req && kind === 'time-bound' && req.start) { W.from = req.start; if (req.end) W.to = req.end; else { var dt = new Date(req.start + 'T00:00:00'); dt.setDate(dt.getDate() + 30); W.to = localIso(dt); } }
@@ -318,7 +321,7 @@ WIZ_JS = '''    /* ======================= ADD A DIET (Dev system diet-editor.js
       }
       if (!req && opt && opt.edit && PLANS[opt.edit]) {   /* Edit an active diet: prefilled editor, saved as a new version that replaces it */
         var ep = PLANS[opt.edit], eb = bandsFrom(ep); W.edit = ep.id; W.src = ep.id; W.path = 'configure'; if (eb.length) W.d.bands = eb;
-        W.d.quantityMode = ep.quantityMode === 'sex' ? 'sex' : 'standard'; W.qPick = W.d.quantityMode; W.d.dietitian = ep.dietitian || ''; W.d.remark = ep.remark || '';
+        W.d.quantityMode = ep.quantityMode === 'sex' ? 'sex' : 'standard'; W.qPick = W.d.quantityMode; W.d.dietitian = ep.dietitian || ''; W.d.verified = false; W.d.remark = ep.remark || '';
         if (ep.notes && ep.notes.kitchen) W.d.notes = ep.notes.kitchen; if (ep.notes && ep.notes.site) W.d.siteNotes = ep.notes.site; if (ep.from) W.from = ep.from; if (ep.to) W.to = ep.to;
       }
       W.step = stepList()[0][0];
@@ -540,7 +543,8 @@ WIZ_JS = '''    /* ======================= ADD A DIET (Dev system diet-editor.js
         '<section class="wcard">' + fld('Notes for the kitchen', '<textarea data-dv="notes" placeholder="Extra instructions for the kitchen (optional), e.g. thaw fish overnight">' + esc(d.notes) + '</textarea>') +
         fld('Notes for site', '<textarea data-dv="siteNotes" placeholder="Extra instructions for the keepers (optional), e.g. scatter for foraging">' + esc(d.siteNotes) + '</textarea>') +
         fld('Remark', '<textarea data-dv="remark" placeholder="A remark shown highlighted in the plan view (optional), e.g. vet: monitor weight weekly">' + esc(d.remark) + '</textarea>') +
-        fld('Dietician', '<select data-dv="dietitian">' + opts(LK.dietitians, d.dietitian, 'Assign a diet owner (optional)') + '</select>') + '</section>' + (W.error ? alertBox(W.error) : '');
+        fld('Dietician', '<select data-dv="dietitian">' + opts(LK.dietitians, d.dietitian, 'Assign a diet owner (optional)') + '</select>') +
+        '<div class="bhead"><div><h3 class="t-body-title">Verified</h3><p class="t-body-regular" style="color:var(--md3-neutral-secondary)">Edited diets start as needing verification unless you verify this version now.</p></div><button type="button" class="switch t-body-medium" data-wverified aria-pressed="' + d.verified + '"><span class="trk" aria-hidden="true"></span>' + (d.verified ? 'Verified' : 'Needs verification') + '</button></div></section>' + (W.error ? alertBox(W.error) : '');
       return h;
     }
     function reasonStep() {
@@ -586,6 +590,7 @@ WIZ_JS = '''    /* ======================= ADD A DIET (Dev system diet-editor.js
       if (it.kind === 'item' && !it.itemId) return 'Pick a diet item.';
       if (it.kind !== 'item' && !it.mixKey) return it.kind === 'recipe' ? 'Pick a diet recipe.' : 'Pick a diet mix.';
       if (!(Number(it.qty) > 0)) return 'Enter a quantity greater than zero.';
+      if (it.kind === 'item' && !it.alts.some(function (a) { return a.itemId; })) return 'Add at least one alternative item.';
       if (it.cadence === 'weekly' && !it.days.length) return 'Pick at least one day for this item.';
       if (it.cadence === 'every_n_days') { var n = Number(it.intervalDays); if (!Number.isInteger(n) || n < 1 || n > 365 || !it.anchorDate) return 'Complete the cadence: interval (1 to 365 days) and first feed date.'; }
       if (it.cadence === 'monthly_day' && it.monthDay === '') return 'Complete the cadence: pick the day of the month.';
@@ -598,6 +603,7 @@ WIZ_JS = '''    /* ======================= ADD A DIET (Dev system diet-editor.js
     function sheetEl() { return document.querySelector('#wsheet .sheet'); }
     function openItem(bi, ii, kind) {
       var it = ii == null ? emptyItem(kind) : JSON.parse(JSON.stringify(W.d.bands[bi].items[ii]));
+      if (it.kind === 'item' && it.itemId && !it.alts.length) it.alts.push({ itemId: null, qty: it.qty || '', unit: it.unit || null, prep: null });
       IS = { mode: 'item', bi: bi, ii: ii, it: it, error: null }; drawItem(); document.getElementById('wsheet').hidden = false;
     }
     function usedInBand(kindItem) { var b = W.d.bands[IS.bi]; return b.items.filter(function (x, j) { return j !== IS.ii && (kindItem ? x.kind === 'item' : x.kind !== 'item'); }).map(function (x) { return String(kindItem ? x.itemId : x.mixKey); }); }
@@ -612,7 +618,7 @@ WIZ_JS = '''    /* ======================= ADD A DIET (Dev system diet-editor.js
           fld('Prep', '<select data-iv="prep"' + (mi ? '' : ' disabled') + '>' + opts(mi ? mi.preps : [], it.prep || '', '') + '</select>') +
           (mi && mi.cuts.length ? fld('Cut', '<select data-iv="cut">' + opts(mi.cuts, it.cut || '', '') + '</select>') : '') + '</div>';
         if (mi) {
-          h += '<div class="bhead"><h3 class="t-body-title">Alternatives</h3><button type="button" class="chip t-body-medium" data-addalt>' + ic('add', 18) + 'Add alternative</button></div><p class="t-body-regular" style="color:var(--md3-neutral-secondary);margin-top:-6px">Substitutes the kitchen may feed when ' + esc(mi.name) + ' is short. The forecast always uses the primary.</p>' +
+          h += '<div class="bhead"><h3 class="t-body-title">Alternative <span aria-hidden="true">*</span></h3><button type="button" class="chip t-body-medium" data-addalt>' + ic('add', 18) + 'Add another</button></div><p class="t-body-regular" style="color:var(--md3-neutral-secondary);margin-top:-6px">Add at least one substitute the kitchen may feed when ' + esc(mi.name) + ' is short. The forecast always uses the primary.</p>' +
             it.alts.map(function (a, ai) { var am = ITEM[a.itemId], ex = used.concat([String(it.itemId)]).concat(it.alts.filter(function (x, j) { return j !== ai && x.itemId; }).map(function (x) { return String(x.itemId); }));
               return '<div class="altbox"><div class="top">' + fld('Alternative item', '<select data-alt="' + ai + ':itemId">' + opts(LK.items.filter(function (x) { return x.isActive && (ex.indexOf(String(x.id)) === -1 || String(x.id) === String(a.itemId)); }).map(function (x) { return { v: x.id, t: x.name }; }), a.itemId || '', 'Pick an item') + '</select>') +
                 '<button type="button" class="iconbtn" data-rmalt="' + ai + '" aria-label="Remove alternative">' + ic('close', 22) + '</button></div><div class="g4">' + fld('Qty', '<input inputmode="decimal" data-alt="' + ai + ':qty" value="' + esc(a.qty) + '">') +
@@ -746,7 +752,7 @@ WIZ_JS = '''    /* ======================= ADD A DIET (Dev system diet-editor.js
         return { time: tbLabel(b), days: groups, notes: b.notes || undefined };
       });
       var notes = {}; if (d.notes) notes.kitchen = d.notes; if (d.siteNotes) notes.site = d.siteNotes;
-      var p = Object.assign({ id: nextId(), species: W.tsn, scope: W.scope, active: true, verified: false, update: 'none', dietitian: d.dietitian || null, created: todayIso(), by: 'You', schedule: schedule,
+      var p = Object.assign({ id: nextId(), species: W.tsn, scope: W.scope, active: true, verified: !!d.verified, update: d.verified ? 'approved' : 'pending', dietitian: d.dietitian || null, created: todayIso(), by: 'You', schedule: schedule,
         kind: W.kind === 'seasonal' ? 'seasonal' : W.kind === 'time-bound' ? 'time-bound' : 'base' }, windowFields());
       if (W.scope !== 'species') { p.ref = W.ref; p.scopeName = scopeName(); }
       if (d.reason) p.reason = d.reason; if (d.remarks) p.reasonDetail = d.remarks; if (d.remark) p.remark = d.remark; if (notes.kitchen || notes.site) p.notes = notes;
@@ -903,6 +909,7 @@ WIZ_JS = '''    /* ======================= ADD A DIET (Dev system diet-editor.js
       if ((t = e.target.closest('[data-prefill="current"]'))) { var cp = currentAt(); if (cp && (!d.bands.some(function (b) { return b.items.length; }) || window.confirm('Replace the current feeding time bands with ' + shownId(cp) + '? Dates stay the same.'))) prefillFrom(cp); return; }
       if ((t = e.target.closest('[data-prefill]'))) { if (t.getAttribute('data-prefill') === 'base') { var bp = F().base; if (bp && (!d.bands.some(function (b) { return b.items.length; }) || window.confirm('Replace the current feeding time bands with the base diet? Dates stay the same.'))) prefillFrom(bp); } else openPicker('prefill'); return; }
       if ((t = e.target.closest('[data-reason]'))) { d.reason = t.getAttribute('data-reason'); W.error = null; drawWiz(); return; }
+      if (e.target.closest('[data-wverified]')) { d.verified = !d.verified; drawWiz(); return; }
     });
     wiz.addEventListener('change', function (e) {
       if (!W) return; var t = e.target, d = W.d;
@@ -948,7 +955,7 @@ WIZ_JS = '''    /* ======================= ADD A DIET (Dev system diet-editor.js
       }
       if ((t = e.target.closest('[data-ikind]'))) { var k = t.getAttribute('data-ikind'); if (k !== it.kind) { var keep = { qty: it.qty, cadence: it.cadence, days: it.days, notes: it.notes }; IS.it = Object.assign(emptyItem(k), keep); IS.error = null; drawItem(); } return; }
       if (e.target.closest('[data-addalt]')) { it.alts.push({ itemId: null, qty: '', unit: null, prep: null }); drawItem(); return; }
-      if ((t = e.target.closest('[data-rmalt]'))) { it.alts.splice(Number(t.getAttribute('data-rmalt')), 1); drawItem(); return; }
+      if ((t = e.target.closest('[data-rmalt]'))) { it.alts.splice(Number(t.getAttribute('data-rmalt')), 1); if (!it.alts.length) it.alts.push({ itemId: null, qty: it.qty || '', unit: it.unit || null, prep: null }); drawItem(); return; }
       if ((t = e.target.closest('[data-preset]'))) { var p = t.getAttribute('data-preset'); it.days = p === 'All' ? DAYS.slice() : p === 'None' ? [] : p === 'Weekdays' ? DAYS.slice(0, 5) : DAYS.slice(5); drawItem(); return; }
       if ((t = e.target.closest('[data-day]'))) { var dd = t.getAttribute('data-day'), i = it.days.indexOf(dd); if (i === -1) it.days.push(dd); else it.days.splice(i, 1); it.days.sort(function (a, b) { return DAYS.indexOf(a) - DAYS.indexOf(b); }); drawItem(); return; }
       if ((t = e.target.closest('[data-cad]'))) { it.cadence = t.getAttribute('data-cad'); drawItem(); return; }
@@ -959,9 +966,9 @@ WIZ_JS = '''    /* ======================= ADD A DIET (Dev system diet-editor.js
     ws.addEventListener('change', function (e) {
       if (!IS || IS.mode !== 'item') return; var t = e.target, it = IS.it;
       if (t.matches('[data-iv]')) { var k = t.getAttribute('data-iv'); it[k] = k === 'itemId' ? (t.value ? Number(t.value) : null) : (t.value || (k === 'unit' || k === 'prep' || k === 'cut' || k === 'mixKey' ? null : ''));
-        if (k === 'itemId') { var mi = ITEM[it.itemId]; it.unit = mi ? mi.unit : null; it.prep = null; it.cut = null; it.alts = []; }
+        if (k === 'itemId') { var mi = ITEM[it.itemId]; it.unit = mi ? mi.unit : null; it.prep = null; it.cut = null; it.alts = mi ? [{ itemId: null, qty: it.qty || '', unit: it.unit || null, prep: null }] : []; }
         if (k === 'itemId' || k === 'mixKey' || k === 'cadence') drawItem(); return; }
-      if (t.matches('[data-alt]')) { var a = t.getAttribute('data-alt').split(':'), al = it.alts[Number(a[0])]; al[a[1]] = a[1] === 'itemId' ? (t.value ? Number(t.value) : null) : t.value || null; if (a[1] === 'itemId') { var am = ITEM[al.itemId]; al.unit = am ? am.unit : null; al.prep = null; drawItem(); } return; }
+      if (t.matches('[data-alt]')) { var a = t.getAttribute('data-alt').split(':'), al = it.alts[Number(a[0])]; al[a[1]] = a[1] === 'itemId' ? (t.value ? Number(t.value) : null) : t.value || null; if (a[1] === 'itemId') { var am = ITEM[al.itemId]; al.unit = am ? am.unit : null; al.qty = al.qty || it.qty; al.prep = null; drawItem(); } return; }
     });
     ws.addEventListener('input', function (e) {
       if (!IS) return; var t = e.target;
@@ -973,13 +980,13 @@ WIZ_JS = '''    /* ======================= ADD A DIET (Dev system diet-editor.js
       if (t.matches('[data-bq]')) { t.value = t.value.replace(/[^\\d.]/g, ''); it.bandQty[t.getAttribute('data-bq')] = t.value; }
     });
 
-    /* kind menu on the plan "+" (Year-round / Seasonal / Time-bound) */
+    /* kind menu on the plan "+" (new year-round diets are not allowed; edit the base diet instead) */
     var km = document.getElementById('kmenu');
     function openKindMenu(btn) {
-      var s = BY[st.tsn], taken = scopePlansFor(s, st.scope, st.ref).some(isDefault);
-      km.innerHTML = [['year-round', 'Year-round', taken ? 'Already set here. Edit the current diet instead.' : 'Always-on daily default'], ['seasonal', 'Seasonal', 'Repeats every year'], ['time-bound', 'Time-bound', 'Applies once between fixed dates']].map(function (k) {
-        return '<button type="button" role="menuitem" data-kind="' + k[0] + '"' + (k[0] === 'year-round' && taken ? ' disabled' : '') + '><b class="t-body-title">' + k[1] + '</b><small>' + k[2] + '</small></button>'; }).join('');
-      var r = btn.getBoundingClientRect(); km.hidden = false; km.style.top = Math.min(innerHeight - 200, r.bottom + 6) + 'px'; km.style.left = Math.max(8, Math.min(innerWidth - 268, r.left)) + 'px'; km.style.minWidth = '260px';
+      km.innerHTML = [['seasonal', 'Seasonal', 'Repeats every year'], ['time-bound', 'Time-bound', 'Applies once between fixed dates']].map(function (k) {
+        return '<button type="button" role="menuitem" data-kind="' + k[0] + '"><b class="t-body-title">' + k[1] + '</b><small>' + k[2] + '</small></button>'; }).join('') +
+        '<p class="kmnote t-body-regular" role="note">' + ic('info', 16) + '<span>Year-round is the base diet. Edit the base diet to change it.</span></p>';
+      var r = btn.getBoundingClientRect(); km.hidden = false; km.style.top = Math.min(innerHeight - 260, r.bottom + 6) + 'px'; km.style.left = Math.max(8, Math.min(innerWidth - 268, r.left)) + 'px'; km.style.minWidth = '260px';
     }
     document.addEventListener('click', function (e) { if (!km.hidden && !e.target.closest('#kmenu') && !e.target.closest('[data-newplan]')) km.hidden = true; });
     km.addEventListener('click', function (e) { var b = e.target.closest('[data-kind]'); if (!b || b.disabled) return; km.hidden = true; openWizard(b.getAttribute('data-kind'), false); });

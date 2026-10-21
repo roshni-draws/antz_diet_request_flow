@@ -76,11 +76,23 @@ SP3_CSS = '''    /* =========================================================
     .scopes .spchip small { font-size: 13px; font-weight: 400; }
     .targets { display: grid; gap: var(--sp-8); align-content: start; }
     .ttools { display: grid; gap: var(--sp-8); }
-    .ttools .spsearch { height: 48px; }
+    .tsearchrow { position: relative; display: flex; gap: var(--sp-8); }
+    .ttools .spsearch { height: 48px; flex: 1; min-width: 0; }
     .ttools .spsearch input:focus-visible { outline: none; }
-    .tchips { padding: 0; align-items: center; }
-    .tchips .spchip { height: 48px; }
-    .tdiv { width: 1px; height: 24px; background: var(--md3-outline-variant); flex: none; margin: 0 4px; }
+    .tfilterbtn { position: relative; width: 48px; height: 48px; flex: none; display: grid; place-items: center; border: 1px solid var(--md3-outline-variant); border-radius: var(--radius); color: var(--md3-on-primary-container); background: var(--white); }
+    .tfilterbtn.on { color: var(--white); border-color: var(--md3-on-primary-container); background: var(--md3-on-primary-container); }
+    .tfilterbtn .n { position: absolute; top: 3px; right: 3px; min-width: 18px; height: 18px; padding: 0 5px; display: grid; place-items: center; border-radius: 999px; background: var(--md3-primary); color: var(--white); font-size: 11px; font-weight: 700; }
+    .tfiltermenu { position: absolute; z-index: 6; top: calc(100% + var(--sp-8)); right: 0; width: min(300px, calc(100vw - var(--sp-32))); display: grid; gap: var(--sp-16); padding: var(--sp-16); border: 1px solid var(--md3-outline-variant); border-radius: 12px; background: var(--white); box-shadow: 0 12px 32px rgba(18,52,59,.16); }
+    .tfiltergroup { display: grid; gap: var(--sp-8); }
+    .tfiltergroup > span { color: var(--ink); font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+    .tfilteropts { display: flex; flex-wrap: wrap; gap: var(--sp-8); }
+    .tfilteropts .spchip { min-height: 48px; }
+    .tfilterclear { justify-self: start; min-height: 48px; padding: 0 var(--sp-8); color: var(--md3-on-primary-container); }
+    @media (hover: hover) {
+      .tfilterbtn:hover { background: var(--md3-displaybg-primary); }
+      .tfilterbtn.on:hover { background: var(--md3-on-primary-container); }
+      .tfilterclear:hover { text-decoration: underline; }
+    }
     .tcount { color: var(--ink); }
     .tbox { position: relative; border-radius: 8px; }
     .tbox::before, .tbox::after { content: ""; position: absolute; left: 0; right: 0; height: 20px; pointer-events: none; z-index: 2; opacity: 0; transition: opacity 160ms var(--ease); }
@@ -185,13 +197,11 @@ SP_JS = '''  /* ---------------- Diet by Species (Dev system diet/by-species: da
     HOOKS.golive = function (r) { var p = PLANS[r.proposedId]; if (!p || !p.proposed) return; p.proposed = false; p.active = true; p.verified = true; p.fromReq = r.id;
       if (r.end) { p.from = RQ.effStart(r); p.to = r.end; if (p.kind === 'base') p.kind = 'time-bound'; } if (p.editOf && PLANS[p.editOf] && !(p.from || p.to)) PLANS[p.editOf].active = false; RQ.keepPlan(p); };
     REQS_ALL.filter(function (r) { return r.status === 'live'; }).forEach(HOOKS.golive);
-    /* DEC-06: dieticians edit diets of species they are in charge of (taxonomy class, species, or one of its sites, sections, enclosures or animals) */
-    function mayEdit(s) { var u = RQ.viewer, L; if (!s || !RQ.can('write')) return false; L = locOf(s);
-      return (u.scopes || []).some(function (x) { var t = x[0], r = x[1]; return (t === 'taxonomy' && r === clsOf(s)) || (t === 'species' && r === s.tsn) || (t === 'site' && L.sites.some(function (z) { return z.id === r; })) ||
-        (t === 'section' && L.sections.some(function (z) { return z.id === r; })) || (t === 'enclosure' && L.enclosures.some(function (z) { return z.id === r; })) || (t === 'animal' && (s.animalList || []).some(function (a) { return a.id === r; })); }); }
+    /* Dieticians with diet write permission can edit any active diet. Read-only roles still use the request flow. */
+    function mayEdit(s) { return !!s && RQ.can('write'); }
     HOOKS.planOf = function (id) { return id ? PLANS[id] || null : null; };
     HOOKS.currentOf = function (r) { var s = BY[r.tsn]; if (!s) return null; if (r.planId && PLANS[r.planId]) return PLANS[r.planId]; return scopePlansFor(s, r.scope, r.scope === 'species' ? null : r.scopeRef).filter(isDefault)[0] || basePlan(s); };
-    HOOKS.editPlan = function (tsn, id) { var p = PLANS[id]; if (!p || !p.active || !BY[tsn]) return; if (!mayEdit(BY[tsn])) { toast('Only dieticians in charge of ' + BY[tsn].name + ' can edit this diet.'); return; } st.seg = 'all'; st.tsn = tsn; resetScope(); st.plan = id; applyPlan(BY[tsn]); openEdit(p); };   /* Directory Edit */
+    HOOKS.editPlan = function (tsn, id) { var p = PLANS[id]; if (!p || !p.active || !BY[tsn]) return; if (!mayEdit(BY[tsn])) { toast('You do not have permission to edit diets.'); return; } st.seg = 'all'; st.tsn = tsn; resetScope(); st.plan = id; applyPlan(BY[tsn]); openEdit(p); };   /* Directory Edit */
     var CLS = [['mammalia', 'Mammalia'], ['aves', 'Aves'], ['reptilia', 'Reptilia'], ['other', 'Other']];
     var SCOPES = [['species', 'Species-wide'], ['site', 'Site-wide'], ['section', 'Section-wide'], ['enclosure', 'Enclosure-wide'], ['animal', 'Animal-wide']];
     var KIND = { base: ['yearround', 'Year-round'], seasonal: ['seasonal', 'Seasonal'], 'time-bound': ['timebound', 'Time-bound'], 'sex-based': ['yearround', 'Sex-based'], combined: ['seasonal', 'Combined'] };
@@ -201,7 +211,7 @@ SP_JS = '''  /* ---------------- Diet by Species (Dev system diet/by-species: da
       ['Minerals', [['calcium', 'Calcium', 'mg'], ['phosphorus', 'Phosphorus', 'mg']]],
       ['Vitamins', [['vitaminA', 'Vitamin A', 'IU'], ['vitaminD', 'Vitamin D', 'IU'], ['vitaminE', 'Vitamin E', 'mg'], ['vitaminC', 'Vitamin C', 'mg']]]];
     var SEGS = [['all', 'All'], ['with', 'Species with diet'], ['without', 'Species without diet']];
-    var st = { seg: 'all', q: '', cls: [], ver: '', sort: 'count', tsn: null, plan: null, scope: 'species', ref: null, tab: 'items', showInactive: false, shOpen: false, hist: { scope: 'all', kind: 'all', seg: 'diets' } };
+    var st = { seg: 'all', q: '', cls: [], ver: '', sort: 'count', tsn: null, plan: null, scope: 'species', ref: null, tab: 'items', showInactive: false, shOpen: false, tFiltersOpen: false, hist: { scope: 'all', kind: 'all', seg: 'diets' } };
 
     function plansOf(s) { return (s.plans || []).map(function (id) { return PLANS[id]; }).filter(Boolean); }
     function activeN(s) { return plansOf(s).filter(function (p) { return p.active; }).length; }
@@ -367,12 +377,19 @@ SP_JS = '''  /* ---------------- Diet by Species (Dev system diet/by-species: da
       return { all: all, rows: rows, q: q };
     }
     function targetsShell() {
-      var chips = '';
-      if (st.scope === 'enclosure') chips = [['', 'All'], ['has', 'Own diet'], ['none', 'Inherited']].map(function (c) { return '<button type="button" class="spchip t-body-medium" data-tf="' + c[0] + '" aria-pressed="' + ((st.tf || '') === c[0]) + '">' + c[1] + '</button>'; }).join('');
-      if (st.scope === 'animal') chips = [['', 'All'], ['custom', 'Own diet'], ['species', 'Species diet']].map(function (c) { return '<button type="button" class="spchip t-body-medium" data-tf="' + c[0] + '" aria-pressed="' + ((st.tf || '') === c[0]) + '">' + c[1] + '</button>'; }).join('') +
-        '<span class="tdiv" aria-hidden="true"></span>' + [['m', 'Male'], ['f', 'Female']].map(function (c) { return '<button type="button" class="spchip t-body-medium" data-tsx="' + c[0] + '" aria-pressed="' + (st.tsx === c[0]) + '">' + c[1] + '</button>'; }).join('');
-      return '<div class="ttools"><label class="spsearch">' + ic('search', 20) + '<span class="sr-only">' + PH[st.scope] + '</span><input class="t-body-regular" type="search" data-tq placeholder="' + PH[st.scope] + '" value="' + esc(st.tq || '') + '" autocomplete="off"></label>' +
-        (chips ? '<div class="segrow tchips" role="group" aria-label="Quick filters">' + chips + '</div>' : '') + '<p class="tcount t-body-regular" data-tcount aria-live="polite"></p></div>' +
+      var menu = '', filterable = st.scope === 'enclosure' || st.scope === 'animal', nf = (st.tf ? 1 : 0) + (st.tsx ? 1 : 0);
+      if (filterable) {
+        var dietOpts = (st.scope === 'enclosure' ? [['', 'All'], ['has', 'Own diet'], ['none', 'Inherited']] : [['', 'All'], ['custom', 'Own diet'], ['species', 'Species diet']]).map(function (c) {
+          return '<button type="button" class="spchip t-body-medium" data-tf="' + c[0] + '" aria-pressed="' + ((st.tf || '') === c[0]) + '">' + c[1] + '</button>';
+        }).join('');
+        menu = '<button type="button" class="tfilterbtn' + (nf ? ' on' : '') + '" data-tfilters aria-label="Filters' + (nf ? ', ' + nf + ' active' : '') + '" aria-haspopup="dialog" aria-expanded="' + st.tFiltersOpen + '">' +
+          ic('filter-2', 24) + (nf ? '<span class="n" aria-hidden="true">' + nf + '</span>' : '') + '</button>' +
+          '<div class="tfiltermenu" data-tfiltermenu role="dialog" aria-label="Filters"' + (st.tFiltersOpen ? '' : ' hidden') + '><div class="tfiltergroup"><span>Diet source</span><div class="tfilteropts" role="group" aria-label="Diet source">' + dietOpts + '</div></div>' +
+          (st.scope === 'animal' ? '<div class="tfiltergroup"><span>Sex</span><div class="tfilteropts" role="group" aria-label="Sex">' + [['m', 'Male'], ['f', 'Female']].map(function (c) { return '<button type="button" class="spchip t-body-medium" data-tsx="' + c[0] + '" aria-pressed="' + (st.tsx === c[0]) + '">' + c[1] + '</button>'; }).join('') + '</div></div>' : '') +
+          (nf ? '<button type="button" class="tfilterclear t-body-medium" data-tclearfilters>Clear filters</button>' : '') + '</div>';
+      }
+      return '<div class="ttools"><div class="tsearchrow"><label class="spsearch">' + ic('search', 20) + '<span class="sr-only">' + PH[st.scope] + '</span><input class="t-body-regular" type="search" data-tq placeholder="' + PH[st.scope] + '" value="' + esc(st.tq || '') + '" autocomplete="off"></label>' + menu + '</div>' +
+        '<p class="tcount t-body-regular" data-tcount aria-live="polite"></p></div>' +
         '<div class="tbox" data-tbox><div class="tscroll targets" data-tscroll></div></div>';
     }
     function drawTargets() {
@@ -390,7 +407,7 @@ SP_JS = '''  /* ---------------- Diet by Species (Dev system diet/by-species: da
       box.innerHTML = html; fades();
     }
     function fades() { var h = host(), b = h && h.querySelector('[data-tscroll]'); if (!b) return; var p = b.parentNode; p.classList.toggle('ft', b.scrollTop > 2); p.classList.toggle('fb', b.scrollTop + b.clientHeight < b.scrollHeight - 2); }
-    function resetTargets() { st.tq = ''; st.tf = ''; st.tsx = ''; st.tlimit = 40; }
+    function resetTargets() { st.tq = ''; st.tf = ''; st.tsx = ''; st.tlimit = 40; st.tFiltersOpen = false; }
     function scopeCard(s) {
       var L = locOf(s), all = plansOf(s), cnt = function (sc) { return all.filter(function (p) { return p.active && p.scope === sc; }).length; };
       var custom = (s.animalList || []).filter(function (a) { var e = effOf(s, 'animal', a.id); return (e && e.scope !== 'species') || all.some(function (p) { return p.active && p.scope === 'animal' && p.ref === a.id; }); }).length;
@@ -420,7 +437,7 @@ SP_JS = '''  /* ---------------- Diet by Species (Dev system diet/by-species: da
           if (p.sex) parts.push(p.sex === 'male' ? 'Male' : p.sex === 'female' ? 'Female' : 'Undetermined');
           if (!p.active && !p.proposed) parts.push('Inactive');
           return '<button type="button" class="pchip' + (p.active || p.proposed ? '' : ' off') + '" data-plan="' + p.id + '" aria-pressed="' + (p.id === st.plan) + '"><span class="l1">' + shownId(p) + kindTag(p) + '</span>' + (parts.length ? '<span class="l2">' + esc(parts.join(' · ')) + '</span>' : '') + '</button>';
-        }).join('') + '<button type="button" class="addchip" data-newplan aria-label="New plan">' + ic('add', 24) + '</button></div>';
+        }).join('') + '<button type="button" class="addchip" data-newplan aria-label="Add seasonal or time-bound diet">' + ic('add', 24) + '</button></div>';
     }
     function fmt(v) { v = Number(v) || 0; return v.toLocaleString('en-IN', { maximumFractionDigits: 2 }); }
     function itemCell(it) {
@@ -503,7 +520,7 @@ SP_JS = '''  /* ---------------- Diet by Species (Dev system diet/by-species: da
         '<div class="tags"><span class="tag teal">' + esc((p.kind === 'base' && p.scope === 'species' ? 'Base diet · ' : '') + 'Inherited from ' + from) + '</span></div>' +
         '<p class="dp-meta t-body-regular">' + esc(meta) + '</p></div>' +
         '<div class="dp-btns"><button type="button" class="btn teal dp-edit" data-rqnew="scope">' + ic('reason-or-list', 20) + 'Request new diet</button>' +
-        '<button type="button" class="btn sec dp-edit" data-newplan aria-label="New plan for ' + esc(nm) + '">' + ic('add', 20) + 'New plan</button></div></div>' +
+        '<button type="button" class="addchip" data-newplan aria-label="Add seasonal or time-bound diet for ' + esc(nm) + '">' + ic('add', 24) + '</button></div></div>' +
         (reqs.length ? '<div class="rqline">' + reqBadge(reqs) + '</div>' : '') +
         '<div class="dseg" role="group" aria-label="Diet view"><button type="button" data-dtab="items" aria-pressed="' + (st.tab === 'items') + '" class="t-body-medium">Items</button><button type="button" data-dtab="nutrition" aria-pressed="' + (st.tab === 'nutrition') + '" class="t-body-medium">Nutrition</button></div>' +
         (st.tab === 'nutrition' ? nutrition(p) : table(p)) + '</section>';
@@ -530,7 +547,7 @@ SP_JS = '''  /* ---------------- Diet by Species (Dev system diet/by-species: da
             '<button type="button" class="btn teal" data-rqnew="scope">' + ic('reason-or-list', 20) + 'Request new diet</button>' + reqBadge(openReqs(s, st.scope, st.ref)));
         }
         return hero(s) + scopeCard(s) + callout('reason-or-list', 'No base diet yet', 'Create the base diet first. It is the always-on default for everyday feeding. Seasonal, sex-based, site, section, enclosure and animal plans all build on it, so they cannot be added until the base diet exists.',
-          '<div class="cobtns"><button type="button" class="btn teal" data-createbase>' + ic('add', 20) + 'Create base diet</button><button type="button" class="btn sec" data-rqnew="base">' + ic('reason-or-list', 20) + 'Request a base diet</button></div><p class="ro-note t-body-regular">Only dieticians in charge of this species can create diets.</p>' + reqBadge(openReqs(s)));
+          '<div class="cobtns"><button type="button" class="btn teal" data-createbase>' + ic('add', 20) + 'Create base diet</button><button type="button" class="btn sec" data-rqnew="base">' + ic('reason-or-list', 20) + 'Request a base diet</button></div><p class="ro-note t-body-regular">Only dieticians with write access can create diets.</p>' + reqBadge(openReqs(s)));
       }
       var body = scopeCard(s);
       if (st.scope !== 'species' && st.ref == null) {
@@ -540,7 +557,7 @@ SP_JS = '''  /* ---------------- Diet by Species (Dev system diet/by-species: da
       var here = plansHere(s), vis = here.filter(function (p) { return p.active || p.proposed || st.showInactive; });
       if (!here.length) { st.plan = null; var inh = inherited(s, st.scope, st.ref);
         if (inh) return hero(s) + body + inheritedCard(s, inh);
-        return hero(s) + body + callout('reason-or-list', 'No ' + SCN[st.scope].toLowerCase() + ' diet here yet', (inh ? srcLabel(inh) + ' applies here.' : 'No diet applies here yet.'), '<div class="cobtns"><button type="button" class="btn teal" data-rqnew="scope">' + ic('reason-or-list', 20) + 'Request new diet</button><button type="button" class="btn sec" data-newplan="yr">' + ic('add', 20) + 'New plan</button></div>' + reqBadge(openReqs(s, st.scope, st.ref))); }
+        return hero(s) + body + callout('reason-or-list', 'No ' + SCN[st.scope].toLowerCase() + ' diet here yet', (inh ? srcLabel(inh) + ' applies here.' : 'No diet applies here yet.'), '<div class="cobtns"><button type="button" class="btn teal" data-rqnew="scope">' + ic('reason-or-list', 20) + 'Request new diet</button><button type="button" class="addchip" data-newplan aria-label="Add seasonal or time-bound diet">' + ic('add', 24) + '</button></div>' + reqBadge(openReqs(s, st.scope, st.ref))); }
       if (st.plan == null || !vis.some(function (p) { return p.id === st.plan; })) { var d = vis.filter(function (p) { return p.active; })[0] || vis[0]; st.plan = d ? d.id : null; }
       var sel = st.plan != null ? PLANS[st.plan] : null;
       return hero(s) + body + planCard(s, sel, here) + (sel ? shared(s, sel) : '');
@@ -598,8 +615,10 @@ SP_JS = '''  /* ---------------- Diet by Species (Dev system diet/by-species: da
     /* ---------- events ---------- */
     function onDetail(e) {
       var t, s = BY[st.tsn]; if (!s) return;
+      if ((t = e.target.closest('[data-tfilters]'))) { st.tFiltersOpen = !st.tFiltersOpen; t.setAttribute('aria-expanded', String(st.tFiltersOpen)); host().querySelector('[data-tfiltermenu]').hidden = !st.tFiltersOpen; return; }
       if ((t = e.target.closest('[data-tf]'))) { st.tf = t.getAttribute('data-tf'); st.tlimit = 40; drawDetail(); return; }
       if ((t = e.target.closest('[data-tsx]'))) { var sx = t.getAttribute('data-tsx'); st.tsx = st.tsx === sx ? '' : sx; st.tlimit = 40; drawDetail(); return; }
+      if (e.target.closest('[data-tclearfilters]')) { st.tf = ''; st.tsx = ''; st.tlimit = 40; drawDetail(); return; }
       if (e.target.closest('[data-tmore]')) { var sc = host().querySelector('[data-tscroll]'), keep = sc.scrollTop; st.tlimit = (st.tlimit || 40) + 40; drawTargets(); sc.scrollTop = keep; return; }
       if (e.target.closest('[data-tclear]')) { resetTargets(); drawDetail(); return; }
       if ((t = e.target.closest('[data-scope]'))) { resetTargets(); st.scope = t.getAttribute('data-scope'); st.ref = null; st.plan = null; st.showInactive = false; if (st.scope !== 'species') { var L = locOf(s); var first = st.scope === 'site' ? L.sites[0] : st.scope === 'section' ? L.sections[0] : null; if (first && L[st.scope === 'site' ? 'sites' : 'sections'].length === 1) st.ref = first.id; } drawDetail(); setHash(false); return; }
@@ -613,11 +632,16 @@ SP_JS = '''  /* ---------------- Diet by Species (Dev system diet/by-species: da
       if ((t = e.target.closest('[data-rqopen]'))) { location.hash = '#request/' + t.getAttribute('data-rqopen'); return; }
       if ((t = e.target.closest('[data-rqnew]'))) { var kind = t.getAttribute('data-rqnew');
         if (kind === 'plan') openRequest({ scope: st.scope, ref: st.ref, plan: st.plan, from: 'plan' }); else if (kind === 'scope') openRequest({ scope: st.scope, ref: st.ref, from: 'scope' }); else openRequest({ scope: 'species', from: kind }); return; }
-      if ((t = e.target.closest('[data-newplan]'))) { if (t.getAttribute('data-newplan') === 'yr') openWizard('year-round', false); else openKindMenu(t); return; }
+      if ((t = e.target.closest('[data-newplan]'))) { openKindMenu(t); return; }
       if (e.target.closest('[data-act="edit"]')) { var ep = PLANS[st.plan]; if (ep && ep.active) openEdit(ep); }
     }
     $('[data-detail]').addEventListener('click', onDetail);
     document.querySelector('#spanel .dpanel__body').addEventListener('click', onDetail);
+    document.addEventListener('click', function (e) {
+      if (!st.tFiltersOpen || e.target.closest('[data-tfilters], [data-tfiltermenu]')) return;
+      st.tFiltersOpen = false; var h = host(), m = h && h.querySelector('[data-tfiltermenu]'), b = h && h.querySelector('[data-tfilters]');
+      if (m) m.hidden = true; if (b) b.setAttribute('aria-expanded', 'false');
+    });
     [$('[data-detail]'), document.querySelector('#spanel .dpanel__body')].forEach(function (el) {
       el.addEventListener('input', function (e) { if (e.target.matches('[data-tq]')) { st.tq = e.target.value; st.tlimit = 40; var b = el.querySelector('[data-tscroll]'); drawTargets(); if (b) b.scrollTop = 0; fades(); } });
       el.addEventListener('scroll', function (e) { if (e.target.matches && e.target.matches('[data-tscroll]')) fades(); }, true);
@@ -653,7 +677,7 @@ SP_JS = '''  /* ---------------- Diet by Species (Dev system diet/by-species: da
       },
       hasPanel: function () { return !!st.panel; },
       hasWizard: function () { return !!W; },
-      escape: function () { if (RF) { document.querySelector('#rqf [data-rfclose]').click(); return true; } if (!document.getElementById('wsheet').hidden) { var c = document.querySelector('#wsheet [data-isclose]'); if (c) c.click(); return true; } if (W) { document.querySelector('#wiz [data-wcancel]').click(); return true; } return false; },
+      escape: function () { if (st.tFiltersOpen) { st.tFiltersOpen = false; var h = host(), m = h && h.querySelector('[data-tfiltermenu]'), b = h && h.querySelector('[data-tfilters]'); if (m) m.hidden = true; if (b) { b.setAttribute('aria-expanded', 'false'); b.focus(); } return true; } if (RF) { document.querySelector('#rqf [data-rfclose]').click(); return true; } if (!document.getElementById('wsheet').hidden) { var c = document.querySelector('#wsheet [data-isclose]'); if (c) c.click(); return true; } if (W) { document.querySelector('#wiz [data-wcancel]').click(); return true; } return false; },
     };
   }
 '''

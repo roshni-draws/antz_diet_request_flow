@@ -6,6 +6,11 @@
 _raw = open(os.path.join(HERE, 'v2dir.json')).read()
 _raw = _raw.replace(' – ', ' to ').replace('–', '-').replace('—', '-')
 V2DIR = json.loads(_raw)
+# SAMPLE DATA: D-273 is fed to 10 representative species (2 to 3 per class) instead of all 51 from the V2 export.
+_D273_KEEP = ['Alligator Snapping Turtle', 'Antilles Pinktoe Tarantula', 'Arizona Black-Tailed Prairie Dog', 'Atlantic Canary', 'Black Curassow',
+              'Black-Capped Lory', 'Black-Tailed Marmoset', 'Black-Tufted Marmoset', 'Brown Greater Galago', 'Capybara']
+for _d in V2DIR['diets']:
+    if _d['id'] == 'D-273': _d['species'] = [s for s in _d['species'] if s['name'] in _D273_KEEP]
 _sites = []
 for d in V2DIR['diets']:
     for s in d.get('sites') or []:
@@ -93,6 +98,36 @@ DIR_CSS2 = '''    /* =========================================================
     .tag.teal { color: var(--md3-on-primary-container); background: var(--md3-displaybg-primary); }
     .tag.red { color: var(--md3-error); background: var(--error-a5); }
     .ddrow .chev { transform: rotate(-90deg); color: var(--md3-on-primary-container); }
+    #p-directory { padding-top: var(--sp-16); }
+    .dircontrols { display: grid; gap: var(--sp-16); margin-bottom: var(--sp-16); padding: var(--sp-16); border-radius: var(--radius); background: var(--white); }
+    .dirsearch { display: grid; grid-template-columns: minmax(0, 1fr) 48px; gap: var(--sp-12); align-items: center; }
+    .dircert { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--sp-4); padding: var(--sp-4); border-radius: 12px; background: var(--neutral05); }
+    .dircert .spchip { min-height: 48px; border: 0; border-radius: 9px; background: transparent; color: var(--ink); }
+    .dircert .spchip[aria-pressed="true"] { background: var(--white); color: var(--md3-on-primary-container); box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+    .dircert .n { color: var(--ink); font-variant-numeric: tabular-nums; }
+    .ddrow__id { display: flex; align-items: center; flex-wrap: wrap; gap: var(--sp-8) var(--sp-12); }
+    .dstat { display: inline-flex; align-items: center; gap: 6px; color: var(--ink); font-size: 13px; font-weight: 500; }
+    .status-dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+    .status-dot.certified { background: var(--md3-primary); }
+    .status-dot.pending { background: var(--md3-error); }
+    .pager { display: flex; align-items: center; justify-content: flex-end; gap: var(--sp-8); padding-top: var(--sp-12); }
+    .pager span { color: var(--ink); }
+    .pager .chip { min-height: 48px; padding: 0 var(--sp-16); }
+    .pager .chip:disabled { opacity: .45; }
+    .dp-actions { display: flex; flex-wrap: wrap; gap: var(--sp-8); }
+    .dp-actions .btn { flex: none; padding: 0 var(--sp-16); font-size: 14px; }
+    .sheet-list { display: grid; gap: var(--sp-8); }
+    .sheet-list button { min-height: 48px; padding: var(--sp-8) var(--sp-12); border: 1px solid var(--md3-outline-variant); border-radius: var(--radius); text-align: left; color: var(--head); }
+    .sheet-list button[aria-pressed="true"] { border-color: var(--md3-on-primary-container); box-shadow: 0 0 0 1px var(--md3-on-primary-container); background: var(--md3-displaybg-primary); }
+    .sheet-fields { display: grid; gap: var(--sp-12); }
+    .sheet-fields label { display: grid; gap: var(--sp-8); color: var(--ink); }
+    .sheet-fields select, .sheet-fields input { min-height: 48px; padding: 0 var(--sp-12); border: 1px solid var(--md3-outline-variant); border-radius: var(--radius); background: var(--white); color: var(--head); }
+    /* 48 px targets inside the diet detail (directory) */
+    .dpane .iconbtn { width: 48px; height: 48px; }
+    .dpane .dseg button { height: 48px; }
+    .cert .chip { min-height: 48px; }
+    .fed-tools .linkbtn, .fchips .linkbtn, .fchips .fchip { min-height: 48px; }
+    .conflict { padding: var(--sp-12); border-radius: var(--radius); color: var(--md3-error); background: var(--error-a5); }
 
     .dpane { background: var(--white); border-radius: var(--radius); padding: var(--sp-20); display: grid; gap: var(--sp-16); }
     .dpane + .dpane { margin-top: var(--sp-16); }
@@ -157,15 +192,30 @@ DIR_CSS2 = '''    /* =========================================================
     .fed-h h3 { flex: 1; color: var(--head); }
     .fed-tools { display: flex; align-items: center; flex-wrap: wrap; gap: var(--sp-8); }
     .fed-tools .hint { flex: 1; color: var(--md3-neutral-secondary); min-width: 180px; }
+    .fed-filter { position: relative; padding: var(--sp-12); border-radius: var(--radius); background: var(--md3-background); }
+    .fed-searchline { display: flex; gap: var(--sp-8); align-items: center; }
+    .fed-searchline .spsearch { flex: 1; min-width: 0; }
+    .fed-filter .spsearch { background: var(--white); }
+    .fedfilterbtn { flex: none; width: 48px; height: 48px; border: 1px solid var(--md3-outline-variant); border-radius: var(--radius); background: var(--white); color: var(--md3-on-primary-container); }
+    .fedfilterbtn.on { background: var(--md3-on-primary-container); color: var(--white); }
+    .fedmenu { position: absolute; z-index: 4; top: calc(100% - var(--sp-4)); right: var(--sp-12); width: min(280px, calc(100% - 24px)); padding: var(--sp-8); border: 1px solid var(--md3-outline-variant); border-radius: var(--radius); background: var(--white); box-shadow: 0 12px 32px rgba(18,52,59,.16); }
+    .fedmenu button { width: 100%; min-height: 48px; display: flex; align-items: center; justify-content: space-between; gap: var(--sp-12); padding: 0 var(--sp-12); border-radius: 6px; color: var(--ink); text-align: left; }
+    .fedmenu button[aria-pressed="true"] { background: var(--md3-displaybg-primary); color: var(--md3-on-primary-container); font-weight: 600; }
+    .fedtabs { display: flex; gap: var(--sp-4); overflow-x: auto; border-bottom: 1px solid var(--md3-outline-variant); scrollbar-width: none; }
+    .fedtabs::-webkit-scrollbar { display: none; }
+    .fedtab { min-height: 48px; flex: none; display: inline-flex; align-items: center; gap: var(--sp-8); padding: 0 var(--sp-16); border-bottom: 3px solid transparent; color: var(--ink); }
+    .fedtab[aria-selected="true"] { border-bottom-color: var(--md3-primary); color: var(--md3-on-primary-container); font-weight: 600; }
+    .fedtab .n { color: var(--ink); font-variant-numeric: tabular-nums; }
     .sgrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-12); }
     .scard { display: flex; gap: var(--sp-12); align-items: flex-start; padding: var(--sp-12); border: 1px solid var(--md3-surface-variant); border-radius: var(--radius); }
     .scard.sel { border-color: var(--md3-primary); background: rgba(55,189,105,.05); }
-    .scard__ic { width: 40px; height: 40px; flex: none; border-radius: 50%; display: grid; place-items: center; background: var(--md3-surface-variant); color: var(--ink); }
+    .scard__ic { width: 40px; height: 40px; flex: none; border-radius: 50%; background: var(--md3-surface-variant); }
     .scard__t { flex: 1; min-width: 0; display: grid; gap: 2px; }
     .scard__t b { color: var(--head); }
+    .scard__t a.sclink { display: inline-flex; align-items: center; min-height: 48px; margin: -12px 0; color: var(--md3-on-primary-container); text-decoration: underline; text-underline-offset: 3px; }
     .scard__t i { color: var(--ink); }
     .scard__m { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; color: var(--md3-neutral-secondary); margin-top: 4px; }
-    .ck { width: 44px; height: 44px; margin: -10px -6px -10px -10px; display: grid; place-items: center; color: var(--md3-on-primary-container); flex: none; }
+    .ck { width: 48px; height: 48px; margin: -12px -8px -12px -12px; display: grid; place-items: center; color: var(--md3-on-primary-container); flex: none; }
     .slist { display: grid; }
     .slist .scard { border: 0; border-bottom: 1px solid var(--line); border-radius: 0; align-items: center; }
 
@@ -173,6 +223,9 @@ DIR_CSS2 = '''    /* =========================================================
       .dd-split { grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); }
       .dd-detail { display: block; position: sticky; top: var(--sp-16); max-height: calc(100dvh - var(--status-h) - 138px - 32px); overflow-y: auto; border-radius: var(--radius); }
       .sgrid { grid-template-columns: minmax(0, 1fr); }
+    }
+    @media (max-width: 700px) {
+      .dircert { max-width: none; }
     }
 
     /* =========================================================
@@ -225,22 +278,20 @@ DIR_JS = '''  /* ---------------- Diet Directory (V2 tab prototype: diet/directo
   function DirModule(root, opt) {
     var DIETS = DIRD.diets, PREFIX = opt.prefix;
     var CLS = [['all', 'All'], ['mammalia', 'Mammalia'], ['aves', 'Aves'], ['reptilia', 'Reptilia'], ['other', 'Other']];
-    var DEF = { site: '', cert: '', upd: '' };
     var UPD = { pending: 'Needs verification', approved: 'Update approved', any: 'Any updated diet' };
     var NUT = [['Macros', [['energy', 'Energy', 'kcal', 1], ['protein', 'Protein', 'g', 1], ['fat', 'Fat', 'g', 1], ['carbohydrate', 'Carbohydrate', 'g', 1], ['fiber', 'Fiber', 'g'], ['moisture', 'Moisture', '%']]],
       ['Minerals', [['calcium', 'Calcium', 'mg'], ['phosphorus', 'Phosphorus', 'mg']]],
       ['Vitamins', [['vitaminA', 'Vitamin A', 'IU'], ['vitaminD', 'Vitamin D', 'IU'], ['vitaminE', 'Vitamin E', 'mg'], ['vitaminC', 'Vitamin C', 'mg']]]];
-    var st = { q: '', ver: '', cls: 'all', f: { site: '', cert: '', upd: '' }, sel: DIRD.selectedId || DIETS[0].id, tab: 'items', view: 'cards', picked: {}, panel: null };
+    var st = { q: '', ver: '', cls: 'all', f: { site: '', upd: '' }, sel: DIRD.selectedId || DIETS[0].id, tab: 'items', view: 'cards', picked: {}, panel: null, page: 1, fedQ: '', fedCls: 'all', fedFilterOpen: false };
+    var PAGE = 50, sheetMode = null;
     function find(id) { for (var i = 0; i < DIETS.length; i++) if (DIETS[i].id === id) return DIETS[i]; return null; }
-    function label(d) { if (d.listLabel) return d.listLabel; var sp = d.species || []; return sp.length ? sp[0].name + (sp.length > 1 ? ' +' + (sp.length - 1) : '') : 'No species'; }
+    function label(d) { var sp = d.species || []; return sp.length ? sp[0].name + (sp.length > 1 ? ' +' + (sp.length - 1) : '') : 'No species'; }
     function matches(d, skip) {
       var q = st.q.trim().toLowerCase(), qid = q.replace(/^d-?/, '');
       if (skip !== 'cls' && st.cls !== 'all' && !(d.species || []).some(function (s) { return s.cls === st.cls; })) return false;
       if (st.f.site && (d.sites || []).indexOf(st.f.site) === -1) return false;
-      if (skip !== 'ver' && st.ver === 'verified' && !d.verified) return false;
-      if (skip !== 'ver' && st.ver === 'unverified' && d.verified) return false;
-      if (st.f.cert === 'certified' && !d.dietitian) return false;
-      if (st.f.cert === 'uncertified' && d.dietitian) return false;
+      if (skip !== 'ver' && st.ver === 'certified' && !d.dietitian) return false;
+      if (skip !== 'ver' && st.ver === 'uncertified' && d.dietitian) return false;
       if (st.f.upd === 'pending' && d.update !== 'pending') return false;
       if (st.f.upd === 'approved' && d.update !== 'approved') return false;
       if (st.f.upd === 'any' && d.update !== 'pending' && d.update !== 'approved') return false;
@@ -252,28 +303,23 @@ DIR_JS = '''  /* ---------------- Diet Directory (V2 tab prototype: diet/directo
       return true;
     }
     function count(key, val) { var s = st[key]; st[key] = val; var n = DIETS.filter(function (d) { return matches(d); }).length; st[key] = s; return n; }
-    function nFilters() { return (st.f.site ? 1 : 0) + (st.f.cert ? 1 : 0) + (st.f.upd ? 1 : 0); }
+    function nFilters() { return (st.cls !== 'all' ? 1 : 0) + (st.f.site ? 1 : 0) + (st.f.upd ? 1 : 0); }
 
     root.innerHTML =
-      '<div class="spband"><label class="spsearch">' + ic('search', 20) + '<span class="sr-only">Search diets</span><input class="t-body-regular" type="search" data-q placeholder="Search Diet ID or species" autocomplete="off"></label>' +
-      '<button class="spfilter" type="button" data-filters aria-label="Filters">' + ic('filter-2', 24) + '<span class="t-minor-medium" data-fn hidden></span></button></div>' +
-      '<div class="segrow" role="group" aria-label="Verification" data-ver></div>' +
-      '<div class="segrow" role="group" aria-label="Animal class" data-cls></div>' +
-      '<div class="fchips" data-active hidden></div>' +
-      '<div class="list-bar"><h2 class="t-minor-medium" data-count aria-live="polite"></h2><span class="t-body-regular" style="color:var(--md3-neutral-secondary)">Total: ' + DIETS.length + '</span></div>' +
-      '<div class="dd-split"><div class="ddlist" data-list></div><div class="dd-detail" data-detail></div></div>';
+      '<section class="dircontrols" aria-label="Directory filters"><div class="dircert" role="group" aria-label="Certification" data-ver></div>' +
+      '<div class="dirsearch"><label class="spsearch">' + ic('search', 20) + '<span class="sr-only">Search diets</span><input class="t-body-regular" type="search" data-q placeholder="Search by diet ID or species name" autocomplete="off"></label>' +
+      '<button class="spfilter" type="button" data-filters aria-label="Filter diets">' + ic('filter-2', 24) + '<span class="t-minor-medium" data-fn hidden></span></button></div>' +
+      '<div class="fchips" data-active hidden></div></section>' +
+      '<div class="dd-split"><div><div class="ddlist" data-list></div><div class="pager" data-pager></div></div><div class="dd-detail" data-detail></div></div>';
     var $ = function (sel) { return root.querySelector(sel); };
 
     function drawFilters() {
-      $('[data-ver]').innerHTML = '<span class="rowlabel t-body-medium">Verification</span>' + [['', 'All'], ['verified', 'Verified'], ['unverified', 'Unverified']].map(function (v) {
+      $('[data-ver]').innerHTML = [['', 'All'], ['certified', 'Certified'], ['uncertified', 'Uncertified']].map(function (v) {
         return '<button type="button" class="spchip t-body-medium" data-v="' + v[0] + '" aria-pressed="' + (st.ver === v[0]) + '">' + v[1] + ' <span class="n">' + count('ver', v[0]) + '</span></button>';
       }).join('');
-      $('[data-cls]').innerHTML = '<span class="rowlabel t-body-medium">Class</span>' + CLS.map(function (c) {
-        return '<button type="button" class="spchip t-body-medium" data-c="' + c[0] + '" aria-pressed="' + (st.cls === c[0]) + '">' + c[1] + ' <span class="n">' + count('cls', c[0]) + '</span></button>';
-      }).join('');
       var act = [];
-      if (st.f.site) act.push(['site', 'Site: ' + st.f.site]);
-      if (st.f.cert) act.push(['cert', st.f.cert === 'certified' ? 'Certified' : 'Uncertified']);
+      if (st.cls !== 'all') act.push(['cls', CLS.filter(function (c) { return c[0] === st.cls; })[0][1]]);
+      if (st.f.site) act.push(['site', st.f.site]);
       if (st.f.upd) act.push(['upd', UPD[st.f.upd]]);
       var a = $('[data-active]'); a.hidden = !act.length;
       a.innerHTML = act.map(function (x) { return '<button type="button" class="fchip t-body-medium" data-unf="' + x[0] + '" aria-label="Remove ' + esc(x[1]) + '">' + esc(x[1]) + ic('close', 20) + '</button>'; }).join('') +
@@ -282,21 +328,21 @@ DIR_JS = '''  /* ---------------- Diet Directory (V2 tab prototype: diet/directo
       fb.classList.toggle('on', n > 0); fn.hidden = !n; fn.textContent = n;
     }
     function rowHtml(d, on) {
-      var tags = '<span class="tag ' + (d.verified ? 'green' : 'grey') + '">' + (d.verified ? 'Verified' : 'Unverified') + '</span>' +
-        (d.active === false ? '<span class="tag grey">Inactive</span>' : '') +
-        (d.update === 'pending' ? '<span class="tag orange">Update pending</span>' : d.update === 'approved' ? '<span class="tag green">Update approved</span>' : '') +
-        (d.chips || []).filter(function (c) { return String(c).toLowerCase() !== 'inactive'; }).map(function (c) { return '<span class="tag teal">' + esc(c) + '</span>'; }).join('');
+      /* status dots always carry a text label: colour is never the only signal */
+      var dots = (d.dietitian ? '<span class="dstat"><span class="status-dot certified" aria-hidden="true"></span>Certified</span>' : '') +
+        (d.update === 'pending' ? '<span class="dstat"><span class="status-dot pending" aria-hidden="true"></span>Needs verification</span>' : '');
       return '<button type="button" class="ddrow" data-id="' + esc(d.id) + '"' + (on ? ' aria-current="true"' : '') + '>' +
-        '<span class="ddrow__t"><b class="t-minor-title' + (d.active === false ? ' off' : '') + '">' + esc(d.id) + '</b><span class="lb t-body-regular">' + esc(label(d)) + '</span><span class="tags">' + tags + '</span></span>' +
-        '<span class="chev">' + ic('dropdown', 24) + '</span></button>';
+        '<span class="ddrow__t"><span class="ddrow__id"><b class="t-minor-title' + (d.active === false ? ' off' : '') + '">' + esc(d.id) + '</b>' + dots + '</span><span class="lb t-body-regular">' + esc(label(d)) + '</span></span></button>';
     }
     function drawList() {
       var list = DIETS.filter(function (d) { return matches(d); });
-      $('[data-count]').textContent = 'Diets (' + list.length + ')';
+      var pages = Math.max(1, Math.ceil(list.length / PAGE)); st.page = Math.min(st.page, pages);
+      var shown = list.slice((st.page - 1) * PAGE, st.page * PAGE);
       var split = LAND.matches;
       if (split && list.length && !list.some(function (d) { return d.id === st.sel; })) st.sel = list[0].id;
-      $('[data-list]').innerHTML = list.length ? list.map(function (d) { return rowHtml(d, split && d.id === st.sel); }).join('') :
+      $('[data-list]').innerHTML = shown.length ? shown.map(function (d) { return rowHtml(d, split && d.id === st.sel); }).join('') :
         '<div class="empty"><span class="ei">' + ic('search', 24) + '</span><b class="t-minor-title">No diets match</b><span class="t-body-regular">Try another ID, species or filter.</span><button type="button" class="chip t-body-medium" data-clearall style="margin-top:8px">Clear search and filters</button></div>';
+      $('[data-pager]').innerHTML = list.length > PAGE ? '<button type="button" class="chip t-body-medium" data-page="-1"' + (st.page === 1 ? ' disabled' : '') + '>Previous</button><span class="t-body-regular">Page ' + st.page + ' of ' + pages + '</span><button type="button" class="chip t-body-medium" data-page="1"' + (st.page === pages ? ' disabled' : '') + '>Next</button>' : '';
       return list;
     }
     function fmt(v) { v = Number(v) || 0; return v.toLocaleString('en-IN', { maximumFractionDigits: 2 }); }
@@ -348,34 +394,41 @@ DIR_JS = '''  /* ---------------- Diet Directory (V2 tab prototype: diet/directo
     function kindTag(k) { k = k || 'Base'; return '<span class="tag ' + (/season/i.test(k) ? 'orange' : /time/i.test(k) ? 'blue' : 'green') + '">' + esc(k) + '</span>'; }
     function species(d) {
       var sp = d.species || [], picked = st.picked[d.id] || {}, any = Object.keys(picked).some(function (k) { return picked[k]; });
+      var classes = [['all', 'All'], ['mammalia', 'Mammalia'], ['aves', 'Aves'], ['reptilia', 'Reptilia'], ['other', 'Other']];
+      var q = st.fedQ.trim().toLowerCase(), key = function (s) { return ['mammalia', 'aves', 'reptilia'].indexOf(s.cls) !== -1 ? s.cls : 'other'; };
+      var searched = sp.map(function (s, i) { return { s: s, i: i }; }).filter(function (r) { return !q || (r.s.name + ' ' + (r.s.sci || '')).toLowerCase().indexOf(q) !== -1; });
+      var rows = searched.filter(function (r) { return st.fedCls === 'all' || key(r.s) === st.fedCls; });
+      function card(r) {
+        var s = r.s, on = !!picked[r.i];
+        return '<div class="scard' + (on ? ' sel' : '') + '"><button type="button" class="ck" data-pick="' + r.i + '" aria-pressed="' + on + '" aria-label="Select ' + esc(s.name) + '">' + ic(on ? 'checkbox-checked' : 'checkbox-unchecked', 24) + '</button>' +
+          (st.view === 'cards' ? '<span class="scard__ic" aria-hidden="true"></span>' : '') +
+          '<span class="scard__t">' + (s.tsn ? '<a class="sclink t-body-title" href="#species/all/' + s.tsn + '" aria-label="Open ' + esc(s.name) + ' in Diet by Species">' + esc(s.name) + '</a>' : '<b class="t-body-title">' + esc(s.name) + '</b>') + (s.sci ? '<i class="t-body-regular">' + esc(s.sci) + '</i>' : '') +
+          '<span class="scard__m t-body-regular">' + (s.animals != null ? plural(s.animals, 'animal') + ' held' : '') + kindTag(s.kind) + '</span></span></div>';
+      }
       var h = '<section class="dpane"><div class="fed-h"><h3 class="t-minor-title">Fed to ' + plural(sp.length, 'species', 'species') + '</h3>' +
         '<div class="dseg" role="group" aria-label="Species view"><button type="button" data-view="cards" aria-pressed="' + (st.view === 'cards') + '" class="t-body-medium">' + ic('grid', 18) + 'Cards</button><button type="button" data-view="list" aria-pressed="' + (st.view === 'list') + '" class="t-body-medium">' + ic('list', 18) + 'List</button></div></div>' +
         '<div class="fed-tools"><span class="hint t-body-regular">Select species to move to another diet.</span>' +
         '<button type="button" class="linkbtn t-body-medium" data-move' + (any ? '' : ' aria-disabled="true"') + '>' + ic('transfer', 20) + 'Move to another diet</button>' +
         '<button type="button" class="linkbtn t-body-medium" data-addsp>' + ic('add', 20) + 'Add species</button></div>';
       if (!sp.length) return h + '<div class="empty"><b class="t-minor-title">No species yet</b></div></section>';
-      h += '<div class="' + (st.view === 'cards' ? 'sgrid' : 'slist') + '">' + sp.map(function (s, i) {
-        var on = !!picked[i];
-        return '<div class="scard' + (on ? ' sel' : '') + '"><button type="button" class="ck" data-pick="' + i + '" aria-pressed="' + on + '" aria-label="Select ' + esc(s.name) + '">' + ic(on ? 'checkbox-checked' : 'checkbox-unchecked', 24) + '</button>' +
-          (st.view === 'cards' ? '<span class="scard__ic">' + ic('paw', 22) + '</span>' : '') +
-          '<span class="scard__t"><b class="t-body-title">' + esc(s.name) + '</b>' + (s.sci ? '<i class="t-body-regular">' + esc(s.sci) + '</i>' : '') +
-          '<span class="scard__m t-body-regular">' + (s.animals != null ? plural(s.animals, 'animal') + ' held' : '') + kindTag(s.kind) + '</span></span></div>';
-      }).join('') + '</div></section>';
+      h += '<div class="fed-filter"><div class="fed-searchline"><label class="spsearch">' + ic('search', 20) + '<span class="sr-only">Search species fed this diet</span><input class="t-body-regular" type="search" data-fedq value="' + esc(st.fedQ) + '" placeholder="Search common or scientific name" autocomplete="off"></label>' +
+        '<button type="button" class="fedfilterbtn' + (st.fedCls !== 'all' ? ' on' : '') + '" data-fedfilter aria-label="Filter species by taxonomy" aria-haspopup="menu" aria-expanded="' + st.fedFilterOpen + '">' + ic('filter-2', 22) + '</button></div>' +
+        (st.fedFilterOpen ? '<div class="fedmenu" role="menu" aria-label="Taxonomy">' + classes.map(function (c) { var n = searched.filter(function (r) { return c[0] === 'all' || key(r.s) === c[0]; }).length; return '<button type="button" role="menuitem" data-fedcls="' + c[0] + '" aria-pressed="' + (st.fedCls === c[0]) + '"><span>' + c[1] + '</span><span>' + n + '</span></button>'; }).join('') + '</div>' : '') + '</div>';
+      h += '<div class="fedtabs" role="tablist" aria-label="Species taxonomy">' + classes.map(function (c) { var n = searched.filter(function (r) { return c[0] === 'all' || key(r.s) === c[0]; }).length; return '<button type="button" class="fedtab t-body-medium" role="tab" data-fedcls="' + c[0] + '" aria-selected="' + (st.fedCls === c[0]) + '"><span>' + c[1] + '</span><span class="n">' + n + '</span></button>'; }).join('') + '</div>';
+      if (!rows.length) return h + '<div class="empty"><span class="ei">' + ic('search', 24) + '</span><b class="t-minor-title">No species match</b><span class="t-body-regular">Try another name or taxonomy filter.</span></div></section>';
+      h += '<div role="tabpanel" aria-label="' + esc(classes.filter(function (c) { return c[0] === st.fedCls; })[0][1]) + ' species"><div class="' + (st.view === 'cards' ? 'sgrid' : 'slist') + '">' + rows.map(card).join('') + '</div></div></section>';
       return h;
     }
     function detailHtml(d) {
       if (!d) return '<section class="dpane"><div class="empty"><b class="t-minor-title">Select a diet</b><span class="t-body-regular">Pick a diet to see its plan.</span></div></section>';
       var inactiveChip = (d.chips || []).some(function (c) { return String(c).toLowerCase() === 'inactive'; });
-      var w = d.window && !(d.window.state === 'inactive' && inactiveChip) ? '<span class="win ' + d.window.state + '">' + ic(d.window.state === 'inactive' ? 'close' : 'calendar', 18) + esc(d.window.text) + '</span>' : '';
-      var chips = (d.chips || []).map(function (c) { return String(c).toLowerCase() === 'inactive' ? '<span class="tag grey">Inactive</span>' : '<span class="tag teal">' + esc(c) + '</span>'; }).join('');
-      var cert = d.dietitian ? '<div class="cert"><span class="cert__ic">' + ic('approved', 24) + '</span><span class="cert__t"><b class="t-body-title">' + esc(d.dietitian.name) + '</b><span class="t-body-regular">Certified dietitian · ' + esc(d.dietitian.date) + '</span></span><button type="button" class="iconbtn" data-certchange aria-label="Change the certifying dietitian">' + ic('pencil', 22) + '</button></div>'
-        : '<div class="cert none"><span class="cert__ic">' + ic('alert', 24) + '</span><span class="cert__t"><b class="t-body-title">Uncertified</b><span class="t-body-regular">No dietitian behind this diet yet</span></span><button type="button" class="chip t-body-medium" data-certify>' + ic('approved', 18) + 'Certify</button></div>';
+      var mode = inactiveChip ? '<span class="tag grey">Inactive</span>' : (d.chips || []).filter(function (c) { return /^By (sex|weight|age)/i.test(c); }).map(function (c) { return '<span class="tag teal">' + esc(c) + '</span>'; }).join('');
+      var valid = d.window ? '<p class="dp-meta t-body-regular">' + esc(d.window.text) + '</p>' : '';
+      var cert = d.dietitian ? '<div class="cert"><span class="cert__ic">' + ic('approved', 24) + '</span><span class="cert__t"><b class="t-body-title">' + esc(d.dietitian.name) + '</b><span class="t-body-regular">Certified by dietician · ' + esc(d.dietitian.date) + '</span></span><button type="button" class="iconbtn" data-certchange aria-label="Change or remove certification">' + ic('pencil', 22) + '</button></div>'
+        : '<div class="cert none"><span class="cert__ic">' + ic('alert', 24) + '</span><span class="cert__t"><b class="t-body-title">Uncertified</b><span class="t-body-regular">Choose a dietician to certify this diet</span></span><button type="button" class="chip t-body-medium" data-certify>' + ic('approved', 18) + 'Certify</button></div>';
       return '<section class="dpane"><div class="dp-head"><div class="grow"><div class="dp-id"><b class="t-medium-medium">' + esc(d.id) + '</b>' +
-        '<span class="tag ' + (d.verified ? 'green' : 'grey') + '">' + (d.verified ? 'Verified' : 'Unverified') + '</span>' +
-        (d.update === 'pending' ? '<span class="tag orange">Update pending</span>' : d.update === 'approved' ? '<span class="tag green">Update approved</span>' : '') + '</div>' +
-        '<span class="t-body-regular" style="color:var(--ink)">' + esc(label(d)) + '</span></div>' +
-        '<div class="dp-acts"><button type="button" class="iconbtn" data-act="edit" aria-label="Edit diet">' + ic('pencil', 22) + '</button><button type="button" class="iconbtn" data-act="pdf" aria-label="Download PDF">' + ic('download', 22) + '</button><button type="button" class="iconbtn" data-act="more" aria-label="Plan actions">' + ic('menu-vertical', 22) + '</button></div></div>' +
-        ((w || chips) ? '<div class="tags">' + w + chips + '</div>' : '') + cert +
+        mode + '</div>' + valid + '</div></div>' +
+        '<div class="dp-actions"><button type="button" class="btn sec" data-act="edit">' + ic('pencil', 20) + 'Edit diet</button><button type="button" class="btn sec" data-act="pdf">' + ic('download', 20) + 'Download PDF</button><button type="button" class="iconbtn" data-act="more" aria-label="More diet actions">' + ic('menu-vertical', 22) + '</button></div>' + cert +
         '<div class="dseg" role="group" aria-label="Diet view"><button type="button" data-dtab="items" aria-pressed="' + (st.tab === 'items') + '" class="t-body-medium">Items</button><button type="button" data-dtab="nutrition" aria-pressed="' + (st.tab === 'nutrition') + '" class="t-body-medium">Nutrition</button></div>' +
         (st.tab === 'nutrition' ? nutrition(d) : bands(d)) + extras(d) + '</section>' + species(d);
     }
@@ -390,17 +443,17 @@ DIR_JS = '''  /* ---------------- Diet Directory (V2 tab prototype: diet/directo
     function closePanel() { st.panel = null; document.getElementById('dpanel').hidden = true; }
     function draw() { drawFilters(); drawList(); drawDetail(); }
 
-    root.addEventListener('input', function (e) { if (e.target.matches('[data-q]')) { st.q = e.target.value; drawFilters(); drawList(); drawDetail(); } });
+    root.addEventListener('input', function (e) { if (e.target.matches('[data-q]')) { st.q = e.target.value; st.page = 1; drawFilters(); drawList(); drawDetail(); } });
     root.addEventListener('click', function (e) {
       var t;
-      if ((t = e.target.closest('[data-v]'))) { st.ver = t.getAttribute('data-v'); draw(); return; }
-      if ((t = e.target.closest('[data-c]'))) { st.cls = t.getAttribute('data-c'); draw(); return; }
-      if ((t = e.target.closest('[data-unf]'))) { var k = t.getAttribute('data-unf'); if (k === '*') st.f = { site: '', cert: '', upd: '' }; else st.f[k] = ''; draw(); return; }
-      if (e.target.closest('[data-clearall]')) { st.q = ''; st.ver = ''; st.cls = 'all'; st.f = { site: '', cert: '', upd: '' }; $('[data-q]').value = ''; draw(); return; }
+      if ((t = e.target.closest('[data-v]'))) { st.ver = t.getAttribute('data-v'); st.page = 1; draw(); return; }
+      if ((t = e.target.closest('[data-unf]'))) { var unf = t.getAttribute('data-unf'); if (unf === '*' || unf === 'cls') st.cls = 'all'; if (unf === '*' || unf === 'site') st.f.site = ''; if (unf === '*' || unf === 'upd') st.f.upd = ''; st.page = 1; draw(); return; }
+      if ((t = e.target.closest('[data-page]'))) { st.page += Number(t.getAttribute('data-page')); drawList(); return; }
+      if (e.target.closest('[data-clearall]')) { st.q = ''; st.ver = ''; st.cls = 'all'; st.f = { site: '', upd: '' }; st.page = 1; $('[data-q]').value = ''; draw(); return; }
       if (e.target.closest('[data-filters]')) { openSheet(); return; }
       if ((t = e.target.closest('.ddrow'))) {
         var id = t.getAttribute('data-id');
-        if (id !== st.sel) st.tab = 'items';
+        if (id !== st.sel) { st.tab = 'items'; st.fedQ = ''; st.fedCls = 'all'; st.fedFilterOpen = false; }
         st.sel = id;
         if (LAND.matches) { try { history.replaceState(null, '', '#' + PREFIX + id); } catch (x) {} drawList(); drawDetail(); }
         else location.hash = '#' + PREFIX + id;
@@ -410,34 +463,91 @@ DIR_JS = '''  /* ---------------- Diet Directory (V2 tab prototype: diet/directo
       var d = find(st.sel), t; if (!d) return;
       if ((t = e.target.closest('[data-dtab]'))) { st.tab = t.getAttribute('data-dtab'); drawDetail(); return; }
       if ((t = e.target.closest('[data-view]'))) { st.view = t.getAttribute('data-view'); drawDetail(); return; }
+      if (e.target.closest('[data-fedfilter]')) { st.fedFilterOpen = !st.fedFilterOpen; drawDetail(); return; }
+      if ((t = e.target.closest('[data-fedcls]'))) { st.fedCls = t.getAttribute('data-fedcls'); st.fedFilterOpen = false; drawDetail(); return; }
       if ((t = e.target.closest('[data-pick]'))) { var m = st.picked[d.id] = st.picked[d.id] || {}, k = t.getAttribute('data-pick'); m[k] = !m[k]; drawDetail(); return; }
-      if (e.target.closest('[data-move]')) { var any = Object.keys(st.picked[d.id] || {}).some(function (k) { return st.picked[d.id][k]; }); toast(any ? 'Moving species to another diet is not part of this prototype.' : 'Select species to move first.'); return; }
-      if (e.target.closest('[data-addsp]')) { toast('Adding species is not part of this prototype.'); return; }
-      if (e.target.closest('[data-certify], [data-certchange]')) { toast('Certifying a diet is not part of this prototype.'); return; }
-      if ((t = e.target.closest('[data-act]'))) { var a = t.getAttribute('data-act'); toast(a === 'edit' ? 'Editing a diet is not part of this prototype.' : a === 'pdf' ? 'Download PDF is not part of this prototype.' : 'Plan actions are not part of this prototype.'); }
+      if (e.target.closest('[data-move]')) { var any = Object.keys(st.picked[d.id] || {}).some(function (k) { return st.picked[d.id][k]; }); if (any) openActionSheet('move', d); else toast('Select at least one species to move.'); return; }
+      if (e.target.closest('[data-addsp]')) { openActionSheet('add', d); return; }
+      if (e.target.closest('[data-certify], [data-certchange]')) { openActionSheet('cert', d); return; }
+      if ((t = e.target.closest('[data-act]'))) { var a = t.getAttribute('data-act'); if (a === 'edit') { if (d.planId && typeof HOOKS !== 'undefined' && HOOKS.editPlan) HOOKS.editPlan(d.tsn, d.planId); else toast('Open this diet from Diet by Species to edit it.'); } else if (a === 'pdf') { window.print(); } else openActionSheet('more', d); }
     }
     $('[data-detail]').addEventListener('click', onDetail);
     document.querySelector('#dpanel .dpanel__body').addEventListener('click', onDetail);
+    function onDetailInput(e) {
+      if (!e.target.matches('[data-fedq]')) return;
+      st.fedQ = e.target.value; var pos = e.target.selectionStart; drawDetail();
+      var q = host() && host().querySelector('[data-fedq]'); if (q) { q.focus(); q.setSelectionRange(pos, pos); }
+    }
+    $('[data-detail]').addEventListener('input', onDetailInput);
+    document.querySelector('#dpanel .dpanel__body').addEventListener('input', onDetailInput);
+    document.addEventListener('click', function (e) { if (st.fedFilterOpen && !e.target.closest('.fed-filter')) { st.fedFilterOpen = false; drawDetail(); } });
 
-    /* filters sheet: Site, Certification, Updates (V2 filter sheet) */
-    var draft;
+    /* Directory sheets: update filter, certification, shared species and more actions */
+    var draft, actionDiet;
     function sheetHtml() {
       function grp(key, title, opts) { return '<div class="sheet__g"><h3 class="t-minor-medium">' + title + '</h3><div class="chips">' + opts.map(function (o) { return '<button type="button" class="spchip t-body-medium" data-sk="' + key + '" data-sv="' + esc(o[0]) + '" aria-pressed="' + (draft[key] === o[0]) + '">' + esc(o[1]) + '</button>'; }).join('') + '</div></div>'; }
-      return '<div class="grab"></div><div class="sheet__h"><h2 class="t-major-title" id="sheetT">Filters</h2><button type="button" class="iconbtn" data-sclose aria-label="Close">' + ic('close', 24) + '</button></div>' +
-        grp('site', 'Site', [['', 'All sites']].concat(DIRD.sites.map(function (s) { return [s, s]; }))) +
-        grp('cert', 'Certification', [['', 'All'], ['uncertified', 'Uncertified'], ['certified', 'Certified']]) +
+      return '<div class="grab"></div><div class="sheet__h"><h2 class="t-major-title" id="sheetT">Filter diets</h2><button type="button" class="iconbtn" data-sclose aria-label="Close">' + ic('close', 24) + '</button></div>' +
+        grp('cls', 'Class', CLS) +
+        grp('site', 'Site', [['', 'All sites']].concat((DIRD.sites || []).map(function (s) { return [s, s]; }))) +
         grp('upd', 'Updates', [['', 'All'], ['pending', 'Needs verification'], ['approved', 'Update approved'], ['any', 'Any updated diet']]) +
         '<div class="sheet__f"><button type="button" class="btn sec" data-sreset>Reset</button><button type="button" class="btn pri" data-sapply>Apply</button></div>';
     }
-    function openSheet() { draft = { site: st.f.site, cert: st.f.cert, upd: st.f.upd }; var s = document.getElementById('sheet'); s.innerHTML = sheetHtml(); document.getElementById('scrim').hidden = false; }
-    function closeSheet() { document.getElementById('scrim').hidden = true; }
+    function dieticianNames() {
+      /* role users first (their spelling wins), then names only found on diets; compared without case so "Amruth reddy" and "Amruth Reddy" are one person */
+      var names = [], has = function (n) { return names.some(function (x) { return x.toLowerCase() === String(n).toLowerCase(); }); };
+      if (typeof USERS !== 'undefined') USERS.filter(function (u) { return u.role === 'DIETICIAN'; }).forEach(function (u) { if (!has(u.name)) names.push(u.name); });
+      DIETS.forEach(function (d) { if (d.dietitian && !has(d.dietitian.name)) names.push(d.dietitian.name); });
+      return names;
+    }
+    function allSpecies() {
+      var seen = {}, out = [];
+      DIETS.forEach(function (d) { (d.species || []).forEach(function (s) { if (!seen[s.name]) { seen[s.name] = 1; out.push(s); } }); });
+      return out.sort(function (a, b) { return a.name.localeCompare(b.name); });
+    }
+    function actionHtml() {
+      var close = '<button type="button" class="iconbtn" data-sclose aria-label="Close">' + ic('close', 24) + '</button>';
+      if (sheetMode === 'cert') {
+        return '<div class="grab"></div><div class="sheet__h"><div><h2 class="t-major-title" id="sheetT">Certification</h2><p class="t-body-regular">' + esc(actionDiet.id) + '</p></div>' + close + '</div><div class="sheet-list">' +
+          dieticianNames().map(function (n) { return '<button type="button" class="t-body-medium" data-certname="' + esc(n) + '" aria-pressed="' + !!(actionDiet.dietitian && actionDiet.dietitian.name.toLowerCase() === n.toLowerCase()) + '">' + esc(n) + '</button>'; }).join('') +
+          '</div>' + (actionDiet.dietitian ? '<button type="button" class="btn sec" data-certremove>Remove certification</button>' : '');
+      }
+      if (sheetMode === 'move') {
+        var n = Object.keys(st.picked[actionDiet.id] || {}).filter(function (k) { return st.picked[actionDiet.id][k]; }).length;
+        return '<div class="grab"></div><div class="sheet__h"><div><h2 class="t-major-title" id="sheetT">Move to another diet</h2><p class="t-body-regular">' + plural(n, 'species', 'species') + ' selected</p></div>' + close + '</div><div class="sheet-fields"><label class="t-body-medium">Destination diet<select data-moveto><option value="">Select a diet</option>' +
+          DIETS.filter(function (x) { return x !== actionDiet && x.active !== false; }).map(function (x) { return '<option value="' + esc(x.id) + '">' + esc(x.id + ' · ' + label(x)) + '</option>'; }).join('') + '</select></label></div><div class="sheet__f"><button type="button" class="btn sec" data-sclose>Cancel</button><button type="button" class="btn pri" data-moveapply>Move species</button></div>';
+      }
+      if (sheetMode === 'add') {
+        var pool = allSpecies().filter(function (s) { return !(actionDiet.species || []).some(function (x) { return x.name === s.name; }); });
+        var cand = pool.filter(function (s) { return !draft.q || (s.name + ' ' + (s.sci || '')).toLowerCase().indexOf(draft.q.toLowerCase()) !== -1; });
+        var conflict = draft.species && draft.kind === 'Base' && DIETS.some(function (x) { return x !== actionDiet && (x.species || []).some(function (s) { return s.name === draft.species && s.kind === 'Base'; }); });
+        return '<div class="grab"></div><div class="sheet__h"><div><h2 class="t-major-title" id="sheetT">Add species</h2><p class="t-body-regular">Add a species to ' + esc(actionDiet.id) + '</p></div>' + close + '</div><div class="sheet-fields">' +
+          '<label class="t-body-medium">Search<input type="search" data-addq value="' + esc(draft.q) + '" placeholder="Search species"></label><label class="t-body-medium">Species<select data-addspecies><option value="">Select a species</option>' + cand.map(function (s) { return '<option value="' + esc(s.name) + '"' + (draft.species === s.name ? ' selected' : '') + '>' + esc(s.name) + '</option>'; }).join('') + '</select></label>' +
+          '<label class="t-body-medium">Scope<select data-addscope>' + ['Species-wide', 'Site-wide', 'Section-wide', 'Enclosure-wide', 'Animal-wide'].map(function (x) { return '<option' + (draft.scope === x ? ' selected' : '') + '>' + x + '</option>'; }).join('') + '</select></label>' +
+          '<label class="t-body-medium">Diet type<select data-addkind><option value="Base">Year-round</option><option value="Seasonal"' + (draft.kind === 'Seasonal' ? ' selected' : '') + '>Seasonal</option><option value="Time-bound"' + (draft.kind === 'Time-bound' ? ' selected' : '') + '>Time-bound</option></select></label>' +
+          (draft.kind !== 'Base' ? '<label class="t-body-medium">From<input type="date" data-addfrom value="' + esc(draft.from) + '"></label><label class="t-body-medium">To<input type="date" data-addto value="' + esc(draft.to) + '"></label>' : '') +
+          (conflict ? '<p class="conflict t-body-regular">This species already has a year-round diet. Edit or move its current base diet instead.</p>' : '') + '</div><div class="sheet__f"><button type="button" class="btn sec" data-sclose>Cancel</button><button type="button" class="btn pri" data-addapply' + (conflict ? ' disabled' : '') + '>Add species</button></div>';
+      }
+      return '<div class="grab"></div><div class="sheet__h"><div><h2 class="t-major-title" id="sheetT">Diet actions</h2><p class="t-body-regular">' + esc(actionDiet.id) + '</p></div>' + close + '</div><div class="sheet-list"><button type="button" class="t-body-medium" data-toggleactive>' + (actionDiet.active === false ? 'Mark active' : 'Mark inactive') + '</button></div>';
+    }
+    function openSheet() { sheetMode = 'filters'; draft = { cls: st.cls, site: st.f.site, upd: st.f.upd }; var s = document.getElementById('sheet'); s.innerHTML = sheetHtml(); document.getElementById('scrim').hidden = false; }
+    function openActionSheet(mode, d) { sheetMode = mode; actionDiet = d; draft = { q: '', species: '', scope: 'Species-wide', kind: 'Base', from: '', to: '' }; document.getElementById('sheet').innerHTML = actionHtml(); document.getElementById('scrim').hidden = false; }
+    function closeSheet() { sheetMode = null; actionDiet = null; document.getElementById('scrim').hidden = true; }
     document.getElementById('scrim').addEventListener('click', function (e) {
-      var t;
+      if (!sheetMode) return; var t;
       if (e.target === this || e.target.closest('[data-sclose]')) { closeSheet(); return; }
-      if ((t = e.target.closest('[data-sk]'))) { draft[t.getAttribute('data-sk')] = t.getAttribute('data-sv'); document.getElementById('sheet').innerHTML = sheetHtml(); return; }
-      if (e.target.closest('[data-sreset]')) { draft = { site: '', cert: '', upd: '' }; document.getElementById('sheet').innerHTML = sheetHtml(); return; }
-      if (e.target.closest('[data-sapply]')) { st.f = draft; closeSheet(); draw(); }
+      if (sheetMode === 'filters') {
+        if ((t = e.target.closest('[data-sk]'))) { draft[t.getAttribute('data-sk')] = t.getAttribute('data-sv'); document.getElementById('sheet').innerHTML = sheetHtml(); return; }
+        if (e.target.closest('[data-sreset]')) { draft = { cls: 'all', site: '', upd: '' }; document.getElementById('sheet').innerHTML = sheetHtml(); return; }
+        if (e.target.closest('[data-sapply]')) { st.cls = draft.cls; st.f.site = draft.site; st.f.upd = draft.upd; st.page = 1; closeSheet(); draw(); } return;
+      }
+      if ((t = e.target.closest('[data-certname]'))) { var certId = actionDiet.id; actionDiet.dietitian = { name: t.getAttribute('data-certname'), date: new Date().toLocaleDateString('en-GB').replace(/\//g, '-') }; actionDiet.verified = true; actionDiet.update = 'approved'; closeSheet(); draw(); toast(certId + ' certified.'); return; }
+      if (e.target.closest('[data-certremove]')) { actionDiet.dietitian = null; actionDiet.verified = false; closeSheet(); draw(); toast('Certification removed.'); return; }
+      if (e.target.closest('[data-moveapply]')) { var to = document.getElementById('sheet').querySelector('[data-moveto]').value, dest = find(to); if (!dest) { toast('Choose a destination diet.'); return; } var picked = st.picked[actionDiet.id] || {}, moving = actionDiet.species.filter(function (s, i) { return picked[i]; }); actionDiet.species = actionDiet.species.filter(function (s, i) { return !picked[i]; }); dest.species = (dest.species || []).concat(moving); st.picked[actionDiet.id] = {}; closeSheet(); draw(); toast(plural(moving.length, 'species', 'species') + ' moved to ' + dest.id + '.'); return; }
+      if (e.target.closest('[data-addapply]')) { var src = allSpecies().filter(function (s) { return s.name === draft.species; })[0]; if (!src) { toast('Choose a species.'); return; } if (draft.kind !== 'Base' && (!draft.from || !draft.to || draft.from > draft.to)) { toast('Enter a valid date range.'); return; } actionDiet.species.push(Object.assign({}, src, { kind: draft.kind, scope: draft.scope, from: draft.from || null, to: draft.to || null })); var addId = actionDiet.id; closeSheet(); draw(); toast(src.name + ' added to ' + addId + '.'); return; }
+      if (e.target.closest('[data-toggleactive]')) { var activeId = actionDiet.id; actionDiet.active = actionDiet.active === false; var isActive = actionDiet.active; closeSheet(); draw(); toast(activeId + (isActive ? ' marked active.' : ' marked inactive.')); }
     });
+    document.getElementById('scrim').addEventListener('input', function (e) { if (sheetMode === 'add' && e.target.matches('[data-addq]')) { draft.q = e.target.value; document.getElementById('sheet').innerHTML = actionHtml(); var q = document.getElementById('sheet').querySelector('[data-addq]'); q.focus(); q.setSelectionRange(q.value.length, q.value.length); } });
+    document.getElementById('scrim').addEventListener('change', function (e) { if (sheetMode !== 'add') return; if (e.target.matches('[data-addspecies]')) draft.species = e.target.value; if (e.target.matches('[data-addscope]')) draft.scope = e.target.value; if (e.target.matches('[data-addkind]')) draft.kind = e.target.value; if (e.target.matches('[data-addfrom]')) draft.from = e.target.value; if (e.target.matches('[data-addto]')) draft.to = e.target.value; document.getElementById('sheet').innerHTML = actionHtml(); });
     LAND.addEventListener('change', function () { if (LAND.matches) closePanel(); else if (opt.currentId && opt.currentId()) openPanel(opt.currentId()); draw(); });
     draw();
     return {
@@ -569,58 +679,25 @@ exec(open(os.path.join(HERE, 'sp3.py')).read())
 exec(open(os.path.join(HERE, 'roles.py')).read())
 exec(open(os.path.join(HERE, 'hdq.py')).read())
 
-# ---------------------------------------------------------------- Directory for diet-home.html: the diets that exist in the species data
-# diet-directory.html keeps the V2 data and module unchanged; diet-home.html gets a directory built from BS (sample.py: 5 base diets),
-# with "Used by" lists that match the species tab, and the dead controls replaced (Edit opens the species edit wizard).
-_MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-def _dmy(iso): return '%d %s %s' % (int(iso[8:10]), _MON[int(iso[5:7]) - 1], iso[:4]) if iso else ''
-def _cls(c): c = (c or '').lower(); return c if c in ('mammalia', 'aves', 'reptilia') else 'other'
-_byk = {}
+# ---------------------------------------------------------------- Directory for diet-home.html
+# diet-home.html shows the same 32 V2 directory diets as diet-directory.html. Diets that also exist in the species
+# sample (BS, sample.py) get tsn + planId, so Edit diet opens the species edit wizard for them.
+import copy as _copy
+V2DIR_HOME = _copy.deepcopy(V2DIR)
+_byshown = {}
 for _s in BS['species']:
     for _pid in _s['plans']:
         _p = BS['plans'][str(_pid)]
-        _byk.setdefault(_p.get('sharedFrom') or _p['id'], []).append((_s, _p))
-_hd = []
-for _k, _us in _byk.items():
-    _s0, _p0 = _us[0]
-    _e = {'id': 'D-%s' % _k, 'tsn': _s0['tsn'], 'planId': _p0['id'], 'verified': bool(_p0.get('verified')), 'update': _p0.get('update', 'none'), 'active': True,
-          'window': {'text': 'Year-round since ' + _dmy(_p0.get('created')), 'state': 'current'}, 'by': _p0.get('by'),
-          'dietitian': {'name': _p0['dietitian'], 'date': _dmy(_p0.get('created'))} if _p0.get('dietitian') else None,
-          'schedule': _p0.get('schedule', []), 'nutrition': _p0.get('nutrition', {}), 'columns': _p0.get('columns'),
-          'species': [{'name': x['name'], 'sci': x['sci'], 'animals': x['animals'], 'kind': 'Base', 'cls': _cls(x['cls']), 'tsn': x['tsn'], 'planId': q['id']} for x, q in _us],
-          'sites': sorted({e['site'] for x, q in _us for e in x['enclosures']})}
-    if _p0.get('notes'): _e['notes'] = _p0['notes']
-    if _p0.get('remark'): _e['remark'] = _p0['remark']
-    _hd.append({k: v for k, v in _e.items() if v is not None})
-V2DIR_HOME = {'sites': sorted({x for d in _hd for x in d['sites']}), 'selectedId': _hd[0]['id'] if _hd else None, 'diets': _hd}
-N_DIR_HOME = len(_hd)
+        if _p.get('scope') == 'species' and _p.get('kind') == 'base' and _p.get('active'): _byshown.setdefault('D-%s' % (_p.get('sharedFrom') or _p['id']), (_s['tsn'], _p['id']))
+_bysp = {x['name']: x['tsn'] for x in BS['species']}
+for _d in V2DIR_HOME['diets']:
+    if _d['id'] in _byshown: _d['tsn'], _d['planId'] = _byshown[_d['id']]
+    for _x in _d.get('species') or []:   # fed-to species that exist in the species sample link to it; the rest stay plain text
+        if _x['name'] in _bysp: _x['tsn'] = _bysp[_x['name']]
+N_DIR_HOME = len(V2DIR_HOME['diets'])
 _dj = json.dumps(V2DIR, ensure_ascii=False).replace('</', '<\\/')
 assert DIR_JS.count(_dj) == 1
 DIR_JS_HOME = DIR_JS.replace(_dj, json.dumps(V2DIR_HOME, ensure_ascii=False).replace('</', '<\\/'))
-_a, _b = DIR_JS_HOME.index('    function species(d) {'), DIR_JS_HOME.index('    function host() {')
-DIR_JS_HOME = DIR_JS_HOME[:_a] + """    function species(d) {
-      var sp = d.species || [];
-      return '<section class="dpane"><h3 class="t-minor-title">Used by ' + plural(sp.length, 'species', 'species') + '</h3>' + (sp.length ? '<ul class="shlist">' + sp.map(function (s) {
-        return '<li><a class="shrow" href="#species/all/' + s.tsn + '/' + s.planId + '"><span class="t-body-title">' + esc(s.name) + '</span>' + (s.sci ? '<i class="t-body-regular">' + esc(s.sci) + '</i>' : '') + '</a></li>'; }).join('') + '</ul>' : '<p class="t-body-regular dp-none">No species use this diet.</p>') + '</section>';
-    }
-    function detailHtml(d) {
-      if (!d) return '<section class="dpane"><div class="empty"><b class="t-minor-title">No diets yet</b><span class="t-body-regular">Create a base diet from Diet by Species.</span></div></section>';
-      var meta = ['Base diet', d.window ? d.window.text : '', d.by ? 'Created by ' + d.by : '', d.dietitian ? 'Certified by ' + d.dietitian.name : 'Not certified'].filter(Boolean).join(' · ');
-      return '<section class="dpane"><div class="dp-head"><div class="grow"><div class="tags"><span class="tag ' + (d.verified ? 'green' : 'grey') + '">' + (d.verified ? 'Verified' : 'Unverified') + '</span>' +
-        (d.update === 'pending' ? '<span class="tag orange">Update pending</span>' : d.update === 'approved' ? '<span class="tag green">Update approved</span>' : '') + '</div>' +
-        '<p class="dp-meta t-body-regular">' + esc(meta) + '</p></div>' +
-        (d.planId ? '<button type="button" class="btn sec dp-edit" data-act="edit" aria-label="Edit ' + esc(d.id) + '">' + ic('pencil', 20) + 'Edit</button>' : '') + '</div>' +
-        '<div class="dseg" role="group" aria-label="Diet view"><button type="button" data-dtab="items" aria-pressed="' + (st.tab === 'items') + '" class="t-body-medium">Items</button><button type="button" data-dtab="nutrition" aria-pressed="' + (st.tab === 'nutrition') + '" class="t-body-medium">Nutrition</button></div>' +
-        (st.tab === 'nutrition' ? nutrition(d) : bands(d)) + extras(d) + '</section>' + species(d);
-    }
-""" + DIR_JS_HOME[_b:]
-_a, _b = DIR_JS_HOME.index('    function onDetail(e) {'), DIR_JS_HOME.index("    $('[data-detail]').addEventListener('click', onDetail);")
-DIR_JS_HOME = DIR_JS_HOME[:_a] + """    function onDetail(e) {
-      var d = find(st.sel), t; if (!d) return;
-      if ((t = e.target.closest('[data-dtab]'))) { st.tab = t.getAttribute('data-dtab'); drawDetail(); return; }
-      if (e.target.closest('[data-act="edit"]') && d.planId && HOOKS.editPlan) HOOKS.editPlan(d.tsn, d.planId);
-    }
-""" + DIR_JS_HOME[_b:]
 
 OVERLAYS = f'''  <div class="dpanel" id="dpanel" hidden role="dialog" aria-modal="true" aria-labelledby="dpT">
     <header class="bar"><button class="iconbtn" type="button" data-pback aria-label="Back to the diet list">{svg("back", 24)}</button><div class="bar__hd"><h1 class="t-medium-medium" id="dpT" data-ptitle></h1><p class="t-body-regular" data-psub></p></div></header>

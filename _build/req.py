@@ -411,7 +411,7 @@ REQ_FORM_JS = '''    /* ======================= REQUEST DIET CHANGE (V2 dr-core.
       var baseNote = base ? (sc === 'species' ? 'A base diet already exists. You’ll propose changes to ' + shownId(base) + '.' : 'Base diets are species-wide. This will propose a change to the ' + s.name + ' base diet (' + shownId(base) + ').')
         : (sc === 'species' ? 'This species has no base diet yet. This will create the species-wide base.' : 'Base diets are species-wide. This will create the species-wide base.');
       var o = [];
-      if (prop) o.push({ k: 'proposed', t: 'Edit the proposed diet', tail: shownId(prop), d: 'Reopen the current proposal with its items, dates and notes.', note: 'Saving replaces ' + shownId(prop) + ' on this request.' });
+      if (prop) return [{ k: 'proposed', t: 'Edit the proposed diet', tail: shownId(prop), d: 'Reopen the current proposal with its items, dates and notes.', note: 'Saving replaces ' + shownId(prop) + ' on this request.' }];
       o.push({ k: 'base', t: 'New base diet', tail: base ? 'Edit ' + shownId(base) : '', d: 'The always-on default for the whole species.', note: baseNote, edit: base ? base.id : null, species: true });
       if (sc === 'species') o.push({ k: 'year-round', t: 'Year-round', tail: base ? 'Edit ' + shownId(base) : '', d: 'An always-on default for this species.', note: 'At species level the year-round diet is the base diet. ' + (base ? 'You’ll propose changes to ' + shownId(base) + '.' : 'This will create the species-wide base.'), edit: base ? base.id : null, species: true });
       else o.push({ k: 'year-round', t: 'Year-round', tail: here ? 'Edit ' + shownId(here) : '', d: 'An always-on default for ' + scName + ', on top of the base diet.', note: here ? 'A year-round diet already exists here. You’ll propose changes to ' + shownId(here) + '.' : !base ? noBase : '', edit: here ? here.id : null });
@@ -419,7 +419,7 @@ REQ_FORM_JS = '''    /* ======================= REQUEST DIET CHANGE (V2 dr-core.
       o.push({ k: 'time-bound', t: 'Time-bound', d: 'Applies once between a from and a to date.', note: base ? '' : noBase });
       var sug = rec.season ? 'seasonal' : rec.type === 'temporary' ? 'time-bound' : rec.type === 'base' ? (sc === 'species' ? 'base' : 'year-round') : sc === 'species' ? 'base' : 'year-round';
       o.forEach(function (x) { x.sug = x.k === sug; });
-      return o;
+      return o.filter(function (x) { return x.sug; });
     }
     function drawCfg() {
       var rec = RQ.get(CFG.id), o = cfgOptions(rec);
@@ -427,7 +427,7 @@ REQ_FORM_JS = '''    /* ======================= REQUEST DIET CHANGE (V2 dr-core.
       var ICN = { proposed: 'pencil', base: 'paw', 'year-round': 'time', seasonal: 'star', 'time-bound': 'calendar' };
       sheet('<div class="sheet__h"><div><h2 class="t-major-title" id="rsT">How should this request be configured?</h2><p class="t-body-regular" style="color:var(--ink)">' + esc(rec.id + ' · ' + rec.sp + ' · ' + (rec.scopeText || 'Whole species')) + '</p></div><button type="button" class="iconbtn" data-rsclose aria-label="Close">' + ic('close', 24) + '</button></div>' +
         '<div class="cfgs" role="radiogroup" aria-label="Configuration type">' + o.map(function (x) {
-          return '<button type="button" class="cfg' + (x.k === 'proposed' ? ' cur' : '') + '" role="radio" data-cfgk="' + x.k + '" aria-checked="' + (CFG.pick === x.k) + '"><span class="oi">' + ic(ICN[x.k], 22) + '</span><span class="grow"><b class="t-minor-title">' + x.t + (x.tail ? '<em class="cfg__tail"> · ' + esc(x.tail) + '</em>' : '') + (x.sug ? ' <span class="tag green">Suggested from request</span>' : '') + '</b><span class="t-body-regular">' + esc(x.d) + '</span>' +
+          return '<button type="button" class="cfg' + (x.k === 'proposed' ? ' cur' : '') + '" role="radio" data-cfgk="' + x.k + '" aria-checked="' + (CFG.pick === x.k) + '"><span class="oi">' + ic(ICN[x.k], 22) + '</span><span class="grow"><b class="t-minor-title">' + x.t + (x.tail ? '<em class="cfg__tail"> · ' + esc(x.tail) + '</em>' : '') + ' <span class="tag green">' + (x.k === 'proposed' ? 'Current proposal' : 'Requested') + '</span></b><span class="t-body-regular">' + esc(x.d) + '</span>' +
             (x.note ? '<small class="note t-body-regular">' + ic('info', 16) + '<span>' + esc(x.note) + '</span></small>' : '') + '</span></button>';
         }).join('') + '</div>' +
         '<p class="t-body-regular" style="color:var(--md3-neutral-secondary)">The result is a proposed diet linked to ' + esc(rec.id) + '. It is not active and goes to Kitchen when you send it.</p>' +
